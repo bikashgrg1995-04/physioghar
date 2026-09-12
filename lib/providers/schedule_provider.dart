@@ -1,6 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:physioghar/core/utils/date_time_utils.dart';
-import 'package:physioghar/data/mock_data.dart';
 import 'package:physioghar/models/schedule_slot.dart';
 
 class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
@@ -8,30 +6,67 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
   List<ScheduleSlot> build() {
     final today = DateTime.now();
 
-    final startDate = DateTime(today.year, today.month, today.day);
+    final startDate = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    );
 
-    return MockData.scheduleSlots.map((mockSlot) {
-      final hour = mockSlot['time'] as int;
+    // Find the next Monday within today + next 6 days.
+    final daysUntilMonday =
+        (DateTime.monday - startDate.weekday + 7) % 7;
 
-      return ScheduleSlot(
-        id: 'slot_$hour',
-        dateTime: DateTime(
-          startDate.year,
-          startDate.month,
-          startDate.day,
-          hour,
-        ),
-        status: mockSlot['status'] as ScheduleSlotStatus,
-        sessionId: mockSlot['sessionId']?.toString(),
+    final monday = startDate.add(
+      Duration(days: daysUntilMonday),
+    );
+
+    DateTime mondayAt(int hour) {
+      return DateTime(
+        monday.year,
+        monday.month,
+        monday.day,
+        hour,
       );
-    }).toList();
+    }
+
+    return [
+      // Monday - mock schedule data
+      ScheduleSlot(
+        id: 'slot_001',
+        dateTime: mondayAt(9),
+        status: ScheduleSlotStatus.open,
+      ),
+      ScheduleSlot(
+        id: 'slot_002',
+        dateTime: mondayAt(10),
+        status: ScheduleSlotStatus.booked,
+        sessionId: 'session_001',
+      ),
+      ScheduleSlot(
+        id: 'slot_003',
+        dateTime: mondayAt(11),
+        status: ScheduleSlotStatus.open,
+      ),
+      ScheduleSlot(
+        id: 'slot_004',
+        dateTime: mondayAt(12),
+        status: ScheduleSlotStatus.blocked,
+      ),
+      ScheduleSlot(
+        id: 'slot_005',
+        dateTime: mondayAt(13),
+        status: ScheduleSlotStatus.blocked,
+      ),
+    ];
   }
 
   void blockSlot(String slotId) {
     state = [
       for (final slot in state)
         if (slot.id == slotId)
-          slot.copyWith(status: ScheduleSlotStatus.blocked)
+          slot.copyWith(
+            status: ScheduleSlotStatus.blocked,
+          )
         else
           slot,
     ];
@@ -41,32 +76,27 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
     state = [
       for (final slot in state)
         if (slot.id == slotId)
-          slot.copyWith(status: ScheduleSlotStatus.open)
+          slot.copyWith(
+            status: ScheduleSlotStatus.open,
+          )
         else
           slot,
     ];
   }
 
   void addSlot(DateTime dateTime) {
-    final alreadyExists = state.any(
-      (slot) =>
-          DateTimeUtils.isSameDay(slot.dateTime, dateTime) &&
-          slot.dateTime.hour == dateTime.hour &&
-          slot.dateTime.minute == dateTime.minute,
-    );
-
-    if (alreadyExists) {
-      return;
-    }
-
     final newSlot = ScheduleSlot(
       id: 'slot_${DateTime.now().microsecondsSinceEpoch}',
       dateTime: dateTime,
       status: ScheduleSlotStatus.open,
     );
 
-    state = [...state, newSlot]
-      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    state = [
+      ...state,
+      newSlot,
+    ]..sort(
+        (a, b) => a.dateTime.compareTo(b.dateTime),
+      );
   }
 
   void deleteSlot(String slotId) {
@@ -77,6 +107,8 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
   }
 }
 
-final scheduleProvider = NotifierProvider<ScheduleNotifier, List<ScheduleSlot>>(
+final scheduleProvider =
+    NotifierProvider<ScheduleNotifier, List<ScheduleSlot>>(
   ScheduleNotifier.new,
 );
+

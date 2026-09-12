@@ -198,31 +198,24 @@ void main() {
       expect(find.text('BLOCKED'), findsWidgets);
     });
 
-    testWidgets(
-  'BLOCKED slot can be changed to OPEN',
-  (tester) async {
-    await pumpScheduleScreen(tester);
+    testWidgets('BLOCKED slot can be changed to OPEN', (tester) async {
+      await pumpScheduleScreen(tester);
 
-    final blockedTime = find.text('12:00 PM');
+      final blockedTime = find.text('12:00 PM');
 
-    await scrollScheduleUntilVisible(
-      tester,
-      blockedTime,
-    );
+      await scrollScheduleUntilVisible(tester, blockedTime);
 
-    await tester.tap(blockedTime);
-    await tester.pumpAndSettle();
+      await tester.tap(blockedTime);
+      await tester.pumpAndSettle();
 
-    expect(find.text('Unblock Slot'), findsWidgets);
+      expect(find.text('Unblock Slot'), findsWidgets);
 
-    // The button is the last matching "Unblock Slot".
-    await tester.tap(find.text('Unblock Slot').last);
-    await tester.pumpAndSettle();
+      // The button is the last matching "Unblock Slot".
+      await tester.tap(find.text('Unblock Slot').last);
+      await tester.pumpAndSettle();
 
-    expect(find.text('OPEN'), findsWidgets);
-  },
-);
-  
+      expect(find.text('OPEN'), findsWidgets);
+    });
   });
 
   group('ScheduleScreen - Delete Slot', () {
