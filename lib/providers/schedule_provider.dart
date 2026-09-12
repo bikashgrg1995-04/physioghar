@@ -40,7 +40,7 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
         id: 'slot_002',
         dateTime: mondayAt(10),
         status: ScheduleSlotStatus.booked,
-        sessionId: 'session_001',
+        sessionId: 'schedule_session_001',
       ),
       ScheduleSlot(
         id: 'slot_003',

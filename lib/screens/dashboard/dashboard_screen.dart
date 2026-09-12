@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/providers/session_provider.dart';
 import 'package:physioghar/screens/dashboard/widgets/dashboard_summary_card.dart';
@@ -17,9 +18,7 @@ class DashboardScreen extends ConsumerWidget {
     final today = DateTime.now();
 
     final todaySessions = sessions.where((session) {
-      return session.dateTime.year == today.year &&
-          session.dateTime.month == today.month &&
-          session.dateTime.day == today.day;
+      return DateTimeUtils.isSameDay(session.dateTime, today);
     }).toList();
 
     final upcomingRequests = sessions.where((session) {
