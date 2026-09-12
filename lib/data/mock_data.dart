@@ -1,9 +1,9 @@
+import 'package:physioghar/models/schedule_slot.dart';
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/models/therapist.dart';
 
 class MockData {
   MockData._();
-
   static final Therapist initialTherapist = Therapist(
     id: 'therapist_001',
     name: 'Dr. Anisha Sharma',
@@ -36,5 +36,17 @@ class MockData {
       status: SessionStatus.upcoming,
       patientAge: '45',
     ),
+  ];
+
+  static const List<Map<String, dynamic>> scheduleSlots = [
+    {'time': 9, 'status': ScheduleSlotStatus.open},
+    {
+      'time': 10,
+      'status': ScheduleSlotStatus.booked,
+      'sessionId': 'session_001',
+    },
+    {'time': 11, 'status': ScheduleSlotStatus.open},
+    {'time': 12, 'status': ScheduleSlotStatus.blocked},
+    {'time': 13, 'status': ScheduleSlotStatus.blocked},
   ];
 }
