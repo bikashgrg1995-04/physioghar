@@ -58,7 +58,7 @@ void main() {
 
       expect(find.text("Today's Schedule"), findsOneWidget);
 
-      final sitaCard = find.byKey(const Key('today-session-card-session_001'));
+      final sitaCard = find.byKey(const Key('today-session-card-dashboard_session_001'));
 
       expect(sitaCard, findsOneWidget);
 
@@ -77,7 +77,7 @@ void main() {
         findsOneWidget,
       );
 
-      final ramCard = find.byKey(const Key('today-session-card-session_002'));
+      final ramCard = find.byKey(const Key('today-session-card-dashboard_session_002'));
 
       expect(ramCard, findsOneWidget);
 
@@ -106,11 +106,11 @@ void main() {
       expect(find.text('Upcoming Sessions'), findsOneWidget);
 
       final sitaCard = find.byKey(
-        const Key('upcoming-session-card-session_001'),
+        const Key('upcoming-session-card-dashboard_session_001'),
       );
 
       final ramCard = find.byKey(
-        const Key('upcoming-session-card-session_002'),
+        const Key('upcoming-session-card-dashboard_session_002'),
       );
 
       expect(sitaCard, findsOneWidget);
