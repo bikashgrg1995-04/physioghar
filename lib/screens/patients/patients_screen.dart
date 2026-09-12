@@ -5,8 +5,8 @@ class PatientsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Patients'),
+    return  Center(
+      child: Text('Patients',  key: const Key('patients-screen-title'),),
     );
   }
 }

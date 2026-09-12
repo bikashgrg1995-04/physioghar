@@ -5,8 +5,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Profile'),
+    return  Center(
+      child: Text('Profile', key: const Key('profile-screen-title') ),
     );
   }
 }

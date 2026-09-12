@@ -5,8 +5,8 @@ class ScheduleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Schedule'),
+    return  Center(
+      child: Text('Schedule', key: const Key('schedule-screen-title')),
     );
   }
 }
