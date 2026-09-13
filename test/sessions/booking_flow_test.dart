@@ -1,10 +1,10 @@
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:physioghar/models/schedule_slot.dart';
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/providers/schedule_provider.dart';
 import 'package:physioghar/providers/session_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
   test(
@@ -14,14 +14,27 @@ void main() {
 
       addTearDown(container.dispose);
 
-      // Read initial session state.
+      // Initial session state.
       final initialSessions = container.read(sessionProvider);
 
       final request = initialSessions.firstWhere(
         (session) => session.id == 'request_session_001',
       );
 
-      expect(request.status, SessionStatus.requested);
+      expect(
+        request.status,
+        SessionStatus.requested,
+      );
+
+      // The request should not already have a booked schedule slot.
+      final initialSchedule = container.read(scheduleProvider);
+
+      expect(
+        initialSchedule.any(
+          (slot) => slot.sessionId == request.id,
+        ),
+        isFalse,
+      );
 
       // Accept the booking.
       container
@@ -42,9 +55,9 @@ void main() {
 
       // Schedule should now contain a booked slot
       // for the accepted session.
-      final schedule = container.read(scheduleProvider);
+      final updatedSchedule = container.read(scheduleProvider);
 
-      final bookedSlot = schedule.firstWhere(
+      final bookedSlot = updatedSchedule.firstWhere(
         (slot) => slot.sessionId == request.id,
       );
 

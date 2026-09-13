@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/screens/schedule/widgets/add_slot_bottom_sheet.dart';
 import 'package:physioghar/screens/schedule/widgets/availability_status_card.dart';
@@ -25,7 +26,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       builder: (_) {
-        return AddSlotBottomSheet(selectedDate: _selectedDate);
+        return AddSlotBottomSheet(
+          selectedDate: _selectedDate,
+          onSlotAdded: () {
+            AppSnackBar.showSuccess(
+              context,
+              'Available slot added successfully.',
+            );
+          },
+        );
       },
     );
   }
@@ -69,6 +78,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               selectedDate: _selectedDate,
               onDateSelected: _onDateSelected,
             ),
+            
+
 
             const SizedBox(height: AppSizes.spacingXl),
 

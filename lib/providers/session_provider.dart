@@ -89,16 +89,36 @@ class SessionNotifier extends Notifier<List<Session>> {
     ref.read(scheduleProvider.notifier).releaseSlotForSession(sessionId);
   }
 
-  void rescheduleSession(String sessionId, DateTime newDateTime) {
-    state = [
-      for (final session in state)
-        if (session.id == sessionId)
-          session.copyWith(dateTime: newDateTime)
-        else
-          session,
-    ];
+  // Reschedule a session to a new date/time and synchronize the related schedule slot.
+  // This method updates the session's date/time and also updates the corresponding schedule slot to reflect the new date/time.
+  void rescheduleSession(
+  String sessionId,
+  DateTime newDateTime,
+) {
+  final selectedSession = state
+      .where((session) => session.id == sessionId)
+      .firstOrNull;
+
+  if (selectedSession == null) {
+    return;
   }
 
+  state = [
+    for (final session in state)
+      if (session.id == sessionId)
+        session.copyWith(
+          dateTime: newDateTime,
+          status: SessionStatus.upcoming,
+        )
+      else
+        session,
+  ];
+
+  ref.read(scheduleProvider.notifier).rescheduleSlot(
+    sessionId,
+    newDateTime,
+  );
+}
   void updateSessionStatus(String sessionId, SessionStatus status) {
     state = [
       for (final session in state)

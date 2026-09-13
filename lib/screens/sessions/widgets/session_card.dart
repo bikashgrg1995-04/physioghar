@@ -3,16 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:physioghar/app/router.dart';
 import 'package:physioghar/common_widgets/app_button.dart';
+import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/providers/session_provider.dart';
+import 'package:physioghar/common_widgets/app_confirmation_dialog.dart';
+import 'package:physioghar/screens/sessions/widgets/reschedule_bottom_sheet.dart';
 
 class SessionCard extends ConsumerWidget {
   const SessionCard({super.key, required this.session});
 
   final Session session;
+
+  bool _isPastSession() {
+    return !session.dateTime.isAfter(DateTime.now());
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -107,14 +114,91 @@ class SessionCard extends ConsumerWidget {
 
     switch (session.status) {
       case SessionStatus.requested:
+        final isPast = _isPastSession();
+
+        if (isPast) {
+          return Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  text: 'Decline',
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () async {
+                    final confirmed = await showConfirmationDialog(
+                      context,
+                      title: 'Decline Booking?',
+                      message: 'Are you sure you want to decline this booking request?',
+                      confirmText: 'Decline',
+                      icon: Icons.close_outlined,
+                      isDestructive: true,
+                    );
+
+                    if (confirmed != true) {
+                      return;
+                    }
+
+                    notifier.declineSession(session.id);
+
+                    if (!context.mounted) {
+                      return;
+                    }
+
+                    AppSnackBar.showSuccess(
+                      context,
+                      'Booking request declined.',
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: AppSizes.spacingSm),
+              Expanded(
+                child: AppButton(
+                  text: 'Reschedule',
+                  onPressed: () {
+                    showRescheduleBottomSheet(
+                      context,
+                      session: session,
+                      onReschedule: () {
+                        AppSnackBar.showSuccess(
+                          context,
+                          'Booking rescheduled and accepted successfully.',
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        }
+
         return Row(
           children: [
             Expanded(
               child: AppButton(
                 text: 'Decline',
                 variant: AppButtonVariant.secondary,
-                onPressed: () {
+                onPressed: () async {
+                  final confirmed = await showConfirmationDialog(
+                    context,
+                    title: 'Decline Booking?',
+                    message: 'Are you sure you want to decline this booking request?',
+                    confirmText: 'Decline',
+                    icon: Icons.close_outlined,
+                    isDestructive: true,
+                  );
+
+                  if (confirmed != true) {
+                    return;
+                  }
+
                   notifier.declineSession(session.id);
+
+                  if (!context.mounted) {
+                    return;
+                  }
+
+                  AppSnackBar.showSuccess(context, 'Booking request declined.');
                 },
               ),
             ),
@@ -122,14 +206,32 @@ class SessionCard extends ConsumerWidget {
             Expanded(
               child: AppButton(
                 text: 'Accept',
-                onPressed: () {
+                onPressed: () async {
+                  final confirmed = await showConfirmationDialog(
+                    context,
+                    title: 'Accept Booking?',
+                    message:
+                        'Are you sure you want to accept this booking request?',
+                    confirmText: 'Accept',
+                    icon: Icons.check_circle_outline,
+                  );
+
+                  if (confirmed != true) {
+                    return;
+                  }
+
                   notifier.acceptSession(session.id);
+
+                  if (!context.mounted) {
+                    return;
+                  }
+
+                  AppSnackBar.showSuccess(context, 'Booking request accepted.');
                 },
               ),
             ),
           ],
         );
-
       case SessionStatus.upcoming:
         return Row(
           children: [
@@ -151,7 +253,16 @@ class SessionCard extends ConsumerWidget {
                 text: 'Reschedule',
                 variant: AppButtonVariant.secondary,
                 onPressed: () {
-                  
+                  showRescheduleBottomSheet(
+                    context,
+                    session: session,
+                    onReschedule: () {
+                      AppSnackBar.showSuccess(
+                        context,
+                        'Session rescheduled successfully.',
+                      );
+                    },
+                  );
                 },
               ),
             ),
@@ -160,8 +271,25 @@ class SessionCard extends ConsumerWidget {
               flex: 4,
               child: AppButton(
                 text: 'Complete',
-                onPressed: () {
+                onPressed: () async {
+                  final confirmed = await showConfirmationDialog(
+                    context,
+                    title: 'Complete Session?',
+                    message: 'Are you sure you want to mark this session as completed?',
+                    confirmText: 'Complete',
+                    icon: Icons.check_circle_outline,
+                  );
+                  if (confirmed != true) {
+                    return;
+                  }
                   notifier.completeSession(session.id);
+                  if (!context.mounted) {
+                    return;
+                  }
+                  AppSnackBar.showSuccess(
+                    context,
+                    'Session completed successfully.',
+                  );
                 },
               ),
             ),

@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/providers/schedule_provider.dart';
 
 class AddSlotBottomSheet extends ConsumerStatefulWidget {
   final DateTime selectedDate;
+  final VoidCallback? onSlotAdded;
 
   const AddSlotBottomSheet({
     super.key,
     required this.selectedDate,
+    this.onSlotAdded,
   });
 
   @override
-  ConsumerState<AddSlotBottomSheet> createState() =>
-      _AddSlotBottomSheetState();
+  ConsumerState<AddSlotBottomSheet> createState() => _AddSlotBottomSheetState();
 }
 
-class _AddSlotBottomSheetState
-    extends ConsumerState<AddSlotBottomSheet> {
+class _AddSlotBottomSheetState extends ConsumerState<AddSlotBottomSheet> {
   TimeOfDay? _selectedTime;
 
   Future<void> _pickTime() async {
@@ -28,6 +29,10 @@ class _AddSlotBottomSheetState
     );
 
     if (pickedTime == null) {
+      return;
+    }
+
+    if (!mounted) {
       return;
     }
 
@@ -49,9 +54,22 @@ class _AddSlotBottomSheetState
       _selectedTime!.minute,
     );
 
-    ref.read(scheduleProvider.notifier).addSlot(dateTime);
+    final added = ref.read(scheduleProvider.notifier).addSlot(dateTime);
 
-    Navigator.pop(context);
+    if (!mounted) {
+      return;
+    }
+Navigator.of(context).pop();
+    if (!added) {
+      AppSnackBar.showError(
+        context,
+        'A slot already exists at this date and time.',
+      );
+      return;
+    }
+
+    
+    widget.onSlotAdded?.call();
   }
 
   @override
@@ -73,26 +91,17 @@ class _AddSlotBottomSheetState
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: AppSizes.spacingXl),
-            Text(
-              'Select time',
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
+            Text('Select time', style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: AppSizes.spacingSm),
             InkWell(
               onTap: _pickTime,
-              borderRadius: BorderRadius.circular(
-                AppSizes.cardRadius,
-              ),
+              borderRadius: BorderRadius.circular(AppSizes.cardRadius),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(
-                  AppSizes.spacingLg,
-                ),
+                padding: const EdgeInsets.all(AppSizes.spacingLg),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(
-                    AppSizes.cardRadius,
-                  ),
+                  borderRadius: BorderRadius.circular(AppSizes.cardRadius),
                   border: Border.all(
                     color: Theme.of(context).colorScheme.outline,
                   ),

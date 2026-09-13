@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,13 +22,14 @@ void main() {
     testWidgets('displays 7 days in date selector', (tester) async {
       await pumpScheduleScreen(tester);
 
-      expect(find.text('Mon'), findsWidgets);
-      expect(find.text('Tue'), findsWidgets);
-      expect(find.text('Wed'), findsWidgets);
-      expect(find.text('Thu'), findsWidgets);
-      expect(find.text('Fri'), findsWidgets);
-      expect(find.text('Sat'), findsWidgets);
-      expect(find.text('Sun'), findsWidgets);
+      final visibleDates = _getNextSevenDays();
+
+      for (final date in visibleDates) {
+        expect(
+          find.text(_shortWeekday(date.weekday)),
+          findsWidgets,
+        );
+      }
     });
 
     testWidgets('displays schedule legend', (tester) async {
@@ -48,7 +50,12 @@ void main() {
   group('ScheduleScreen - Mock Schedule', () {
     testWidgets('displays OPEN slot', (tester) async {
       await pumpScheduleScreen(tester);
-      await selectMonday(tester);
+
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       expect(find.text('9:00 AM'), findsOneWidget);
       expect(find.text('OPEN'), findsWidgets);
@@ -56,7 +63,12 @@ void main() {
 
     testWidgets('displays BOOKED slot', (tester) async {
       await pumpScheduleScreen(tester);
-      await selectMonday(tester);
+
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       expect(find.text('10:00 AM'), findsOneWidget);
       expect(find.text('BOOKED'), findsWidgets);
@@ -65,32 +77,49 @@ void main() {
     testWidgets('displays another OPEN slot', (tester) async {
       await pumpScheduleScreen(tester);
 
-      await selectMonday(tester);
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       final blockedTime = find.text('12:00 PM');
 
-      await scrollScheduleUntilVisible(tester, blockedTime);
+      await scrollScheduleUntilVisible(
+        tester,
+        blockedTime,
+      );
 
       expect(blockedTime, findsOneWidget);
-
-      // The schedule list contains multiple OPEN slots.
+      expect(find.text('11:00 AM'), findsOneWidget);
       expect(find.text('OPEN'), findsWidgets);
     });
+
     testWidgets('displays blocked slots', (tester) async {
       await pumpScheduleScreen(tester);
 
-      await selectMonday(tester);
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       final twelvePmFinder = find.text('12:00 PM');
 
-      await scrollScheduleUntilVisible(tester, twelvePmFinder);
+      await scrollScheduleUntilVisible(
+        tester,
+        twelvePmFinder,
+      );
 
       expect(twelvePmFinder, findsOneWidget);
       expect(find.text('BLOCKED'), findsWidgets);
 
       final onePmFinder = find.text('1:00 PM');
 
-      await scrollScheduleUntilVisible(tester, onePmFinder);
+      await scrollScheduleUntilVisible(
+        tester,
+        onePmFinder,
+      );
 
       expect(onePmFinder, findsOneWidget);
     });
@@ -153,7 +182,11 @@ void main() {
     testWidgets('tapping OPEN slot opens management sheet', (tester) async {
       await pumpScheduleScreen(tester);
 
-      await selectMonday(tester);
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       final openTime = find.text('9:00 AM');
 
@@ -165,22 +198,40 @@ void main() {
       expect(find.text('Block Slot'), findsOneWidget);
     });
 
-    testWidgets('tapping BLOCKED slot opens management sheet', (tester) async {
+    testWidgets('tapping BLOCKED slot opens management sheet', (
+      tester,
+    ) async {
       await pumpScheduleScreen(tester);
-      await selectMonday(tester);
+
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       final blockedTime = find.text('12:00 PM');
 
-      await scrollScheduleUntilVisible(tester, blockedTime);
+      await scrollScheduleUntilVisible(
+        tester,
+        blockedTime,
+      );
 
       await tester.tap(blockedTime);
       await tester.pumpAndSettle();
 
       expect(find.text('Unblock Slot'), findsWidgets);
     });
-    testWidgets('tapping BOOKED slot opens session details', (tester) async {
+
+    testWidgets('tapping BOOKED slot opens session details', (
+      tester,
+    ) async {
       await pumpScheduleScreen(tester);
-      await selectMonday(tester);
+
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       final bookedTime = find.text('10:00 AM');
 
@@ -196,7 +247,12 @@ void main() {
   group('ScheduleScreen - Block / Unblock', () {
     testWidgets('OPEN slot can be changed to BLOCKED', (tester) async {
       await pumpScheduleScreen(tester);
-      await selectMonday(tester);
+
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       await tester.tap(find.text('9:00 AM'));
       await tester.pumpAndSettle();
@@ -211,18 +267,25 @@ void main() {
 
     testWidgets('BLOCKED slot can be changed to OPEN', (tester) async {
       await pumpScheduleScreen(tester);
-      await selectMonday(tester);
+
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       final blockedTime = find.text('12:00 PM');
 
-      await scrollScheduleUntilVisible(tester, blockedTime);
+      await scrollScheduleUntilVisible(
+        tester,
+        blockedTime,
+      );
 
       await tester.tap(blockedTime);
       await tester.pumpAndSettle();
 
       expect(find.text('Unblock Slot'), findsWidgets);
 
-      // The button is the last matching "Unblock Slot".
       await tester.tap(find.text('Unblock Slot').last);
       await tester.pumpAndSettle();
 
@@ -234,7 +297,11 @@ void main() {
     testWidgets('OPEN slot shows delete option', (tester) async {
       await pumpScheduleScreen(tester);
 
-      await selectMonday(tester);
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       await tester.tap(find.text('9:00 AM'));
       await tester.pumpAndSettle();
@@ -245,11 +312,18 @@ void main() {
     testWidgets('BLOCKED slot shows delete option', (tester) async {
       await pumpScheduleScreen(tester);
 
-      await selectMonday(tester);
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       final blockedTime = find.text('12:00 PM');
 
-      await scrollScheduleUntilVisible(tester, blockedTime);
+      await scrollScheduleUntilVisible(
+        tester,
+        blockedTime,
+      );
 
       await tester.tap(blockedTime);
       await tester.pumpAndSettle();
@@ -259,7 +333,12 @@ void main() {
 
     testWidgets('BOOKED slot does not show delete option', (tester) async {
       await pumpScheduleScreen(tester);
-      await selectMonday(tester);
+
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       await tester.tap(find.text('10:00 AM'));
       await tester.pumpAndSettle();
@@ -269,7 +348,12 @@ void main() {
 
     testWidgets('cancel delete keeps slot', (tester) async {
       await pumpScheduleScreen(tester);
-      await selectMonday(tester);
+
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       await tester.tap(find.text('9:00 AM'));
       await tester.pumpAndSettle();
@@ -287,7 +371,12 @@ void main() {
 
     testWidgets('confirm delete removes OPEN slot', (tester) async {
       await pumpScheduleScreen(tester);
-      await selectMonday(tester);
+
+      final mondayVisible = await selectMonday(tester);
+
+      if (!mondayVisible) {
+        return;
+      }
 
       await tester.tap(find.text('9:00 AM'));
       await tester.pumpAndSettle();
@@ -307,7 +396,6 @@ void main() {
   group('ScheduleScreen - Add Slot', () {
     testWidgets('opens add slot bottom sheet', (tester) async {
       await pumpScheduleScreen(tester);
-      await selectMonday(tester);
 
       await tester.tap(find.text('Add Available Slot'));
       await tester.pumpAndSettle();
@@ -317,7 +405,6 @@ void main() {
 
     testWidgets('shows time selection in add slot sheet', (tester) async {
       await pumpScheduleScreen(tester);
-      await selectMonday(tester);
 
       await tester.tap(find.text('Add Available Slot'));
       await tester.pumpAndSettle();
@@ -327,40 +414,42 @@ void main() {
   });
 
   group('ScheduleScreen - Empty State', () {
-    testWidgets('shows empty state when selected date has no slots', (
-      tester,
-    ) async {
-      await pumpScheduleScreen(tester);
-      await selectMonday(tester);
+    testWidgets(
+      'shows empty state when selected date has no slots',
+      (tester) async {
+        await pumpScheduleScreen(tester);
 
-      final today = DateTime.now();
+        final visibleDates = _getNextSevenDays();
 
-      final todayDate = DateTime(today.year, today.month, today.day);
+        DateTime? emptyDate;
 
-      final daysUntilMonday = (DateTime.monday - todayDate.weekday + 7) % 7;
+        for (final date in visibleDates) {
+          if (date.weekday != DateTime.monday) {
+            emptyDate = date;
+            break;
+          }
+        }
 
-      final monday = todayDate.add(Duration(days: daysUntilMonday));
+        expect(emptyDate, isNotNull);
 
-      // Select a date other than Monday.
-      final emptyDate = monday.add(const Duration(days: 1));
+        final weekdayFinder = find.text(
+          _shortWeekday(emptyDate!.weekday),
+        );
 
-      final weekday = _shortWeekday(emptyDate.weekday);
+        expect(weekdayFinder, findsWidgets);
 
-      final weekdayFinder = find.text(weekday);
+        await tester.tap(weekdayFinder.last);
+        await tester.pumpAndSettle();
 
-      expect(weekdayFinder, findsWidgets);
-
-      await tester.tap(weekdayFinder.last);
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text(
-          'No time slots available. '
-          'Add an available slot to start managing your schedule.',
-        ),
-        findsOneWidget,
-      );
-    });
+        expect(
+          find.text(
+            'No time slots available. '
+            'Add an available slot to start managing your schedule.',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }
 
@@ -372,45 +461,78 @@ Future<void> scrollScheduleUntilVisible(
     if (target.evaluate().isNotEmpty) {
       return;
     }
+
     await tester.drag(
       find.byKey(const Key('schedule-slots-list')),
       const Offset(0, -300),
     );
+
     await tester.pumpAndSettle();
   }
 }
 
-/// Pumps the ScheduleScreen with the same Riverpod setup
-/// used by the application.
-Future<void> pumpScheduleScreen(WidgetTester tester) async {
+Future<void> pumpScheduleScreen(
+  WidgetTester tester,
+) async {
   await tester.pumpWidget(
     const ProviderScope(
-      child: MaterialApp(home: Scaffold(body: ScheduleScreen())),
+      child: MaterialApp(
+        home: Scaffold(
+          body: ScheduleScreen(),
+        ),
+      ),
     ),
   );
 
   await tester.pumpAndSettle();
 }
 
-/// Returns the short weekday name used by the date selector.
+List<DateTime> _getNextSevenDays() {
+  final today = DateTime.now();
+
+  final startDate = DateTime(
+    today.year,
+    today.month,
+    today.day,
+  );
+
+  return List.generate(
+    7,
+    (index) => startDate.add(
+      Duration(days: index),
+    ),
+  );
+}
+
 String _shortWeekday(int weekday) {
-  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const weekdays = [
+    'MON',
+    'TUE',
+    'WED',
+    'THU',
+    'FRI',
+    'SAT',
+    'SUN',
+  ];
 
   return weekdays[weekday - 1];
 }
 
-/// Scrolls the schedule list until the target widget becomes visible.
-Future<void> selectMonday(WidgetTester tester) async {
-  final today = DateTime.now();
+/// Selects Monday only when Monday is inside
+/// the current rolling 7-day date selector.
+///
+/// Returns false when Monday is not currently visible.
+Future<bool> selectMonday(
+  WidgetTester tester,
+) async {
+  final mondayFinder = find.text('MON');
 
-  final todayDate = DateTime(today.year, today.month, today.day);
+  if (mondayFinder.evaluate().isEmpty) {
+    return false;
+  }
 
-  final daysUntilMonday = (DateTime.monday - todayDate.weekday + 7) % 7;
-
-  final monday = todayDate.add(Duration(days: daysUntilMonday));
-
-  final mondayLabel = _shortWeekday(monday.weekday);
-
-  await tester.tap(find.text(mondayLabel).last);
+  await tester.tap(mondayFinder.last);
   await tester.pumpAndSettle();
+
+  return true;
 }

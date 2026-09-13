@@ -68,16 +68,35 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
     ];
   }
 
-  void addSlot(DateTime dateTime) {
-    final newSlot = ScheduleSlot(
-      id: 'slot_${DateTime.now().microsecondsSinceEpoch}',
-      dateTime: dateTime,
-      status: ScheduleSlotStatus.open,
+bool addSlot(DateTime dateTime) {
+  final alreadyExists = state.any(
+    (slot) =>
+        slot.dateTime.year == dateTime.year &&
+        slot.dateTime.month == dateTime.month &&
+        slot.dateTime.day == dateTime.day &&
+        slot.dateTime.hour == dateTime.hour &&
+        slot.dateTime.minute == dateTime.minute,
+  );
+
+  if (alreadyExists) {
+    return false;
+  }
+
+  final newSlot = ScheduleSlot(
+    id: 'slot_${DateTime.now().microsecondsSinceEpoch}',
+    dateTime: dateTime,
+    status: ScheduleSlotStatus.open,
+  );
+
+  state = [
+    ...state,
+    newSlot,
+  ]..sort(
+      (a, b) => a.dateTime.compareTo(b.dateTime),
     );
 
-    state = [...state, newSlot]
-      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-  }
+  return true;
+}
 
   void deleteSlot(String slotId) {
     state = [
@@ -90,14 +109,15 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
   //specially, when request is accepted, the slot should be marked as booked.
 
   void bookSlotForSession(String sessionId, DateTime dateTime) {
-    final existingSlot = state.where((slot) {
+    // Check whether this session already has a slot.
+    final existingSessionSlot = state.where((slot) {
       return slot.sessionId == sessionId;
     }).firstOrNull;
 
-    if (existingSlot != null) {
+    if (existingSessionSlot != null) {
       state = [
         for (final slot in state)
-          if (slot.id == existingSlot.id)
+          if (slot.id == existingSessionSlot.id)
             slot.copyWith(status: ScheduleSlotStatus.booked)
           else
             slot,
@@ -106,8 +126,36 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
       return;
     }
 
-    // If the session does not already have a schedule slot,
-    // create a booked slot for the session.
+    // Check whether a slot already exists at the requested date/time.
+    final existingTimeSlot = state.where((slot) {
+      return slot.dateTime.year == dateTime.year &&
+          slot.dateTime.month == dateTime.month &&
+          slot.dateTime.day == dateTime.day &&
+          slot.dateTime.hour == dateTime.hour &&
+          slot.dateTime.minute == dateTime.minute;
+    }).firstOrNull;
+
+    if (existingTimeSlot != null) {
+      // Only OPEN slots can be booked.
+      if (existingTimeSlot.status != ScheduleSlotStatus.open) {
+        return;
+      }
+
+      state = [
+        for (final slot in state)
+          if (slot.id == existingTimeSlot.id)
+            slot.copyWith(
+              status: ScheduleSlotStatus.booked,
+              sessionId: sessionId,
+            )
+          else
+            slot,
+      ];
+
+      return;
+    }
+
+    // No slot exists at this time, so create a new BOOKED slot.
     final newSlot = ScheduleSlot(
       id: 'slot_${DateTime.now().microsecondsSinceEpoch}',
       dateTime: dateTime,
@@ -129,6 +177,55 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
         else
           slot,
     ];
+  }
+
+  // Reschedule a session to a new date/time and synchronize the related schedule slot.
+  // This method updates the session's date/time and also updates the corresponding schedule slot to reflect
+
+  void rescheduleSlot(String sessionId, DateTime newDateTime) {
+    // Find the slot currently assigned to this session.
+    final oldSlot = state.where((slot) {
+      return slot.sessionId == sessionId;
+    }).firstOrNull;
+
+    // Find an existing slot at the requested date/time.
+    final targetSlot = state.where((slot) {
+      return slot.dateTime.year == newDateTime.year &&
+          slot.dateTime.month == newDateTime.month &&
+          slot.dateTime.day == newDateTime.day &&
+          slot.dateTime.hour == newDateTime.hour &&
+          slot.dateTime.minute == newDateTime.minute;
+    }).firstOrNull;
+
+    // The target slot must be OPEN if it already exists.
+    if (targetSlot != null && targetSlot.status != ScheduleSlotStatus.open) {
+      return;
+    }
+
+    state = [
+      for (final slot in state)
+        // Release the old slot.
+        if (oldSlot != null && slot.id == oldSlot.id)
+          slot.copyWith(status: ScheduleSlotStatus.open, sessionId: null)
+        // Reuse the existing target slot.
+        else if (targetSlot != null && slot.id == targetSlot.id)
+          slot.copyWith(status: ScheduleSlotStatus.booked, sessionId: sessionId)
+        else
+          slot,
+    ];
+
+    // If there was no existing target slot, create exactly one.
+    if (targetSlot == null) {
+      final newSlot = ScheduleSlot(
+        id: 'slot_${DateTime.now().microsecondsSinceEpoch}',
+        dateTime: newDateTime,
+        status: ScheduleSlotStatus.booked,
+        sessionId: sessionId,
+      );
+
+      state = [...state, newSlot]
+        ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    }
   }
 }
 
