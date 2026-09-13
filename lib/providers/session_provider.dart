@@ -83,8 +83,17 @@ class SessionNotifier extends Notifier<List<Session>> {
     ref.read(scheduleProvider.notifier).releaseSlotForSession(sessionId);
   }
 
-  void completeSession(String sessionId) {
-    updateSessionStatus(sessionId, SessionStatus.completed);
+  void completeSession(String sessionId, {String? notes}) {
+    state = [
+      for (final session in state)
+        if (session.id == sessionId)
+          session.copyWith(
+            status: SessionStatus.completed,
+            notes: notes,
+          )
+        else
+          session,
+    ];
 
     ref.read(scheduleProvider.notifier).releaseSlotForSession(sessionId);
   }
