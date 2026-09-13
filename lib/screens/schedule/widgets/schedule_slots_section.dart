@@ -233,7 +233,7 @@ class _ScheduleSlotsSectionState extends ConsumerState<ScheduleSlotsSection> {
       return;
     }
 
-    navigator.pushNamed(AppRouter.sessionDetail, arguments: session);
+    navigator.pushNamed(AppRouter.sessionDetail, arguments: session.id);
   }
 
   Widget _buildBookedBadge(BuildContext context) {

@@ -1,21 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:physioghar/common_widgets/app_button.dart';
+import 'package:physioghar/common_widgets/app_confirmation_dialog.dart';
+import 'package:physioghar/common_widgets/app_snackbar.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/session.dart';
+import 'package:physioghar/providers/session_provider.dart';
+import 'package:physioghar/screens/sessions/widgets/reschedule_bottom_sheet.dart';
 
-class SessionDetailScreen extends StatelessWidget {
-  const SessionDetailScreen({
-    super.key,
-    required this.session,
-  });
+class SessionDetailScreen extends ConsumerWidget {
+  const SessionDetailScreen({super.key, required this.sessionId});
 
-  final Session session;
+  final String sessionId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sessions = ref.watch(sessionProvider);
+
+    final session = sessions.where((item) => item.id == sessionId).firstOrNull;
+
+    if (session == null) {
+      return const Scaffold(body: Center(child: Text('Session not found')));
+    }
+
     final isCompleted = session.status == SessionStatus.completed;
 
     return Scaffold(
@@ -54,6 +65,10 @@ class SessionDetailScreen extends StatelessWidget {
                 const SizedBox(height: AppSizes.spacingSm),
                 _NotesCard(notes: session.notes),
               ],
+              if (session.status == SessionStatus.upcoming) ...[
+                const SizedBox(height: AppSizes.spacingXl),
+                _SessionActions(session: session, ref: ref),
+              ],
             ],
           ),
         ),
@@ -62,10 +77,113 @@ class SessionDetailScreen extends StatelessWidget {
   }
 }
 
+class _SessionActions extends StatelessWidget {
+  const _SessionActions({required this.session, required this.ref});
+
+  final Session session;
+  final WidgetRef ref;
+
+  Future<void> _reschedule(BuildContext context) async {
+    showRescheduleBottomSheet(
+      context,
+      session: session,
+      onReschedule: () {
+        // Session state is already updated by the provider.
+      },
+    );
+  }
+
+  Future<void> _complete(BuildContext context) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Complete Session?',
+      message: 'Are you sure you want to mark this session as completed?',
+      confirmText: 'Complete',
+      icon: Icons.check_circle_outline,
+    );
+
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+
+    ref.read(sessionProvider.notifier).completeSession(session.id);
+
+    if (!context.mounted) {
+      return;
+    }
+
+    AppSnackBar.showSuccess(context, 'Session completed successfully.');
+
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _cancel(BuildContext context) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Cancel Session?',
+      message: 'Are you sure you want to cancel this session?',
+      confirmText: 'Cancel Session',
+      icon: Icons.cancel_outlined,
+      isDestructive: true,
+    );
+
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+
+    ref.read(sessionProvider.notifier).cancelSession(session.id);
+
+    if (!context.mounted) {
+      return;
+    }
+
+    AppSnackBar.showSuccess(context, 'Session cancelled successfully.');
+
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: AppButton(
+                text: 'Reschedule',
+                variant: AppButtonVariant.secondary,
+                onPressed: () => _reschedule(context),
+              ),
+            ),
+            const SizedBox(width: AppSizes.spacingSm),
+            Expanded(
+              child: AppButton(
+                text: 'Complete',
+                onPressed: () => _complete(context),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSizes.spacingSm),
+        TextButton(
+          onPressed: () => _cancel(context),
+          child: Text(
+            'Cancel Session',
+            style: GoogleFonts.inter(
+              fontSize: AppSizes.fontSizeMd,
+              fontWeight: FontWeight.w600,
+              color: AppColors.danger,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _PatientCard extends StatelessWidget {
-  const _PatientCard({
-    required this.session,
-  });
+  const _PatientCard({required this.session});
 
   final Session session;
 
@@ -127,9 +245,7 @@ class _PatientCard extends StatelessWidget {
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({
-    required this.session,
-  });
+  const _InfoCard({required this.session});
 
   final Session session;
 
@@ -175,9 +291,7 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _StatusCard extends StatelessWidget {
-  const _StatusCard({
-    required this.status,
-  });
+  const _StatusCard({required this.status});
 
   final SessionStatus status;
 
@@ -185,29 +299,29 @@ class _StatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final (backgroundColor, textColor, icon, label) = switch (status) {
       SessionStatus.requested => (
-          AppColors.amberPale,
-          AppColors.amber,
-          Icons.pending_outlined,
-          'REQUESTED',
-        ),
+        AppColors.amberPale,
+        AppColors.amber,
+        Icons.pending_outlined,
+        'REQUESTED',
+      ),
       SessionStatus.upcoming => (
-          AppColors.pinePale,
-          AppColors.pine,
-          Icons.event_available_outlined,
-          'UPCOMING',
-        ),
+        AppColors.pinePale,
+        AppColors.pine,
+        Icons.event_available_outlined,
+        'UPCOMING',
+      ),
       SessionStatus.completed => (
-          AppColors.pinePale,
-          AppColors.pine,
-          Icons.check_circle_outline,
-          'COMPLETED',
-        ),
+        AppColors.pinePale,
+        AppColors.pine,
+        Icons.check_circle_outline,
+        'COMPLETED',
+      ),
       SessionStatus.cancelled => (
-          AppColors.dangerPale,
-          AppColors.danger,
-          Icons.cancel_outlined,
-          'CANCELLED',
-        ),
+        AppColors.dangerPale,
+        AppColors.danger,
+        Icons.cancel_outlined,
+        'CANCELLED',
+      ),
     };
 
     return Container(
@@ -219,11 +333,7 @@ class _StatusCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: textColor,
-            size: 22,
-          ),
+          Icon(icon, color: textColor, size: 22),
           const SizedBox(width: AppSizes.spacingMd),
           Text(
             label,
@@ -241,9 +351,7 @@ class _StatusCard extends StatelessWidget {
 }
 
 class _NotesCard extends StatelessWidget {
-  const _NotesCard({
-    required this.notes,
-  });
+  const _NotesCard({required this.notes});
 
   final String? notes;
 
@@ -287,11 +395,7 @@ class _InfoRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: AppColors.pine,
-        ),
+        Icon(icon, size: 20, color: AppColors.pine),
         const SizedBox(width: AppSizes.spacingMd),
         Expanded(
           child: Column(
@@ -324,9 +428,7 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({
-    required this.text,
-  });
+  const _SectionLabel({required this.text});
 
   final String text;
 

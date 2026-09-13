@@ -64,7 +64,7 @@ class _UpcomingSessionsSectionState
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       AppRouter.sessionDetail,
-                      arguments: session,
+                      arguments: session.id,
                     );
                   },
                 );

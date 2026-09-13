@@ -53,7 +53,7 @@ class _TodayScheduleSectionState extends State<TodayScheduleSection> {
                   session: session,
                   onTap: () {
                     Navigator.of(context)
-                        .pushNamed(AppRouter.sessionDetail, arguments: session);
+                        .pushNamed(AppRouter.sessionDetail, arguments: session.id);
                   },
                 );
               },

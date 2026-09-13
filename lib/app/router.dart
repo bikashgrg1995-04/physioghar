@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:physioghar/models/session.dart';
 import 'package:physioghar/screens/navigation/main_navigation_screen.dart';
 import 'package:physioghar/screens/sessions/session_detail_screen.dart';
 
@@ -20,9 +19,9 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const MainNavigationScreen());
 
       case sessionDetail:
-        final session = settings.arguments as Session;
+        final sessionId = settings.arguments as String;
         return MaterialPageRoute(
-          builder: (_) => SessionDetailScreen(session: session),
+          builder: (_) => SessionDetailScreen(sessionId: sessionId),
         );
 
       default:

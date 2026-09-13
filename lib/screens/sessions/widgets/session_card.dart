@@ -242,7 +242,7 @@ class SessionCard extends ConsumerWidget {
                 variant: AppButtonVariant.secondary,
                 onPressed: () {
                   Navigator.of(context)
-                      .pushNamed(AppRouter.sessionDetail, arguments: session);
+                      .pushNamed(AppRouter.sessionDetail, arguments: session.id);
                 },
               ),
             ),
@@ -302,7 +302,7 @@ class SessionCard extends ConsumerWidget {
           variant: AppButtonVariant.secondary,
           onPressed: () {
             Navigator.of(context)
-                .pushNamed(AppRouter.sessionDetail, arguments: session);
+                .pushNamed(AppRouter.sessionDetail, arguments: session.id);
           },
         );
 
@@ -312,7 +312,7 @@ class SessionCard extends ConsumerWidget {
           variant: AppButtonVariant.secondary,
           onPressed: () {
             Navigator.of(context)
-                .pushNamed(AppRouter.sessionDetail, arguments: session);
+                .pushNamed(AppRouter.sessionDetail, arguments: session.id);
           },
         );
     }
