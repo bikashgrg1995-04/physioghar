@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:physioghar/app/router.dart';
 import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
@@ -10,10 +10,7 @@ import 'package:physioghar/models/session.dart';
 import 'package:physioghar/providers/session_provider.dart';
 
 class SessionCard extends ConsumerWidget {
-  const SessionCard({
-    super.key,
-    required this.session,
-  });
+  const SessionCard({super.key, required this.session});
 
   final Session session;
 
@@ -25,9 +22,7 @@ class SessionCard extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        border: Border.all(
-          color: AppColors.mist,
-        ),
+        border: Border.all(color: AppColors.mist),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,9 +54,7 @@ class SessionCard extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: AppSizes.spacingSm),
-        _StatusBadge(
-          status: session.status,
-        ),
+        _StatusBadge(status: session.status),
       ],
     );
   }
@@ -73,11 +66,7 @@ class SessionCard extends ConsumerWidget {
 
     return Row(
       children: [
-        const Icon(
-          Icons.person_outline,
-          size: 18,
-          color: AppColors.inkMid,
-        ),
+        const Icon(Icons.person_outline, size: 18, color: AppColors.inkMid),
         const SizedBox(width: AppSizes.spacingSm),
         Text(
           'Age ${session.patientAge}',
@@ -100,30 +89,20 @@ class SessionCard extends ConsumerWidget {
         const SizedBox(height: AppSizes.spacingSm),
         _InfoRow(
           icon: Icons.calendar_today_outlined,
-          text: DateTimeUtils.formatFullDate(
-            session.dateTime,
-          ),
+          text: DateTimeUtils.formatFullDate(session.dateTime),
         ),
         const SizedBox(height: AppSizes.spacingSm),
         _InfoRow(
           icon: Icons.access_time_outlined,
-          text: DateTimeUtils.formatTime(
-            session.dateTime,
-          ),
+          text: DateTimeUtils.formatTime(session.dateTime),
         ),
         const SizedBox(height: AppSizes.spacingSm),
-        _InfoRow(
-          icon: Icons.location_on_outlined,
-          text: session.location,
-        ),
+        _InfoRow(icon: Icons.location_on_outlined, text: session.location),
       ],
     );
   }
 
-  Widget _buildActions(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
+  Widget _buildActions(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(sessionProvider.notifier);
 
     switch (session.status) {
@@ -154,27 +133,31 @@ class SessionCard extends ConsumerWidget {
       case SessionStatus.upcoming:
         return Row(
           children: [
-            Expanded(
+            Flexible(
+              flex: 3,
               child: AppButton(
                 text: 'View',
                 variant: AppButtonVariant.secondary,
                 onPressed: () {
-                  // TODO: Open session details.
+                  Navigator.of(context)
+                      .pushNamed(AppRouter.sessionDetail, arguments: session);
                 },
               ),
             ),
             const SizedBox(width: AppSizes.spacingSm),
-            Expanded(
+            Flexible(
+              flex: 4,
               child: AppButton(
                 text: 'Reschedule',
                 variant: AppButtonVariant.secondary,
                 onPressed: () {
-                  // TODO: Open reschedule flow.
+                  
                 },
               ),
             ),
             const SizedBox(width: AppSizes.spacingSm),
-            Expanded(
+            Flexible(
+              flex: 4,
               child: AppButton(
                 text: 'Complete',
                 onPressed: () {
@@ -190,7 +173,8 @@ class SessionCard extends ConsumerWidget {
           text: 'View Session',
           variant: AppButtonVariant.secondary,
           onPressed: () {
-            // TODO: Open completed session details.
+            Navigator.of(context)
+                .pushNamed(AppRouter.sessionDetail, arguments: session);
           },
         );
 
@@ -199,7 +183,8 @@ class SessionCard extends ConsumerWidget {
           text: 'View Details',
           variant: AppButtonVariant.secondary,
           onPressed: () {
-            // TODO: Open cancelled session details.
+            Navigator.of(context)
+                .pushNamed(AppRouter.sessionDetail, arguments: session);
           },
         );
     }
@@ -207,10 +192,7 @@ class SessionCard extends ConsumerWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.text,
-  });
+  const _InfoRow({required this.icon, required this.text});
 
   final IconData icon;
   final String text;
@@ -219,11 +201,7 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 18,
-          color: AppColors.inkMute,
-        ),
+        Icon(icon, size: 18, color: AppColors.inkMute),
         const SizedBox(width: AppSizes.spacingSm),
         Expanded(
           child: Text(
@@ -240,9 +218,7 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({
-    required this.status,
-  });
+  const _StatusBadge({required this.status});
 
   final SessionStatus status;
 
@@ -279,18 +255,12 @@ class _StatusBadge extends StatelessWidget {
     }
 
     return Container(
-      constraints: const BoxConstraints(
-        minHeight: AppSizes.minTapTarget,
-      ),
+      constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.spacingMd,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingMd),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(
-          AppSizes.buttonRadius,
-        ),
+        borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
       ),
       child: Text(
         label,

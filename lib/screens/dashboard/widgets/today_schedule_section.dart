@@ -1,89 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:physioghar/core/constants/app_colors.dart';
+import 'package:physioghar/app/router.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/screens/dashboard/widgets/schedule_item_card.dart';
 
-class TodayScheduleSection extends StatelessWidget {
+class TodayScheduleSection extends StatefulWidget {
   const TodayScheduleSection({
     super.key,
     required this.sessions,
+    required this.listHeight,
   });
 
   final List<Session> sessions;
+  final double listHeight;
+
+  @override
+  State<TodayScheduleSection> createState() => _TodayScheduleSectionState();
+}
+
+class _TodayScheduleSectionState extends State<TodayScheduleSection> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-
-   
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Today's Schedule",
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
-            if (sessions.isNotEmpty)
-              Text(
-                '${sessions.length} sessions',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.inkMute,
-                      fontSize: AppSizes.fontSizeSm,
-                    ),
-              ),
-          ],
-        ),
+        Text("Today's Schedule", style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: AppSizes.spacingMd),
-        if (sessions.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSizes.spacingXl),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-            ),
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.event_available_outlined,
-                  size: 32,
-                  color: AppColors.inkMute,
-                ),
-                const SizedBox(height: AppSizes.spacingSm),
-                Text(
-                  'No sessions scheduled for today',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.inkMute,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          )
-        else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: sessions.length,
-            separatorBuilder: (_, _) => const SizedBox(
-              height: AppSizes.spacingSm,
-            ),
-            itemBuilder: (context, index) {
-              final session = sessions[index];
+        SizedBox(
+          height: widget.listHeight,
+          child: Scrollbar(
+            controller: _scrollController,
+            thumbVisibility: true,
+            child: ListView.separated(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: widget.sessions.length,
+              separatorBuilder: (_, _) =>
+                  const SizedBox(height: AppSizes.spacingSm),
+              itemBuilder: (context, index) {
+                final session = widget.sessions[index];
 
-              return ScheduleItemCard(
-                cardKey: Key(
-                  'today-session-card-${session.id}',
-                ),
-                session: session,
-                onTap: () {},
-              );
-            },
+                return ScheduleItemCard(
+                  cardKey: Key('today-session-card-${session.id}'),
+                  session: session,
+                  onTap: () {
+                    Navigator.of(context)
+                        .pushNamed(AppRouter.sessionDetail, arguments: session);
+                  },
+                );
+              },
+            ),
           ),
+        ),
       ],
     );
   }

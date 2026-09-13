@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:physioghar/app/router.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
@@ -117,7 +118,7 @@ class _ScheduleSlotsSectionState extends ConsumerState<ScheduleSlotsSection> {
         showDragHandle: true,
         isScrollControlled: true,
         backgroundColor: AppColors.cream,
-        builder: (context) {
+        builder: (sheetContext) {
           if (session == null) {
             return SafeArea(
               child: Padding(
@@ -283,6 +284,11 @@ class _ScheduleSlotsSectionState extends ConsumerState<ScheduleSlotsSection> {
                     child: FilledButton.icon(
                       onPressed: () {
                         Navigator.pop(context);
+
+                        Navigator.of(context).pushNamed(
+                          AppRouter.sessionDetail,
+                          arguments: session,
+                        );
                       },
                       icon: const Icon(Icons.arrow_forward),
                       label: const Text('View Session'),

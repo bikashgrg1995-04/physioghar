@@ -1,3 +1,4 @@
+
 enum ScheduleSlotStatus {
   open,
   booked,
@@ -20,13 +21,17 @@ class ScheduleSlot {
   ScheduleSlot copyWith({
     DateTime? dateTime,
     ScheduleSlotStatus? status,
-    String? sessionId,
+    Object? sessionId = _keepSessionId,
   }) {
     return ScheduleSlot(
       id: id,
       dateTime: dateTime ?? this.dateTime,
       status: status ?? this.status,
-      sessionId: sessionId ?? this.sessionId,
+      sessionId: sessionId == _keepSessionId
+          ? this.sessionId
+          : sessionId as String?,
     );
   }
 }
+
+const _keepSessionId = Object();

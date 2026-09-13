@@ -118,6 +118,18 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
     state = [...state, newSlot]
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
   }
+
+  // Release the schedule slot when the related session is
+  // declined or completed.
+  void releaseSlotForSession(String sessionId) {
+    state = [
+      for (final slot in state)
+        if (slot.sessionId == sessionId)
+          slot.copyWith(status: ScheduleSlotStatus.open, sessionId: null)
+        else
+          slot,
+    ];
+  }
 }
 
 final scheduleProvider = NotifierProvider<ScheduleNotifier, List<ScheduleSlot>>(

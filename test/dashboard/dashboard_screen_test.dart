@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:physioghar/screens/dashboard/widgets/today_schedule_section.dart';
 
 import '../helpers/pump_app.dart';
 
@@ -58,7 +59,9 @@ void main() {
 
       expect(find.text("Today's Schedule"), findsOneWidget);
 
-      final sitaCard = find.byKey(const Key('today-session-card-dashboard_session_001'));
+      final sitaCard = find.byKey(
+        const Key('today-session-card-dashboard_session_001'),
+      );
 
       expect(sitaCard, findsOneWidget);
 
@@ -77,7 +80,9 @@ void main() {
         findsOneWidget,
       );
 
-      final ramCard = find.byKey(const Key('today-session-card-dashboard_session_002'));
+      final ramCard = find.byKey(
+        const Key('today-session-card-dashboard_session_002'),
+      );
 
       expect(ramCard, findsOneWidget);
 

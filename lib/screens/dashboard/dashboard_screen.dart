@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
+import 'package:physioghar/core/utils/responsive_utils.dart';
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/providers/session_provider.dart';
 import 'package:physioghar/screens/dashboard/widgets/dashboard_summary_card.dart';
@@ -16,7 +17,6 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sessions = ref.watch(sessionProvider);
     final today = DateTime.now();
-    
 
     // Today's dashboard sessions.
     final todaySessions =
@@ -30,10 +30,11 @@ class DashboardScreen extends ConsumerWidget {
           ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
     // Booking requests.
-    final upcomingRequests = sessions
-        .where((session) => session.status == SessionStatus.requested)
-        .toList()
-        ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    final upcomingRequests =
+        sessions
+            .where((session) => session.status == SessionStatus.requested)
+            .toList()
+          ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
     // Upcoming accepted sessions.
     final upcomingSessions =
@@ -47,15 +48,19 @@ class DashboardScreen extends ConsumerWidget {
         .where((session) => session.status == SessionStatus.completed)
         .toList();
 
+    final listHeight = ResponsiveUtils.isMobile(context)
+        ? ResponsiveUtils.height(context) * 0.28
+        : ResponsiveUtils.height(context) * 0.25;
+
     return SafeArea(
-      child: SingleChildScrollView(
+      child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const TherapistHeader(),
 
-            const SizedBox(height: AppSizes.spacingSection),
+            const SizedBox(height: AppSizes.spacingSm),
 
             Row(
               children: [
@@ -84,14 +89,26 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: AppSizes.spacingSection),
-
-            TodayScheduleSection(sessions: todaySessions),
-
-            const SizedBox(height: AppSizes.spacingSection),
-
-            UpcomingSessionsSection(sessions: upcomingSessions),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    TodayScheduleSection(
+                      sessions: todaySessions,
+                      listHeight: listHeight,
+                    ),
+                
+                    const SizedBox(height: AppSizes.spacingSm),
+                
+                    UpcomingSessionsSection(
+                      sessions: upcomingSessions,
+                      listHeight: listHeight,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

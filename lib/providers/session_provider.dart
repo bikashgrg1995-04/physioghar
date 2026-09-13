@@ -79,10 +79,14 @@ class SessionNotifier extends Notifier<List<Session>> {
 
   void declineSession(String sessionId) {
     updateSessionStatus(sessionId, SessionStatus.cancelled);
+
+    ref.read(scheduleProvider.notifier).releaseSlotForSession(sessionId);
   }
 
   void completeSession(String sessionId) {
     updateSessionStatus(sessionId, SessionStatus.completed);
+
+    ref.read(scheduleProvider.notifier).releaseSlotForSession(sessionId);
   }
 
   void rescheduleSession(String sessionId, DateTime newDateTime) {
