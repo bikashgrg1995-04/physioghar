@@ -50,6 +50,9 @@ class MockData {
     {'time': 13, 'status': ScheduleSlotStatus.blocked},
   ];
 
+  // Schedule sessions for testing purposes
+  // when booked schedule is clicked, it will show
+  //the session details of the booked session
   static final List<Session> scheduleSessions = [
     Session(
       id: 'schedule_session_001',
@@ -59,6 +62,26 @@ class MockData {
       dateTime: DateTime(2000, 1, 1, 10, 0),
       status: SessionStatus.upcoming,
       patientAge: '38',
+    ),
+  ];
+
+  // Mock booking requests for the Sessions > Requests tab.
+
+  static final List<Session> bookingRequests = [
+    Session(
+      id: 'request_session_001',
+      patientName: 'Maya Gurung',
+      treatment: 'Neck Pain',
+      location: 'Home Visit',
+      dateTime: DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+        16,
+        0,
+      ),
+      status: SessionStatus.requested,
+      patientAge: '29',
     ),
   ];
 }

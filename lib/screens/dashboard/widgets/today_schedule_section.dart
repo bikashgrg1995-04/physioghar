@@ -1,35 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/providers/session_provider.dart';
+import 'package:physioghar/models/session.dart';
 import 'package:physioghar/screens/dashboard/widgets/schedule_item_card.dart';
 
-class TodayScheduleSection extends ConsumerWidget {
-  const TodayScheduleSection({super.key});
+class TodayScheduleSection extends StatelessWidget {
+  const TodayScheduleSection({
+    super.key,
+    required this.sessions,
+  });
 
-  bool _isSameDay(DateTime first, DateTime second) {
-    return first.year == second.year &&
-        first.month == second.month &&
-        first.day == second.day;
-  }
+  final List<Session> sessions;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final sessions = ref.watch(sessionProvider);
-    final today = DateTime.now();
+  Widget build(BuildContext context) {
 
-    final todaySessions = sessions
-        .where((session) => _isSameDay(session.dateTime, today))
-        .toList()
-      ..sort(
-        (a, b) => a.dateTime.compareTo(b.dateTime),
-      );
+   
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section Header
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -37,10 +27,9 @@ class TodayScheduleSection extends ConsumerWidget {
               "Today's Schedule",
               style: Theme.of(context).textTheme.headlineLarge,
             ),
-
-            if (todaySessions.isNotEmpty)
+            if (sessions.isNotEmpty)
               Text(
-                '${todaySessions.length} sessions',
+                '${sessions.length} sessions',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.inkMute,
                       fontSize: AppSizes.fontSizeSm,
@@ -48,11 +37,8 @@ class TodayScheduleSection extends ConsumerWidget {
               ),
           ],
         ),
-
         const SizedBox(height: AppSizes.spacingMd),
-
-        // Schedule / Empty State
-        if (todaySessions.isEmpty)
+        if (sessions.isEmpty)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(AppSizes.spacingXl),
@@ -82,18 +68,19 @@ class TodayScheduleSection extends ConsumerWidget {
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: todaySessions.length,
-            separatorBuilder: (_, _) =>
-                const SizedBox(height: AppSizes.spacingSm),
+            itemCount: sessions.length,
+            separatorBuilder: (_, _) => const SizedBox(
+              height: AppSizes.spacingSm,
+            ),
             itemBuilder: (context, index) {
-              final session = todaySessions[index];
+              final session = sessions[index];
 
               return ScheduleItemCard(
-                cardKey: Key('today-session-card-${session.id}'),
+                cardKey: Key(
+                  'today-session-card-${session.id}',
+                ),
                 session: session,
-                onTap: () {
-                  // Session detail navigation will be added later.
-                },
+                onTap: () {},
               );
             },
           ),

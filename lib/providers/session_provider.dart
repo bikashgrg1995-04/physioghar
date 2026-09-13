@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:physioghar/data/mock_data.dart';
 import 'package:physioghar/models/session.dart';
+import 'package:physioghar/providers/schedule_provider.dart';
 
 class SessionNotifier extends Notifier<List<Session>> {
   @override
@@ -25,6 +26,7 @@ class SessionNotifier extends Notifier<List<Session>> {
       );
     });
 
+    // Convert mock schedule session time to the upcoming Monday dynamically.
     final scheduleSessions = MockData.scheduleSessions.map((session) {
       return session.copyWith(
         dateTime: DateTime(
@@ -37,11 +39,42 @@ class SessionNotifier extends Notifier<List<Session>> {
       );
     });
 
-    return [...dashboardSessions, ...scheduleSessions];
+    // Convert mock booking request time to today's date dynamically.
+    final bookingRequests = MockData.bookingRequests.map((session) {
+      return session.copyWith(
+        dateTime: DateTime(
+          todayDate.year,
+          todayDate.month,
+          todayDate.day,
+          session.dateTime.hour,
+          session.dateTime.minute,
+        ),
+      );
+    });
+
+    return [...dashboardSessions, ...scheduleSessions, ...bookingRequests];
   }
 
+  // Accept a session and update its status to upcoming. Also, book the corresponding schedule slot for the session.
   void acceptSession(String sessionId) {
+    Session? selectedSession;
+
+    for (final session in state) {
+      if (session.id == sessionId) {
+        selectedSession = session;
+        break;
+      }
+    }
+
+    if (selectedSession == null) {
+      return;
+    }
+
     updateSessionStatus(sessionId, SessionStatus.upcoming);
+
+    ref
+        .read(scheduleProvider.notifier)
+        .bookSlotForSession(sessionId, selectedSession.dateTime);
   }
 
   void declineSession(String sessionId) {

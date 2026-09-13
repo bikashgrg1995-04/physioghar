@@ -6,27 +6,15 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
   List<ScheduleSlot> build() {
     final today = DateTime.now();
 
-    final startDate = DateTime(
-      today.year,
-      today.month,
-      today.day,
-    );
+    final startDate = DateTime(today.year, today.month, today.day);
 
     // Find the next Monday within today + next 6 days.
-    final daysUntilMonday =
-        (DateTime.monday - startDate.weekday + 7) % 7;
+    final daysUntilMonday = (DateTime.monday - startDate.weekday + 7) % 7;
 
-    final monday = startDate.add(
-      Duration(days: daysUntilMonday),
-    );
+    final monday = startDate.add(Duration(days: daysUntilMonday));
 
     DateTime mondayAt(int hour) {
-      return DateTime(
-        monday.year,
-        monday.month,
-        monday.day,
-        hour,
-      );
+      return DateTime(monday.year, monday.month, monday.day, hour);
     }
 
     return [
@@ -64,9 +52,7 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
     state = [
       for (final slot in state)
         if (slot.id == slotId)
-          slot.copyWith(
-            status: ScheduleSlotStatus.blocked,
-          )
+          slot.copyWith(status: ScheduleSlotStatus.blocked)
         else
           slot,
     ];
@@ -76,9 +62,7 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
     state = [
       for (final slot in state)
         if (slot.id == slotId)
-          slot.copyWith(
-            status: ScheduleSlotStatus.open,
-          )
+          slot.copyWith(status: ScheduleSlotStatus.open)
         else
           slot,
     ];
@@ -91,12 +75,8 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
       status: ScheduleSlotStatus.open,
     );
 
-    state = [
-      ...state,
-      newSlot,
-    ]..sort(
-        (a, b) => a.dateTime.compareTo(b.dateTime),
-      );
+    state = [...state, newSlot]
+      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
   }
 
   void deleteSlot(String slotId) {
@@ -105,10 +85,41 @@ class ScheduleNotifier extends Notifier<List<ScheduleSlot>> {
         if (slot.id != slotId) slot,
     ];
   }
+
+  // Update the status of a slot to booked when a session is booked for that slot.
+  //specially, when request is accepted, the slot should be marked as booked.
+
+  void bookSlotForSession(String sessionId, DateTime dateTime) {
+    final existingSlot = state.where((slot) {
+      return slot.sessionId == sessionId;
+    }).firstOrNull;
+
+    if (existingSlot != null) {
+      state = [
+        for (final slot in state)
+          if (slot.id == existingSlot.id)
+            slot.copyWith(status: ScheduleSlotStatus.booked)
+          else
+            slot,
+      ];
+
+      return;
+    }
+
+    // If the session does not already have a schedule slot,
+    // create a booked slot for the session.
+    final newSlot = ScheduleSlot(
+      id: 'slot_${DateTime.now().microsecondsSinceEpoch}',
+      dateTime: dateTime,
+      status: ScheduleSlotStatus.booked,
+      sessionId: sessionId,
+    );
+
+    state = [...state, newSlot]
+      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+  }
 }
 
-final scheduleProvider =
-    NotifierProvider<ScheduleNotifier, List<ScheduleSlot>>(
+final scheduleProvider = NotifierProvider<ScheduleNotifier, List<ScheduleSlot>>(
   ScheduleNotifier.new,
 );
-

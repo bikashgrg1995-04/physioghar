@@ -16,18 +16,36 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sessions = ref.watch(sessionProvider);
     final today = DateTime.now();
+    
 
-    final todaySessions = sessions.where((session) {
-      return DateTimeUtils.isSameDay(session.dateTime, today);
-    }).toList();
+    // Today's dashboard sessions.
+    final todaySessions =
+        sessions
+            .where(
+              (session) =>
+                  DateTimeUtils.isSameDay(session.dateTime, today) &&
+                  session.status == SessionStatus.upcoming,
+            )
+            .toList()
+          ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
-    final upcomingRequests = sessions.where((session) {
-      return session.status == SessionStatus.requested;
-    }).toList();
+    // Booking requests.
+    final upcomingRequests = sessions
+        .where((session) => session.status == SessionStatus.requested)
+        .toList()
+        ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
-    final completedSessions = sessions.where((session) {
-      return session.status == SessionStatus.completed;
-    }).toList();
+    // Upcoming accepted sessions.
+    final upcomingSessions =
+        sessions
+            .where((session) => session.status == SessionStatus.upcoming)
+            .toList()
+          ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+
+    // Completed sessions.
+    final completedSessions = sessions
+        .where((session) => session.status == SessionStatus.completed)
+        .toList();
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -69,11 +87,11 @@ class DashboardScreen extends ConsumerWidget {
 
             const SizedBox(height: AppSizes.spacingSection),
 
-            const TodayScheduleSection(),
+            TodayScheduleSection(sessions: todaySessions),
 
             const SizedBox(height: AppSizes.spacingSection),
 
-            const UpcomingSessionsSection(),
+            UpcomingSessionsSection(sessions: upcomingSessions),
           ],
         ),
       ),

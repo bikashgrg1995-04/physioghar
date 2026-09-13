@@ -43,7 +43,7 @@ void main() {
       );
 
       expect(
-        find.descendant(of: upcomingRequestsCard, matching: find.text('0')),
+        find.descendant(of: upcomingRequestsCard, matching: find.text('1')),
         findsOneWidget,
       );
 
