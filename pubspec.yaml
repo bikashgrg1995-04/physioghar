@@ -32,6 +32,9 @@ flutter:
   # App images
   assets:
     - assets/images/physioghar_logo.jfif
+    - assets/icons/
+    - assets/images/
+
 
 # Native splash screen configuration
 flutter_native_splash:

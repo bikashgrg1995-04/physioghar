@@ -19,7 +19,8 @@ void main() {
 
     await tester.ensureVisible(tab);
     await tester.pumpAndSettle();
-    await tester.tap(tab, warnIfMissed: false);
+    final tabRect = tester.getRect(tab);
+    await tester.tapAt(tabRect.center);
     await tester.pumpAndSettle();
   }
 

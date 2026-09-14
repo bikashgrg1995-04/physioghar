@@ -96,12 +96,12 @@ class _SessionActions extends StatelessWidget {
 
   Future<void> _complete(BuildContext context) async {
     final confirmed = await showConfirmationDialog(
-                    context,
-                    title: 'Complete Session?',
-                    message: 'Are you sure you want to mark this session as completed?',
-                    confirmText: 'Continue',
-                    icon: Icons.check_circle_outline,
-                  );
+      context,
+      title: 'Complete Session?',
+      message: 'Are you sure you want to mark this session as completed?',
+      confirmText: 'Continue',
+      icon: Icons.check_circle_outline,
+    );
 
     if (confirmed != true || !context.mounted) {
       return;
@@ -110,7 +110,7 @@ class _SessionActions extends StatelessWidget {
     if (!context.mounted) {
       return;
     }
- showCompleteSessionBottomSheet(context, session: session);
+    showCompleteSessionBottomSheet(context, session: session);
   }
 
   Future<void> _cancel(BuildContext context) async {
