@@ -32,7 +32,7 @@ class AppButton extends StatelessWidget {
     final isPrimary = variant == AppButtonVariant.primary;
 
     return SizedBox(
-      width: width ?? double.infinity,
+      width: width,
       height: height ?? AppSizes.minTapTarget,
       child: isPrimary
           ? FilledButton.icon(

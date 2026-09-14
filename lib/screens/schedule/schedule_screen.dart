@@ -95,10 +95,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
             const SizedBox(height: AppSizes.spacingLg),
 
-            AppButton(
-              text: 'Add Available Slot',
-              icon: const Icon(Icons.add),
-              onPressed: _showAddSlotBottomSheet,
+            Center(
+              child: AppButton(
+                text: 'Add Available Slot',
+                icon: const Icon(Icons.add),
+                onPressed: _showAddSlotBottomSheet,
+              ),
             ),
           ],
         ),

@@ -216,6 +216,7 @@ class _ScheduleSlotsSectionState extends ConsumerState<ScheduleSlotsSection> {
                 _buildSessionInfoCard(sheetContext, slot, session),
                 const SizedBox(height: AppSizes.spacingXl),
                 AppButton(
+                  width: double.infinity,
                   text: 'View Session',
                   icon: const Icon(Icons.arrow_forward),
                   onPressed: () {
@@ -336,6 +337,7 @@ class _ScheduleSlotsSectionState extends ConsumerState<ScheduleSlotsSection> {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      
       backgroundColor: AppColors.cream,
       builder: (sheetContext) {
         return SafeArea(
@@ -358,6 +360,7 @@ class _ScheduleSlotsSectionState extends ConsumerState<ScheduleSlotsSection> {
                 ),
                 const SizedBox(height: AppSizes.spacingXl),
                 AppButton(
+                  width: double.infinity,
                   text: isBlocked ? 'Unblock Slot' : 'Block Slot',
                   onPressed: () {
                     final notifier = ref.read(scheduleProvider.notifier);
@@ -373,6 +376,7 @@ class _ScheduleSlotsSectionState extends ConsumerState<ScheduleSlotsSection> {
                 ),
                 const SizedBox(height: AppSizes.spacingSm),
                 AppButton(
+                  width: double.infinity,
                   text: 'Delete Slot',
                   icon: const Icon(Icons.delete_outline),
                   variant: AppButtonVariant.secondary,

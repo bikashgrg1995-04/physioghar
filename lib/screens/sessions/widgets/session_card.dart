@@ -299,7 +299,8 @@ class SessionCard extends ConsumerWidget {
 
       case SessionStatus.completed:
         return AppButton(
-          text: 'View Session',
+          width: double.infinity,
+          text: 'View Details',
           variant: AppButtonVariant.secondary,
           onPressed: () {
             Navigator.of(context)
@@ -309,6 +310,7 @@ class SessionCard extends ConsumerWidget {
 
       case SessionStatus.cancelled:
         return AppButton(
+          width: double.infinity,
           text: 'View Details',
           variant: AppButtonVariant.secondary,
           onPressed: () {

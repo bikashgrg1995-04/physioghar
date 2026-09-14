@@ -10,6 +10,7 @@ import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/providers/session_provider.dart';
+import 'package:physioghar/screens/sessions/widgets/complete_session_bottom_sheet.dart';
 import 'package:physioghar/screens/sessions/widgets/reschedule_bottom_sheet.dart';
 
 class SessionDetailScreen extends ConsumerWidget {
@@ -95,26 +96,21 @@ class _SessionActions extends StatelessWidget {
 
   Future<void> _complete(BuildContext context) async {
     final confirmed = await showConfirmationDialog(
-      context,
-      title: 'Complete Session?',
-      message: 'Are you sure you want to mark this session as completed?',
-      confirmText: 'Complete',
-      icon: Icons.check_circle_outline,
-    );
+                    context,
+                    title: 'Complete Session?',
+                    message: 'Are you sure you want to mark this session as completed?',
+                    confirmText: 'Continue',
+                    icon: Icons.check_circle_outline,
+                  );
 
     if (confirmed != true || !context.mounted) {
       return;
     }
 
-    ref.read(sessionProvider.notifier).completeSession(session.id);
-
     if (!context.mounted) {
       return;
     }
-
-    AppSnackBar.showSuccess(context, 'Session completed successfully.');
-
-    Navigator.of(context).pop();
+ showCompleteSessionBottomSheet(context, session: session);
   }
 
   Future<void> _cancel(BuildContext context) async {

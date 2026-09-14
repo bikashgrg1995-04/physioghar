@@ -23,6 +23,7 @@ class DashboardScreen extends ConsumerWidget {
         sessions
             .where(
               (session) =>
+                  session.source == SessionSource.dashboard &&
                   DateTimeUtils.isSameDay(session.dateTime, today) &&
                   session.status == SessionStatus.upcoming,
             )
@@ -92,15 +93,16 @@ class DashboardScreen extends ConsumerWidget {
             const SizedBox(height: AppSizes.spacingSection),
             Expanded(
               child: SingleChildScrollView(
+                key: const Key('dashboard-content-scroll'),
                 child: Column(
                   children: [
                     TodayScheduleSection(
                       sessions: todaySessions,
                       listHeight: listHeight,
                     ),
-                
+
                     const SizedBox(height: AppSizes.spacingSm),
-                
+
                     UpcomingSessionsSection(
                       sessions: upcomingSessions,
                       listHeight: listHeight,

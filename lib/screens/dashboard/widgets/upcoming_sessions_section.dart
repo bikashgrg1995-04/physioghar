@@ -46,6 +46,7 @@ class _UpcomingSessionsSectionState
             controller: _scrollController,
             thumbVisibility: true,
             child: ListView.separated(
+              key: const Key('upcoming-sessions-list'),
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.only(right: AppSizes.spacingSm),

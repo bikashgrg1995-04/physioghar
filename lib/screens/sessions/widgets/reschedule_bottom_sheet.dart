@@ -269,6 +269,7 @@ class _RescheduleBottomSheetState
 
   Widget _buildConfirmButton() {
     return AppButton(
+      width: double.infinity,
       text: 'Confirm Reschedule',
       onPressed: _selectedDateTime == null ? null : _confirmReschedule,
     );

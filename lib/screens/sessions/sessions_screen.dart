@@ -77,6 +77,7 @@ class _SessionsScreenState extends ConsumerState<SessionsScreen>
       backgroundColor: const Color(0xFFFBFBF8),
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SessionsHeader(),
 

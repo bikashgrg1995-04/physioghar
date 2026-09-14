@@ -5,22 +5,21 @@ import 'package:physioghar/models/session.dart';
 import 'package:physioghar/providers/session_provider.dart';
 import 'package:physioghar/screens/sessions/sessions_screen.dart';
 
-
 void main() {
   Widget createTestWidget() {
     return const ProviderScope(child: MaterialApp(home: SessionsScreen()));
   }
 
   Future<void> selectTab(WidgetTester tester, String tabLabel) async {
-    final tab = find.text(tabLabel);
+    final tab = find.byWidgetPredicate(
+      (widget) => widget is Tab && widget.text == tabLabel,
+    );
 
-    if (tab.evaluate().isEmpty) {
-      return;
-    }
+    expect(tab, findsOneWidget);
 
     await tester.ensureVisible(tab);
     await tester.pumpAndSettle();
-    await tester.tap(tab);
+    await tester.tap(tab, warnIfMissed: false);
     await tester.pumpAndSettle();
   }
 
@@ -86,78 +85,78 @@ void main() {
   });
 
   testWidgets('Upcoming session can be completed', (tester) async {
-  await tester.pumpWidget(createTestWidget());
+    await tester.pumpWidget(createTestWidget());
 
-  final upcomingTab = find.text('Upcoming');
+    final upcomingTab = find.text('Upcoming');
 
-  expect(upcomingTab, findsOneWidget);
+    expect(upcomingTab, findsOneWidget);
 
-  await tester.ensureVisible(upcomingTab);
-  await tester.pumpAndSettle();
-  await tester.tap(upcomingTab);
-  await tester.pumpAndSettle();
+    await tester.ensureVisible(upcomingTab);
+    await tester.pumpAndSettle();
+    await tester.tap(upcomingTab);
+    await tester.pumpAndSettle();
 
-  // Find Sita's patient name.
-  final sitaFinder = find.text('Sita Sharma');
+    // Find Sita's patient name.
+    final sitaFinder = find.text('Sita Sharma');
 
-  expect(sitaFinder, findsOneWidget);
+    expect(sitaFinder, findsOneWidget);
 
-  // Find the Complete buttons currently displayed.
-  final completeButtons = find.text('Complete');
+    // Find the Complete buttons currently displayed.
+    final completeButtons = find.text('Complete');
 
-  expect(completeButtons, findsNWidgets(2));
+    expect(completeButtons, findsNWidgets(2));
 
-  // The first Complete button belongs to the first upcoming
-  // session shown in the list (Sita Sharma).
-  final sitaCompleteButton = completeButtons.first;
+    // The first Complete button belongs to the first upcoming
+    // session shown in the list (Sita Sharma).
+    final sitaCompleteButton = completeButtons.first;
 
-  await tester.ensureVisible(sitaCompleteButton);
-  await tester.tap(sitaCompleteButton);
-  await tester.pumpAndSettle();
+    await tester.ensureVisible(sitaCompleteButton);
+    await tester.tap(sitaCompleteButton);
+    await tester.pumpAndSettle();
 
-  // Confirmation dialog.
-  expect(find.text('Complete Session?'), findsOneWidget);
+    // Confirmation dialog.
+    expect(find.text('Complete Session?'), findsOneWidget);
 
-  final confirmButton = find.text('Continue');
+    final confirmButton = find.text('Continue');
 
-  expect(confirmButton, findsOneWidget);
+    expect(confirmButton, findsOneWidget);
 
-  await tester.tap(confirmButton);
-  await tester.pumpAndSettle();
+    await tester.tap(confirmButton);
+    await tester.pumpAndSettle();
 
-  // Complete Session bottom sheet.
-  expect(find.text('Complete Session'), findsOneWidget);
-  expect(find.text('THERAPIST REMARKS'), findsOneWidget);
+    // Complete Session bottom sheet.
+    expect(find.text('Complete Session'), findsOneWidget);
+    expect(find.text('THERAPIST REMARKS'), findsOneWidget);
 
-  final notesField = find.byType(TextField);
+    final notesField = find.byType(TextField);
 
-  expect(notesField, findsOneWidget);
+    expect(notesField, findsOneWidget);
 
-  await tester.enterText(
-    notesField,
-    'Patient responded well to the treatment.',
-  );
+    await tester.enterText(
+      notesField,
+      'Patient responded well to the treatment.',
+    );
 
-  final submitButton = find.text('Submit');
+    final submitButton = find.text('Submit');
 
-  expect(submitButton, findsOneWidget);
+    expect(submitButton, findsOneWidget);
 
-  await tester.tap(submitButton);
-  await tester.pumpAndSettle();
+    await tester.tap(submitButton);
+    await tester.pumpAndSettle();
 
-  // Open Completed tab.
-  final completedTab = find.text('Completed');
+    // Open Completed tab.
+    final completedTab = find.text('Completed');
 
-  expect(completedTab, findsOneWidget);
+    expect(completedTab, findsOneWidget);
 
-  await tester.ensureVisible(completedTab);
-  await tester.pumpAndSettle();
-  await tester.tap(completedTab);
-  await tester.pumpAndSettle();
+    await tester.ensureVisible(completedTab);
+    await tester.pumpAndSettle();
+    await tester.tap(completedTab);
+    await tester.pumpAndSettle();
 
-  expect(find.text('COMPLETED'), findsOneWidget);
-  expect(find.text('Sita Sharma'), findsOneWidget);
-});
+    expect(find.text('COMPLETED'), findsOneWidget);
+    expect(find.text('Sita Sharma'), findsOneWidget);
+  });
 
   testWidgets('Declining a booking moves the session to Cancelled', (
     tester,

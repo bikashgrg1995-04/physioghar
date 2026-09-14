@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import '../helpers/pump_app.dart';
 
 void main() {
@@ -117,7 +118,6 @@ void main() {
       );
 
       expect(sitaCard, findsOneWidget);
-      expect(ramCard, findsOneWidget);
 
       expect(
         find.descendant(of: sitaCard, matching: find.text('Sita Sharma')),
@@ -133,6 +133,19 @@ void main() {
         find.descendant(of: sitaCard, matching: find.text('Home Visit')),
         findsOneWidget,
       );
+
+      final upcomingList = find.byKey(const Key('upcoming-sessions-list'));
+
+      final listView = tester.widget<ListView>(upcomingList);
+      final controller = listView.controller;
+
+      expect(controller, isNotNull);
+
+      controller!.jumpTo(controller.position.maxScrollExtent);
+
+      await tester.pumpAndSettle();
+
+      expect(ramCard, findsOneWidget);
 
       expect(
         find.descendant(of: ramCard, matching: find.text('Ram Thapa')),
@@ -152,7 +165,6 @@ void main() {
         findsOneWidget,
       );
     });
-
     testWidgets('toggles therapist availability', (tester) async {
       await pumpApp(tester);
 

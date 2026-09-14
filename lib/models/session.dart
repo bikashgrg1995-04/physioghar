@@ -5,6 +5,12 @@ enum SessionStatus {
   cancelled,
 }
 
+enum SessionSource {
+  dashboard,
+  schedule,
+  bookingRequest,
+}
+
 class Session {
   final String id;
   final String patientName;
@@ -14,6 +20,7 @@ class Session {
   final SessionStatus status;
   final String? patientAge;
   final String? notes;
+  final SessionSource source;
 
   const Session({
     required this.id,
@@ -22,6 +29,7 @@ class Session {
     required this.location,
     required this.dateTime,
     required this.status,
+    required this.source,
     this.patientAge,
     this.notes,
   });
@@ -35,6 +43,7 @@ class Session {
     SessionStatus? status,
     String? patientAge,
     String? notes,
+    SessionSource? source,
   }) {
     return Session(
       id: id ?? this.id,
@@ -45,6 +54,7 @@ class Session {
       status: status ?? this.status,
       patientAge: patientAge ?? this.patientAge,
       notes: notes ?? this.notes,
+      source: source ?? this.source,
     );
   }
 }
