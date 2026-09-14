@@ -14,7 +14,7 @@ class ProfileHeader extends StatelessWidget {
     final isAvailable = therapist.isAvailable;
 
     return SizedBox(
-      height: 180,
+      height: 140,
       width: double.infinity,
       child: Stack(
         children: [
@@ -25,7 +25,7 @@ class ProfileHeader extends StatelessWidget {
 
           // Decorative leaf.
           Positioned(
-            top: 36,
+            top: 18,
             right: 15,
             child: Opacity(
               opacity: 0.45,
@@ -55,7 +55,6 @@ class ProfileHeader extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          
                           therapist.name,
                           key: const Key('profile-screen-title'),
                           maxLines: 2,

@@ -7,10 +7,12 @@ class ProfileActions extends StatelessWidget {
   const ProfileActions({
     super.key,
     required this.onSettings,
+    required this.onReportIssue,
     required this.onLogout,
   });
 
   final VoidCallback onSettings;
+  final VoidCallback onReportIssue;
   final VoidCallback onLogout;
 
   @override
@@ -30,6 +32,15 @@ class ProfileActions extends StatelessWidget {
           const SizedBox(
             height: AppSizes.spacingSm,
           ),
+          _ProfileActionButton(
+          icon: Icons.report_problem_outlined,
+          title: 'Report an Issue',
+          subtitle: 'Report a problem to PhysioGhar',
+          onPressed: onReportIssue,
+        ),
+        const SizedBox(
+          height: AppSizes.spacingMd,
+        ),
           _ProfileActionButton(
             icon: Icons.logout_outlined,
             title: 'Logout',
@@ -97,6 +108,7 @@ class _ProfileActionButton extends StatelessWidget {
               const SizedBox(
                 width: AppSizes.spacingMd,
               ),
+              
               Expanded(
                 child: Text(
                   title,

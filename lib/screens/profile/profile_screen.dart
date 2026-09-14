@@ -8,6 +8,7 @@ import 'package:physioghar/screens/profile/widgets/edit_profile_dialog.dart';
 import 'package:physioghar/screens/profile/widgets/profile_actions.dart';
 import 'package:physioghar/screens/profile/widgets/profile_header.dart';
 import 'package:physioghar/screens/profile/widgets/profile_settings_sheet.dart';
+import 'package:physioghar/screens/profile/widgets/report_issue_sheet.dart';
 import 'package:physioghar/screens/profile/widgets/therapist_details_card.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -57,6 +58,28 @@ class ProfileScreen extends ConsumerWidget {
                     return const ProfileSettingsSheet();
                   },
                 );
+              },
+              onReportIssue: () async {
+                final submitted = await showModalBottomSheet<bool>(
+                  context: context,
+                  backgroundColor: Colors.white,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(AppSizes.cardRadius),
+                    ),
+                  ),
+                  builder: (_) {
+                    return const ReportIssueSheet();
+                  },
+                );
+
+                if (submitted == true && context.mounted) {
+                  AppSnackBar.showSuccess(
+                    context,
+                    'Complaint submitted successfully',
+                  );
+                }
               },
               onLogout: () async {
                 final confirmed = await showConfirmationDialog(
