@@ -6,10 +6,12 @@ class ApiEndpoints {
 
   // Authentication
   static const String login = '/auth/token/';
-
-  // refresh token url
   static const String refreshToken = '/auth/token/refresh/';
-
-  //logout
   static const String logout = '/auth/logout/';
+
+  // Therapist
+  static const String profile = '/therapist/profile/';
+  static const String availability = '/therapist/availability/';
+
+  static const String avatar = '/therapist/avatar/';
 }

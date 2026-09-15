@@ -21,6 +21,7 @@ dependencies:
   riverpod: ^3.4.3
   dio: ^5.11.1
   jwt_decoder: ^2.0.1
+  image_picker: ^1.2.3
 
 dev_dependencies:
   flutter_test:

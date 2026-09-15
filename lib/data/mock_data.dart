@@ -1,21 +1,10 @@
 import 'package:physioghar/models/schedule_slot.dart';
 import 'package:physioghar/models/session.dart';
-import 'package:physioghar/models/therapist.dart';
 import 'package:physioghar/models/patient.dart';
 
 class MockData {
   MockData._();
-  static final Therapist initialTherapist = Therapist(
-    id: 'therapist_001',
-    name: 'Dr. Anisha Sharma',
-    email: 'anisha@physioghar.com',
-    phone: '+977 9800000000',
-    specialization: 'Physiotherapist',
-    experience: '5 years',
-    address: 'Bharatpur, Chitwan',
-    avatarUrl: '',
-    isAvailable: true,
-  );
+ 
 
   static final List<Session> dashboardSessions = [
     Session(

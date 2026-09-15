@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:physioghar/screens/navigation/main_navigation_screen.dart';
+import 'package:physioghar/screens/new/navigation/main_navigation_screen.dart';
 import 'package:physioghar/screens/new/auth/auth_gate.dart';
 import 'package:physioghar/screens/new/auth/login_screen.dart';
 
