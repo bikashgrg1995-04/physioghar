@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:physioghar/app/router.dart';
 import 'package:physioghar/app/theme.dart';
+import 'package:physioghar/common_widgets/app_snackbar.dart';
 
 class PhysioGharApp extends StatelessWidget {
   const PhysioGharApp({super.key});
@@ -11,7 +12,8 @@ class PhysioGharApp extends StatelessWidget {
       title: 'PhysioGhar',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      initialRoute: AppRouter.home,
+      scaffoldMessengerKey: AppSnackBar.scaffoldMessengerKey,
+      initialRoute: AppRouter.authGate,
       onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }

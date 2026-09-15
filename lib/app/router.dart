@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:physioghar/screens/navigation/main_navigation_screen.dart';
-import 'package:physioghar/screens/patients/patient_detail_screen.dart';
-import 'package:physioghar/screens/sessions/session_detail_screen.dart';
+import 'package:physioghar/screens/new/auth/auth_gate.dart';
+import 'package:physioghar/screens/new/auth/login_screen.dart';
 
 class AppRouter {
   AppRouter._();
 
-  static const String home = '/';
+  static const authGate = '/';
+  static const String login = '/login';
+
+  static const String navigation = '/navigation';
+
   static const String schedule = '/schedule';
   static const String sessions = '/sessions';
   static const String patients = '/patients';
@@ -17,33 +21,35 @@ class AppRouter {
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case home:
-        return MaterialPageRoute(
-          builder: (_) => const MainNavigationScreen(),
-        );
+      case authGate:
+        return MaterialPageRoute(builder: (_) => const AuthGate());
 
-      case sessionDetail:
-        final sessionId = settings.arguments as String;
+      case login:
+        return MaterialPageRoute(builder: (_) => const LoginScreen());
 
-        return MaterialPageRoute(
-          builder: (_) => SessionDetailScreen(
-            sessionId: sessionId,
-          ),
-        );
+      case navigation:
+        return MaterialPageRoute(builder: (_) => const MainNavigationScreen());
 
-      case patientDetail:
-        final patientId = settings.arguments as String;
+      // case sessionDetail:
+      //   final sessionId = settings.arguments as String;
 
-        return MaterialPageRoute(
-          builder: (_) => PatientDetailScreen(
-            patientId: patientId,
-          ),
-        );
+      //   return MaterialPageRoute(
+      //     builder: (_) => SessionDetailScreen(
+      //       sessionId: sessionId,
+      //     ),
+      //   );
+
+      // case patientDetail:
+      //   final patientId = settings.arguments as String;
+
+      //   return MaterialPageRoute(
+      //     builder: (_) => PatientDetailScreen(
+      //       patientId: patientId,
+      //     ),
+      //   );
 
       default:
-        return MaterialPageRoute(
-          builder: (_) => const MainNavigationScreen(),
-        );
+        return MaterialPageRoute(builder: (_) => const AuthGate());
     }
   }
 }

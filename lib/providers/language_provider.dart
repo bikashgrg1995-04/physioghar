@@ -1,22 +1,22 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+// import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum AppLanguage {
-  english,
-  nepali,
-}
+// enum AppLanguage {
+//   english,
+//   nepali,
+// }
 
-class LanguageNotifier extends Notifier<AppLanguage> {
-  @override
-  AppLanguage build() {
-    return AppLanguage.english;
-  }
+// class LanguageNotifier extends Notifier<AppLanguage> {
+//   @override
+//   AppLanguage build() {
+//     return AppLanguage.english;
+//   }
 
-  void setLanguage(AppLanguage language) {
-    state = language;
-  }
-}
+//   void setLanguage(AppLanguage language) {
+//     state = language;
+//   }
+// }
 
-final languageProvider =
-    NotifierProvider<LanguageNotifier, AppLanguage>(
-  LanguageNotifier.new,
-);
+// final languageProvider =
+//     NotifierProvider<LanguageNotifier, AppLanguage>(
+//   LanguageNotifier.new,
+// );

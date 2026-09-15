@@ -23,4 +23,12 @@ class ResponsiveUtils {
   static bool isDesktop(BuildContext context) {
     return width(context) >= 1024;
   }
+
+  static double widthPercent(BuildContext context, double percent) {
+    return width(context) * percent;
+  }
+
+  static double heightPercent(BuildContext context, double percent) {
+    return height(context) * percent;
+  }
 }

@@ -1,55 +1,51 @@
+
 import 'package:flutter/material.dart';
+
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 
 class AppSnackBar {
   AppSnackBar._();
 
-  static void showSuccess(
-    BuildContext context,
-    String message,
-  ) {
+  static final GlobalKey<ScaffoldMessengerState>
+      scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+
+  static void showSuccess(String message) {
     _show(
-      context,
       message: message,
       backgroundColor: AppColors.pine,
-      icon: Icons.check_circle_outline,
+      icon: Icons.check_circle_outline_rounded,
     );
   }
 
-  static void showError(
-    BuildContext context,
-    String message,
-  ) {
+  static void showError(String message) {
     _show(
-      context,
       message: message,
       backgroundColor: AppColors.danger,
-      icon: Icons.error_outline,
+      icon: Icons.error_outline_rounded,
     );
   }
 
-  static void showInfo(
-    BuildContext context,
-    String message,
-  ) {
+  static void showInfo(String message) {
     _show(
-      context,
       message: message,
-      backgroundColor: AppColors.ink,
-      icon: Icons.info_outline,
+      backgroundColor: AppColors.inkMid,
+      icon: Icons.info_outline_rounded,
     );
   }
 
-  static void _show(
-    BuildContext context, {
+  static void _show({
     required String message,
     required Color backgroundColor,
     required IconData icon,
   }) {
-    final messenger = ScaffoldMessenger.maybeOf(context);
+    final messenger = scaffoldMessengerKey.currentState;
 
     if (messenger == null) {
+      debugPrint(
+        'AppSnackBar: ScaffoldMessengerState is not available.',
+      );
       return;
     }
 
@@ -57,22 +53,11 @@ class AppSnackBar {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: backgroundColor,
-          duration: const Duration(seconds: 2),
-          margin: const EdgeInsets.all(
-            AppSizes.spacingLg,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              AppSizes.cardRadius,
-            ),
-          ),
           content: Row(
             children: [
               Icon(
                 icon,
-                color: Colors.white,
+                color: AppColors.white,
                 size: 20,
               ),
               const SizedBox(
@@ -82,13 +67,24 @@ class AppSnackBar {
                 child: Text(
                   message,
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: AppSizes.fontSizeMd,
-                    fontWeight: FontWeight.w600,
+                    color: AppColors.white,
                   ),
                 ),
               ),
             ],
+          ),
+          backgroundColor: backgroundColor,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(
+            AppSizes.spacingLg,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              AppSizes.cardRadius,
+            ),
+          ),
+          duration: const Duration(
+            seconds: 3,
           ),
         ),
       );
