@@ -22,7 +22,7 @@ class SessionController {
 
   String? get errorMessage => _errorMessage;
 
-  Future<bool> loadSessions({SessionStatus? status}) async {
+  Future<bool> loadSessions({SessionStatus? status, int? patientId}) async {
     if (isLoading.value) {
       return false;
     }
@@ -31,7 +31,7 @@ class SessionController {
     _errorMessage = null;
 
     try {
-      final result = await _sessionRepository.getSessions(status: status);
+      final result = await _sessionRepository.getSessions(status: status, patientId: patientId);
 
       sessions.value = result;
 

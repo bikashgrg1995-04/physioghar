@@ -7,8 +7,8 @@ class SessionRepository {
 
   final SessionService _sessionService;
 
-  Future<List<Session>> getSessions({SessionStatus? status}) {
-    return _sessionService.getSessions(status: status);
+  Future<List<Session>> getSessions({SessionStatus? status, int? patientId}) {
+    return _sessionService.getSessions(status: status, patientId: patientId);
   }
 
   Future<Session> getSession(int sessionId) {

@@ -6,6 +6,8 @@ import 'package:physioghar/screens/new/patients/patient_controller.dart';
 import 'package:physioghar/screens/new/patients/widgets/patient_condition_card.dart';
 import 'package:physioghar/screens/new/patients/widgets/patient_header.dart';
 import 'package:physioghar/screens/new/patients/widgets/patient_info_card.dart';
+import 'package:physioghar/screens/new/patients/widgets/patient_notes.dart';
+import 'package:physioghar/screens/new/patients/widgets/patient_treatment_history.dart';
 
 class PatientDetailScreen extends StatefulWidget {
   const PatientDetailScreen({super.key, required this.patientId});
@@ -55,7 +57,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                 }
 
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal:  AppSizes.spacingXl, vertical: AppSizes.spacingSm),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.spacingXl,
+                    vertical: AppSizes.spacingSm,
+                  ),
                   child: Column(
                     children: [
                       PatientHeader(patient: patient),
@@ -67,6 +72,16 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       const SizedBox(height: AppSizes.spacingMd),
 
                       PatientConditionCard(patient: patient),
+
+                      const SizedBox(height: AppSizes.spacingMd),
+
+                      PatientTreatmentHistory(patientId: patient.id!),
+
+                      const SizedBox(height: AppSizes.spacingMd),
+                      PatientNotes(
+                        patientId: patient.id!,
+                        controller: _controller,
+                      ),
                     ],
                   ),
                 );
