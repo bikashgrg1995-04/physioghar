@@ -178,34 +178,45 @@ class TherapistController {
   Future<void> updateAvailability(bool isAvailable) async {
     final currentTherapist = therapist.value;
 
-    if (currentTherapist == null) {
+    if (currentTherapist == null || isUpdating.value) {
       return;
     }
 
-    final previousValue = currentTherapist.isAvailable ?? true;
+    final previousValue = currentTherapist.isAvailable ?? false;
 
+    // Optimistic UI update.
     therapist.value = currentTherapist.copyWith(isAvailable: isAvailable);
+
+    isUpdating.value = true;
 
     try {
       final savedValue = await _therapistRepository.updateAvailability(
         isAvailable,
       );
 
-      final updatedTherapist = therapist.value;
+      final latestTherapist = therapist.value;
 
-      if (updatedTherapist != null) {
-        therapist.value = updatedTherapist.copyWith(isAvailable: savedValue);
+      if (latestTherapist == null) {
+        return;
       }
-    } catch (error) {
-      final updatedTherapist = therapist.value;
 
-      if (updatedTherapist != null) {
-        therapist.value = updatedTherapist.copyWith(isAvailable: previousValue);
+      // Update only availability.
+      therapist.value = latestTherapist.copyWith(isAvailable: savedValue);
+
+      debugPrint('Availability updated: $savedValue');
+    } catch (error) {
+      final latestTherapist = therapist.value;
+
+      if (latestTherapist != null) {
+        // Roll back only availability.
+        therapist.value = latestTherapist.copyWith(isAvailable: previousValue);
       }
 
       debugPrint('Failed to update availability: $error');
 
       AppSnackBar.showError('Unable to update availability.');
+    } finally {
+      isUpdating.value = false;
     }
   }
 
@@ -293,4 +304,9 @@ class TherapistController {
 
     _authController.dispose();
   }
+
+  
 }
+// Shared therapist controller used across profile, 
+  // schedule, dashboard, and other therapist-related screens. 
+  final therapistController = TherapistController();

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:physioghar/screens/new/navigation/main_navigation_screen.dart';
 import 'package:physioghar/screens/new/auth/auth_gate.dart';
 import 'package:physioghar/screens/new/auth/login_screen.dart';
-import 'package:physioghar/screens/patients/patient_detail_screen.dart';
+import 'package:physioghar/screens/new/patients/patient_detail_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -44,9 +44,7 @@ class AppRouter {
         final patientId = settings.arguments as int;
 
         return MaterialPageRoute(
-          builder: (_) => PatientDetailScreen(
-            patientId: patientId,
-          ),
+          builder: (_) => PatientDetailScreen(patientId: patientId),
         );
 
       default:

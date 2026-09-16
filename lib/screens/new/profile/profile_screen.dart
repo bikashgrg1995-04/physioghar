@@ -19,11 +19,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final TherapistController _controller;
   late final LanguageController _languageController;
 
+
   @override
   void initState() {
     super.initState();
 
-    _controller = TherapistController();
+    _controller = therapistController;
     _languageController = LanguageController();
     _controller.loadProfile();
   }
@@ -83,7 +84,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
-    _controller.dispose();
     _languageController.dispose();
 
     super.dispose();

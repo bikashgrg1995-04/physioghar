@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/screens/patients/patient_controller.dart';
-import 'package:physioghar/screens/patients/widgets/patient_condition_card.dart';
-import 'package:physioghar/screens/patients/widgets/patient_header.dart';
-import 'package:physioghar/screens/patients/widgets/patient_info_card.dart';
+import 'package:physioghar/screens/new/patients/patient_controller.dart';
+import 'package:physioghar/screens/new/patients/widgets/patient_condition_card.dart';
+import 'package:physioghar/screens/new/patients/widgets/patient_header.dart';
+import 'package:physioghar/screens/new/patients/widgets/patient_info_card.dart';
 
 class PatientDetailScreen extends StatefulWidget {
   const PatientDetailScreen({super.key, required this.patientId});
