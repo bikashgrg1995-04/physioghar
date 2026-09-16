@@ -1,146 +1,211 @@
 
-// import 'package:flutter/material.dart';
-// import 'package:physioghar/core/constants/app_colors.dart';
-// import 'package:physioghar/core/constants/app_sizes.dart';
-// import 'package:physioghar/models/patient.dart';
+import 'package:flutter/material.dart';
 
-// class PatientInfoCard extends StatelessWidget {
-//   const PatientInfoCard({
-//     super.key,
-//     required this.patient,
-//   });
+import 'package:physioghar/core/constants/app_colors.dart';
+import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/models/new/patient.dart';
 
-//   final Patient patient;
+class PatientInfoCard extends StatelessWidget {
+  const PatientInfoCard({
+    super.key,
+    required this.patient,
+  });
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       width: double.infinity,
-//       padding: const EdgeInsets.all(
-//         AppSizes.spacingLg,
-//       ),
-//       decoration: BoxDecoration(
-//         color: Colors.white,
-//         borderRadius: BorderRadius.circular(
-//           AppSizes.cardRadius,
-//         ),
-//         border: Border.all(
-//           color: AppColors.mist,
-//         ),
-//       ),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           _SectionTitle(
-//             icon: Icons.person_outline,
-//             title: 'Patient Information',
-//           ),
-//           const SizedBox(
-//             height: AppSizes.spacingLg,
-//           ),
-//           _InfoRow(
-//             label: 'Name',
-//             value: patient.name,
-//           ),
-//           _InfoRow(
-//             label: 'Age',
-//             value: '${patient.age} years',
-//           ),
-//           _InfoRow(
-//             label: 'Gender',
-//             value: patient.gender,
-//           ),
-//           _InfoRow(
-//             label: 'Contact',
-//             value: patient.contact,
-//             isLast: true,
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
+  final Patient patient;
 
-// class _SectionTitle extends StatelessWidget {
-//   const _SectionTitle({
-//     required this.icon,
-//     required this.title,
-//   });
+  @override
+  Widget build(BuildContext context) {
+    final name =
+        patient.name?.trim().isNotEmpty == true
+            ? patient.name!.trim()
+            : 'Not provided';
 
-//   final IconData icon;
-//   final String title;
+    final age = patient.age != null
+        ? '${patient.age} years'
+        : 'Not provided';
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Row(
-//       children: [
-//         Container(
-//           width: AppSizes.minTapTarget,
-//           height: AppSizes.minTapTarget,
-//           decoration: const BoxDecoration(
-//             color: AppColors.pinePale,
-//             shape: BoxShape.circle,
-//           ),
-//           child: Icon(
-//             icon,
-//             color: AppColors.pine,
-//             size: 21,
-//           ),
-//         ),
-//         const SizedBox(
-//           width: AppSizes.spacingSm,
-//         ),
-//         Expanded(
-//           child: Text(
-//             title,
-//             style: Theme.of(context).textTheme.titleMedium,
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
+    final gender =
+        patient.gender?.trim().isNotEmpty == true
+            ? patient.gender!.trim()
+            : 'Not provided';
 
-// class _InfoRow extends StatelessWidget {
-//   const _InfoRow({
-//     required this.label,
-//     required this.value,
-//     this.isLast = false,
-//   });
+    final phone =
+        patient.phone?.trim().isNotEmpty == true
+            ? patient.phone!.trim()
+            : 'Not provided';
 
-//   final String label;
-//   final String value;
-//   final bool isLast;
+    final email =
+        patient.email?.trim().isNotEmpty == true
+            ? patient.email!.trim()
+            : 'Not provided';
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Padding(
-//       padding: EdgeInsets.only(
-//         bottom: isLast ? 0 : AppSizes.spacingMd,
-//       ),
-//       child: Row(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           SizedBox(
-//             width: 80,
-//             child: Text(
-//               label,
-//               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-//                     color: AppColors.inkMute,
-//                   ),
-//             ),
-//           ),
-//           Expanded(
-//             child: Text(
-//               value,
-//               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-//                     color: AppColors.ink,
-//                     fontWeight: FontWeight.w500,
-//                   ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
+    final address =
+        patient.address?.trim().isNotEmpty == true
+            ? patient.address!.trim()
+            : 'Not provided';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(
+        AppSizes.spacingLg,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(
+          AppSizes.cardRadius,
+        ),
+        border: Border.all(
+          color: AppColors.mist,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          const _SectionTitle(
+            icon: Icons.person_outline,
+            title: 'Patient Information',
+          ),
+
+          const SizedBox(
+            height: AppSizes.spacingLg,
+          ),
+
+          _InfoRow(
+            label: 'Name',
+            value: name,
+          ),
+
+          _InfoRow(
+            label: 'Age',
+            value: age,
+          ),
+
+          _InfoRow(
+            label: 'Gender',
+            value: gender,
+          ),
+
+          _InfoRow(
+            label: 'Phone',
+            value: phone,
+          ),
+
+          _InfoRow(
+            label: 'Email',
+            value: email,
+          ),
+
+          _InfoRow(
+            label: 'Address',
+            value: address,
+            isLast: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({
+    required this.icon,
+    required this.title,
+  });
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: AppSizes.minTapTarget,
+          height: AppSizes.minTapTarget,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            color: AppColors.pinePale,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.pine,
+            size: 21,
+          ),
+        ),
+
+        const SizedBox(
+          width: AppSizes.spacingSm,
+        ),
+
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    this.isLast = false,
+  });
+
+  final String label;
+  final String value;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: isLast
+            ? 0
+            : AppSizes.spacingSm,
+      ),
+      child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(
+                    color: AppColors.inkMute,
+                  ),
+            ),
+          ),
+
+          const SizedBox(
+            width: AppSizes.spacingSm,
+          ),
+
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

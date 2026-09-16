@@ -1,100 +1,194 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:physioghar/app/router.dart';
-// import 'package:physioghar/core/constants/app_colors.dart';
-// import 'package:physioghar/core/constants/app_sizes.dart';
-// import 'package:physioghar/providers/patient_provider.dart';
-// import 'package:physioghar/screens/patients/widgets/patient_card.dart';
-// import 'package:physioghar/screens/patients/widgets/patient_empty_state.dart';
-// import 'package:physioghar/screens/patients/widgets/patient_search_field.dart';
 
-// class PatientsScreen extends ConsumerStatefulWidget {
-//   const PatientsScreen({super.key});
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-//   @override
-//   ConsumerState<PatientsScreen> createState() => _PatientsScreenState();
-// }
+import 'package:physioghar/app/router.dart';
+import 'package:physioghar/core/constants/app_colors.dart';
+import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/models/new/patient.dart';
+import 'package:physioghar/screens/patients/patient_controller.dart';
+import 'package:physioghar/screens/patients/widgets/patient_card.dart';
+import 'package:physioghar/screens/patients/widgets/patient_empty_state.dart';
+import 'package:physioghar/screens/patients/widgets/patient_search_field.dart';
 
-// class _PatientsScreenState extends ConsumerState<PatientsScreen> {
-//   final _searchController = TextEditingController();
-//   String _searchQuery = '';
+class PatientsScreen extends StatefulWidget {
+  const PatientsScreen({
+    super.key,
+  });
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final patients = ref.watch(patientProvider);
+  @override
+  State<PatientsScreen> createState() =>
+      _PatientsScreenState();
+}
 
-//     final filteredPatients = patients.where((patient) {
-//       final query = _searchQuery.toLowerCase().trim();
+class _PatientsScreenState
+    extends State<PatientsScreen> {
+  late final PatientController _controller;
 
-//       return query.isEmpty ||
-//           patient.name.toLowerCase().contains(query) ||
-//           patient.condition.toLowerCase().contains(query);
-//     }).toList();
+  final _searchController = TextEditingController();
 
-//     return SafeArea(
-//       child: Padding(
-//         padding: const EdgeInsets.all(AppSizes.spacingXl),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Text(
-//               'Patients',
-//               key: const Key('patients-screen-title'),
-//               style: GoogleFonts.fraunces(
-//                 fontSize: AppSizes.fontSizeDisplay,
-//                 fontWeight: FontWeight.w600,
-//                 color: AppColors.ink,
-//               ),
-//             ),
-//             const SizedBox(height: AppSizes.spacingXs),
-//             Text(
-//               'Your patient records',
-//               style: GoogleFonts.inter(
-//                 fontSize: AppSizes.fontSizeMd,
-//                 color: AppColors.inkMid,
-//               ),
-//             ),
+  String _searchQuery = '';
 
-//             const SizedBox(height: AppSizes.spacingLg),
+  @override
+  void initState() {
+    super.initState();
 
-//             PatientSearchField(
-//               controller: _searchController,
-//               onChanged: (value) {
-//                 setState(() {
-//                   _searchQuery = value;
-//                 });
-//               },
-//             ),
+    _controller = PatientController();
+    _controller.loadPatients();
+  }
 
-//             const SizedBox(height: AppSizes.spacingLg),
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _controller.dispose();
 
-//             Expanded(
-//               child: filteredPatients.isEmpty
-//                   ? const PatientEmptyState()
-//                   : ListView.separated(
-//                       itemCount: filteredPatients.length,
-//                       separatorBuilder: (_, _) =>
-//                           const SizedBox(height: AppSizes.spacingMd),
-//                       itemBuilder: (context, index) {
-//                         final patient = filteredPatients[index];
+    super.dispose();
+  }
 
-//                         return PatientCard(
-//                           patient: patient,
-//                           onTap: () {
-//                             Navigator.pushNamed(
-//                               context,
-//                               AppRouter.patientDetail,
-//                               arguments: patient.id,
-//                             );
-//                           },
-//                         );
-//                       },
-//                     ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<List<Patient>>(
+      valueListenable: _controller.patients,
+      builder: (
+        context,
+        patients,
+        _,
+      ) {
+        final query =
+            _searchQuery.toLowerCase().trim();
+
+        final filteredPatients =
+            patients.where((patient) {
+          final name =
+              patient.name?.toLowerCase() ?? '';
+
+          final condition =
+              patient.condition?.toLowerCase() ?? '';
+
+          return query.isEmpty ||
+              name.contains(query) ||
+              condition.contains(query);
+        }).toList();
+
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(
+              AppSizes.spacingXl,
+            ),
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Patients',
+                  key: const Key(
+                    'patients-screen-title',
+                  ),
+                  style: GoogleFonts.fraunces(
+                    fontSize:
+                        AppSizes.fontSizeDisplay,
+                    fontWeight:
+                        FontWeight.w600,
+                    color: AppColors.ink,
+                  ),
+                ),
+
+                const SizedBox(
+                  height: AppSizes.spacingXs,
+                ),
+
+                Text(
+                  'Your patient records',
+                  style: GoogleFonts.inter(
+                    fontSize:
+                        AppSizes.fontSizeMd,
+                    color: AppColors.inkMid,
+                  ),
+                ),
+
+                const SizedBox(
+                  height: AppSizes.spacingLg,
+                ),
+
+                PatientSearchField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                ),
+
+                const SizedBox(
+                  height: AppSizes.spacingLg,
+                ),
+
+                Expanded(
+                  child: ValueListenableBuilder<bool>(
+                    valueListenable:
+                        _controller.isLoading,
+                    builder: (
+                      context,
+                      isLoading,
+                      _,
+                    ) {
+                      if (isLoading &&
+                          patients.isEmpty) {
+                        return const Center(
+                          child:
+                              CircularProgressIndicator(),
+                        );
+                      }
+
+                      if (filteredPatients.isEmpty) {
+                        return const PatientEmptyState();
+                      }
+
+                      return RefreshIndicator(
+                        onRefresh:
+                            _controller.loadPatients,
+                        child:
+                            ListView.separated(
+                          physics:
+                              const AlwaysScrollableScrollPhysics(),
+                          itemCount:
+                              filteredPatients.length,
+                          separatorBuilder:
+                              (_, _) =>
+                                  const SizedBox(
+                            height:
+                                AppSizes.spacingMd,
+                          ),
+                          itemBuilder:
+                              (context, index) {
+                            final patient =
+                                filteredPatients[
+                                    index];
+
+                            return PatientCard(
+                              patient: patient,
+                              onTap: () {
+                                Navigator
+                                    .of(context)
+                                    .pushNamed(
+                                  AppRouter
+                                      .patientDetail,
+                                  arguments:
+                                      patient.id,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:physioghar/screens/new/profile/profile_screen.dart';
+import 'package:physioghar/screens/patients/patients_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -23,7 +24,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     SizedBox(),
     SizedBox(),
     SizedBox(),
-    SizedBox(),
+    PatientsScreen(),
     ProfileScreen(),
   ];
 

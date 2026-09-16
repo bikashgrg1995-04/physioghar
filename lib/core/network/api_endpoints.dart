@@ -11,7 +11,13 @@ class ApiEndpoints {
 
   // Therapist
   static const String profile = '/therapist/profile/';
+
+  //update therapist availability
   static const String availability = '/therapist/availability/';
 
+  //update therapist avatar
   static const String avatar = '/therapist/avatar/';
+
+  // patient list
+  static const String patients = '/patients/';
 }
