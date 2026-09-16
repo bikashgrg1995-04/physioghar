@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/data/repositories/patient_repository.dart';
-import 'package:physioghar/models/new/patient.dart';
+import 'package:physioghar/models/patient.dart';
 
 class PatientController {
   PatientController({

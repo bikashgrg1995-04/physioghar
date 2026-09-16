@@ -1,6 +1,6 @@
 
 import 'package:physioghar/data/services/patient_service.dart';
-import 'package:physioghar/models/new/patient.dart';
+import 'package:physioghar/models/patient.dart';
 
 class PatientRepository {
   PatientRepository({

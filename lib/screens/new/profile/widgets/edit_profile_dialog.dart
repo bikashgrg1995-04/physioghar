@@ -6,7 +6,7 @@ import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/common_widgets/app_text_field.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/models/new/therapist.dart';
+import 'package:physioghar/models/therapist.dart';
 
 class EditProfileDialog extends StatefulWidget {
   const EditProfileDialog({

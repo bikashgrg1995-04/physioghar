@@ -1,6 +1,6 @@
 
 import 'package:physioghar/data/services/schedule_service.dart';
-import 'package:physioghar/models/new/schedule_slot.dart';
+import 'package:physioghar/models/schedule_slot.dart';
 
 class ScheduleRepository {
   ScheduleRepository({

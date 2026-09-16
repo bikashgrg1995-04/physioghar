@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/models/new/patient.dart';
+import 'package:physioghar/models/patient.dart';
 
 class PatientConditionCard extends StatelessWidget {
   const PatientConditionCard({

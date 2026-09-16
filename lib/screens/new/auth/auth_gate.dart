@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:physioghar/app/router.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
-import 'package:physioghar/models/new/auth_result.dart';
+import 'package:physioghar/models/auth_result.dart';
 import 'package:physioghar/screens/new/auth/auth_controller.dart';
 
 class AuthGate extends StatefulWidget {

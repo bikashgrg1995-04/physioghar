@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/models/new/schedule_slot.dart';
+import 'package:physioghar/models/schedule_slot.dart';
 
 class ScheduleSlotCard extends StatelessWidget {
   const ScheduleSlotCard({

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/models/new/schedule_slot.dart';
-import 'package:physioghar/models/new/therapist.dart';
+import 'package:physioghar/models/schedule_slot.dart';
+import 'package:physioghar/models/therapist.dart';
 import 'package:physioghar/screens/new/profile/therapist_controller.dart';
 import 'package:physioghar/screens/new/schedule/schedule_controller.dart';
 import 'package:physioghar/screens/new/schedule/widgets/add_slot_bottom_sheet.dart';

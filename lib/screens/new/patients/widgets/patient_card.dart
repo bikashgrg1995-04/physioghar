@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/models/new/patient.dart';
+import 'package:physioghar/models/patient.dart';
 
 class PatientCard extends StatelessWidget {
   const PatientCard({

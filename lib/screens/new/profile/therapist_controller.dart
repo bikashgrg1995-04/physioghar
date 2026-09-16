@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/data/repositories/therapist_repository.dart';
-import 'package:physioghar/models/new/therapist.dart';
+import 'package:physioghar/models/therapist.dart';
 import 'package:physioghar/screens/new/auth/auth_controller.dart';
 import 'package:physioghar/screens/new/profile/language_controller.dart';
 import 'package:physioghar/screens/new/profile/widgets/edit_profile_dialog.dart';

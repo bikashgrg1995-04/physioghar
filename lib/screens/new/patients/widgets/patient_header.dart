@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/models/new/patient.dart';
+import 'package:physioghar/models/patient.dart';
 
 class PatientHeader extends StatelessWidget {
   const PatientHeader({super.key, required this.patient});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/models/new/therapist.dart';
+import 'package:physioghar/models/therapist.dart';
 import 'package:physioghar/screens/new/profile/language_controller.dart';
 import 'package:physioghar/screens/new/profile/therapist_controller.dart';
 import 'package:physioghar/screens/new/profile/widgets/profile_actions.dart';

@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:physioghar/app/router.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/models/new/patient.dart';
+import 'package:physioghar/models/patient.dart';
 import 'package:physioghar/screens/new/patients/patient_controller.dart';
 import 'package:physioghar/screens/new/patients/widgets/patient_card.dart';
 import 'package:physioghar/screens/new/patients/widgets/patient_empty_state.dart';

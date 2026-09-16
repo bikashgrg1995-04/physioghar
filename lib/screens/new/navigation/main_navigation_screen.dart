@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:physioghar/screens/new/profile/profile_screen.dart';
 import 'package:physioghar/screens/new/patients/patients_screen.dart';
 import 'package:physioghar/screens/new/schedule/schedule_screen.dart';
+import 'package:physioghar/screens/new/sessions/sessions_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -24,7 +25,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
    final List<Widget> _screens = const [
     SizedBox(),
     ScheduleScreen(),
-    SizedBox(),
+    SessionsScreen(),
     PatientsScreen(),
     ProfileScreen(),
   ];

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:physioghar/data/repositories/schedule_repository.dart';
-import 'package:physioghar/models/new/schedule_slot.dart';
+import 'package:physioghar/models/schedule_slot.dart';
 
 class ScheduleController {
   ScheduleController({

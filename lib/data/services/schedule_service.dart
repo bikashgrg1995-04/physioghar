@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 
 import 'package:physioghar/core/network/api_client.dart';
 import 'package:physioghar/core/network/api_endpoints.dart';
-import 'package:physioghar/models/new/schedule_slot.dart';
+import 'package:physioghar/models/schedule_slot.dart';
 
 class ScheduleService {
   ScheduleService({

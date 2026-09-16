@@ -4,7 +4,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 
 import 'package:physioghar/core/storage/secure_storage_service.dart';
 import 'package:physioghar/data/services/auth_service.dart';
-import 'package:physioghar/models/new/auth_result.dart';
+import 'package:physioghar/models/auth_result.dart';
 
 class AuthRepository {
   AuthRepository({AuthService? authService})

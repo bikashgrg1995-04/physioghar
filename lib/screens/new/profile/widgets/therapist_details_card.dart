@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/models/new/therapist.dart';
+import 'package:physioghar/models/therapist.dart';
 
 class TherapistDetailsCard extends StatelessWidget {
   const TherapistDetailsCard({

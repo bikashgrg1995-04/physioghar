@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:physioghar/data/services/therapist_service.dart';
-import 'package:physioghar/models/new/therapist.dart';
+import 'package:physioghar/models/therapist.dart';
 
 class TherapistRepository {
   TherapistRepository({TherapistService? therapistService})

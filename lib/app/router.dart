@@ -3,6 +3,7 @@ import 'package:physioghar/screens/new/navigation/main_navigation_screen.dart';
 import 'package:physioghar/screens/new/auth/auth_gate.dart';
 import 'package:physioghar/screens/new/auth/login_screen.dart';
 import 'package:physioghar/screens/new/patients/patient_detail_screen.dart';
+import 'package:physioghar/screens/new/sessions/session_detail_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -31,14 +32,14 @@ class AppRouter {
       case navigation:
         return MaterialPageRoute(builder: (_) => const MainNavigationScreen());
 
-      // case sessionDetail:
-      //   final sessionId = settings.arguments as String;
+      case sessionDetail:
+        final sessionId = settings.arguments as int;
 
-      //   return MaterialPageRoute(
-      //     builder: (_) => SessionDetailScreen(
-      //       sessionId: sessionId,
-      //     ),
-      //   );
+        return MaterialPageRoute(
+          builder: (_) => SessionDetailScreen(
+            sessionId: sessionId,
+          ),
+        );
 
       case patientDetail:
         final patientId = settings.arguments as int;

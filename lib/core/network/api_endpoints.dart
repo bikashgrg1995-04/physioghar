@@ -21,6 +21,11 @@ class ApiEndpoints {
   // patient list
   static const String patients = '/patients/';
 
-  // scheedule base endpoint
+  // schedule base endpoint
   static const String schedules = '/schedules/';
+
+  //session base endpoint
+static const String sessions = '/sessions/';
+
+
 }

@@ -5,7 +5,7 @@ import 'package:physioghar/common_widgets/app_confirmation_dialog.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_strings.dart';
 import 'package:physioghar/data/repositories/auth_repository.dart';
-import 'package:physioghar/models/new/auth_result.dart';
+import 'package:physioghar/models/auth_result.dart';
 
 class AuthController {
   AuthController({AuthRepository? authRepository})

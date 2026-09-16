@@ -5,7 +5,7 @@ import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
-import 'package:physioghar/models/new/schedule_slot.dart';
+import 'package:physioghar/models/schedule_slot.dart';
 import 'package:physioghar/screens/new/schedule/schedule_controller.dart';
 import 'package:physioghar/screens/new/schedule/widgets/schedule_slot_card.dart';
 
