@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/models/therapist.dart';
-import 'package:physioghar/screens/new/profile/therapist_controller.dart';
-import 'package:physioghar/screens/new/sessions/session_controller.dart';
+import 'package:physioghar/screens/profile/therapist_controller.dart';
+import 'package:physioghar/screens/sessions/session_controller.dart';
 
 class DashboardController {
   DashboardController({

@@ -7,8 +7,8 @@ import 'package:physioghar/screens/dashboard/dashboard_controller.dart';
 import 'package:physioghar/screens/dashboard/widgets/dashboard_session_section.dart';
 import 'package:physioghar/screens/dashboard/widgets/dashboard_summary_card.dart';
 import 'package:physioghar/screens/dashboard/widgets/therapist_header.dart';
-import 'package:physioghar/screens/new/profile/therapist_controller.dart';
-import 'package:physioghar/screens/new/sessions/session_controller.dart';
+import 'package:physioghar/screens/profile/therapist_controller.dart';
+import 'package:physioghar/screens/sessions/session_controller.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

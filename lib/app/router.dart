@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:physioghar/screens/new/navigation/main_navigation_screen.dart';
-import 'package:physioghar/screens/new/auth/auth_gate.dart';
-import 'package:physioghar/screens/new/auth/login_screen.dart';
-import 'package:physioghar/screens/new/patients/patient_detail_screen.dart';
-import 'package:physioghar/screens/new/profile/widgets/my_reports_screen.dart';
-import 'package:physioghar/screens/new/sessions/session_detail_screen.dart';
+import 'package:physioghar/screens/navigation/main_navigation_screen.dart';
+import 'package:physioghar/screens/auth/auth_gate.dart';
+import 'package:physioghar/screens/auth/login_screen.dart';
+import 'package:physioghar/screens/patients/patient_detail_screen.dart';
+import 'package:physioghar/screens/profile/widgets/my_reports_screen.dart';
+import 'package:physioghar/screens/sessions/session_detail_screen.dart';
 
 class AppRouter {
   AppRouter._();

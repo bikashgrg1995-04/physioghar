@@ -5,7 +5,7 @@ import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/therapist.dart';
-import 'package:physioghar/screens/new/profile/therapist_controller.dart';
+import 'package:physioghar/screens/profile/therapist_controller.dart';
 
 class TherapistHeader extends StatelessWidget {
   const TherapistHeader({
