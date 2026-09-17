@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:physioghar/app/router.dart';
 
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/models/therapist.dart';
 import 'package:physioghar/screens/new/profile/language_controller.dart';
 import 'package:physioghar/screens/new/profile/therapist_controller.dart';
+import 'package:physioghar/screens/new/profile/complaint_controller.dart';
 import 'package:physioghar/screens/new/profile/widgets/profile_actions.dart';
 import 'package:physioghar/screens/new/profile/widgets/profile_header.dart';
 import 'package:physioghar/screens/new/profile/widgets/therapist_details_card.dart';
@@ -26,6 +28,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     _controller = therapistController;
     _languageController = LanguageController();
+    complaintController.loadComplaints();
+
+    
     _controller.loadProfile();
   }
 
@@ -68,7 +73,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _controller.openSettings(context, _languageController);
                   },
                   onReportIssue: () {
-                    _controller.openReportIssue(context);
+                    Navigator.of(context).pushNamed(
+                      AppRouter.complaints
+                    );
                   },
                   onLogout: () {
                     _controller.logout(context);

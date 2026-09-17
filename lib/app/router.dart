@@ -3,6 +3,7 @@ import 'package:physioghar/screens/new/navigation/main_navigation_screen.dart';
 import 'package:physioghar/screens/new/auth/auth_gate.dart';
 import 'package:physioghar/screens/new/auth/login_screen.dart';
 import 'package:physioghar/screens/new/patients/patient_detail_screen.dart';
+import 'package:physioghar/screens/new/profile/widgets/my_reports_screen.dart';
 import 'package:physioghar/screens/new/sessions/session_detail_screen.dart';
 
 class AppRouter {
@@ -17,6 +18,7 @@ class AppRouter {
   static const String sessions = '/sessions';
   static const String patients = '/patients';
   static const String profile = '/profile';
+  static const String complaints = '/complaints';
 
   static const String sessionDetail = '/session-detail';
   static const String patientDetail = '/patient-detail';
@@ -47,6 +49,9 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => PatientDetailScreen(patientId: patientId),
         );
+
+      case complaints:
+        return MaterialPageRoute(builder: (_)=>  const MyReportsScreen());
 
       default:
         return MaterialPageRoute(builder: (_) => const AuthGate());

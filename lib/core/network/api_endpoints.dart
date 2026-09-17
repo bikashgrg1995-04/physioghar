@@ -25,7 +25,11 @@ class ApiEndpoints {
   static const String schedules = '/schedules/';
 
   //session base endpoint
-static const String sessions = '/sessions/';
+  static const String sessions = '/sessions/';
 
+  //complaint base endpoint
+  static const String complaints = '/complaints/';
 
+  //compaint with id to edit/delete
+  static String complaintDetail(int id) => '$complaints$id/';
 }

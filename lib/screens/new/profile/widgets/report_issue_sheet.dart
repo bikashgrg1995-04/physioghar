@@ -6,9 +6,18 @@ import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/common_widgets/app_text_field.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/models/complaint.dart';
+import 'package:physioghar/screens/new/profile/complaint_controller.dart';
 
 class ReportIssueSheet extends StatefulWidget {
-  const ReportIssueSheet({super.key});
+  const ReportIssueSheet({
+    super.key,
+    this.complaint,
+  });
+
+  final Complaint? complaint;
+
+  bool get isEditing => complaint != null;
 
   @override
   State<ReportIssueSheet> createState() => _ReportIssueSheetState();
@@ -20,15 +29,31 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
   final _subjectController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  String _selectedCategory = 'Patient Issue';
+  String _selectedCategory = 'patient';
 
-  static const categories = [
-    'Patient Issue',
-    'Booking Issue',
-    'Payment Issue',
-    'Technical Issue',
-    'Other',
-  ];
+  static const Map<String, String> categories = {
+    'patient': 'Patient Issue',
+    'booking': 'Booking Issue',
+    'payment': 'Payment Issue',
+    'technical': 'Technical Issue',
+    'other': 'Other',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+
+    final complaint = widget.complaint;
+
+    if (complaint != null) {
+      _selectedCategory = categories.containsKey(complaint.category)
+          ? complaint.category!
+          : 'other';
+
+      _subjectController.text = complaint.subject ?? '';
+      _descriptionController.text = complaint.description ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -37,24 +62,64 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
     super.dispose();
   }
 
-  void _submitComplaint() {
+  Future<void> _submitComplaint() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    final subject = _subjectController.text.trim();
+    final description = _descriptionController.text.trim();
+
+    final complaint = widget.complaint;
+
+    final result = complaint == null
+        ? await complaintController.createComplaint(
+            category: _selectedCategory,
+            subject: subject,
+            description: description,
+          )
+        : await complaintController.updateComplaint(
+            id: complaint.id!,
+            category: _selectedCategory,
+            subject: subject,
+            description: description,
+          );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result == null) {
+      AppSnackBar.showError(
+        complaintController.errorMessage ??
+            (widget.isEditing
+                ? 'Failed to update complaint.'
+                : 'Failed to submit complaint.'),
+      );
+      return;
+    }
+
     Navigator.of(context).pop();
-    AppSnackBar.showSuccess('Report submitted successfully.');
+
+    AppSnackBar.showSuccess(
+      widget.isEditing
+          ? 'Report updated successfully.'
+          : 'Report submitted successfully.',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.isEditing;
+
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
           AppSizes.spacingLg,
           AppSizes.spacingSm,
           AppSizes.spacingLg,
-          MediaQuery.viewInsetsOf(context).bottom + AppSizes.spacingLg,
+          MediaQuery.viewInsetsOf(context).bottom +
+              AppSizes.spacingLg,
         ),
         child: Form(
           key: _formKey,
@@ -68,16 +133,22 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                     width: 42,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppColors.inkMute.withValues(alpha: 0.35),
+                      color: AppColors.inkMute.withValues(
+                        alpha: 0.35,
+                      ),
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: AppSizes.spacingLg),
+                const SizedBox(
+                  height: AppSizes.spacingLg,
+                ),
 
                 Text(
-                  'Report an Issue',
+                  isEditing
+                      ? 'Edit Report'
+                      : 'Report an Issue',
                   style: GoogleFonts.fraunces(
                     fontSize: AppSizes.fontSizeXl,
                     fontWeight: FontWeight.w600,
@@ -85,29 +156,45 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                   ),
                 ),
 
-                const SizedBox(height: AppSizes.spacingXs),
+                const SizedBox(
+                  height: AppSizes.spacingXs,
+                ),
 
                 Text(
-                  'Tell us about a problem you are facing.',
+                  isEditing
+                      ? 'Update the details of your report.'
+                      : 'Tell us about a problem you are facing.',
                   style: GoogleFonts.inter(
                     fontSize: AppSizes.fontSizeMd,
                     color: AppColors.inkMid,
                   ),
                 ),
 
-                const SizedBox(height: AppSizes.spacingLg),
+                const SizedBox(
+                  height: AppSizes.spacingLg,
+                ),
 
-                _FieldLabel(label: 'CATEGORY'),
+                _FieldLabel(
+                  label: 'CATEGORY',
+                ),
 
-                const SizedBox(height: AppSizes.spacingXs),
+                const SizedBox(
+                  height: AppSizes.spacingXs,
+                ),
 
                 DropdownButtonFormField<String>(
                   initialValue: _selectedCategory,
                   decoration: _inputDecoration(),
-                  items: categories.map((category) {
+                  items: categories.entries.map((entry) {
                     return DropdownMenuItem<String>(
-                      value: category,
-                      child: Text(category),
+                      value: entry.key,
+                      child: Text(
+                        entry.value,
+                        style: GoogleFonts.inter(
+                          fontSize: AppSizes.fontSizeMd,
+                          color: AppColors.ink,
+                        ),
+                      ),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -121,7 +208,9 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                   },
                 ),
 
-                const SizedBox(height: AppSizes.spacingMd),
+                const SizedBox(
+                  height: AppSizes.spacingMd,
+                ),
 
                 AppTextField(
                   controller: _subjectController,
@@ -138,7 +227,9 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                   },
                 ),
 
-                const SizedBox(height: AppSizes.spacingMd),
+                const SizedBox(
+                  height: AppSizes.spacingMd,
+                ),
 
                 AppTextField(
                   controller: _descriptionController,
@@ -157,13 +248,42 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                   },
                 ),
 
-                const SizedBox(height: AppSizes.spacingLg),
+                const SizedBox(
+                  height: AppSizes.spacingLg,
+                ),
 
-                AppButton(
-                  width: double.infinity,
-                  text: 'Submit Complaint',
-                  icon: const Icon(Icons.send_outlined, size: 18),
-                  onPressed: _submitComplaint,
+                ValueListenableBuilder<bool>(
+                  valueListenable:
+                      complaintController.isSubmitting,
+                  builder: (context, isSubmitting, _) {
+                    return AppButton(
+                      width: double.infinity,
+                      text: isSubmitting
+                          ? isEditing
+                              ? 'Updating...'
+                              : 'Submitting...'
+                          : isEditing
+                              ? 'Update Complaint'
+                              : 'Submit Complaint',
+                      icon: isSubmitting
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Icon(
+                              isEditing
+                                  ? Icons.save_outlined
+                                  : Icons.send_outlined,
+                              size: 18,
+                            ),
+                      onPressed:
+                          isSubmitting ? null : _submitComplaint,
+                    );
+                  },
                 ),
               ],
             ),
@@ -182,31 +302,49 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
         vertical: AppSizes.spacingMd,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        borderRadius: BorderRadius.circular(
+          AppSizes.cardRadius,
+        ),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        borderRadius: BorderRadius.circular(
+          AppSizes.cardRadius,
+        ),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        borderSide: const BorderSide(color: AppColors.pine),
+        borderRadius: BorderRadius.circular(
+          AppSizes.cardRadius,
+        ),
+        borderSide: const BorderSide(
+          color: AppColors.pine,
+        ),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        borderSide: const BorderSide(color: AppColors.danger),
+        borderRadius: BorderRadius.circular(
+          AppSizes.cardRadius,
+        ),
+        borderSide: const BorderSide(
+          color: AppColors.danger,
+        ),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        borderSide: const BorderSide(color: AppColors.danger),
+        borderRadius: BorderRadius.circular(
+          AppSizes.cardRadius,
+        ),
+        borderSide: const BorderSide(
+          color: AppColors.danger,
+        ),
       ),
     );
   }
 }
 
 class _FieldLabel extends StatelessWidget {
-  const _FieldLabel({required this.label});
+  const _FieldLabel({
+    required this.label,
+  });
 
   final String label;
 
