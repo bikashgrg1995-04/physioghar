@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -6,12 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 
 ScheduleSlot scheduleSlotFromJson(String str) =>
-    ScheduleSlot.fromJson(
-      json.decode(str) as Map<String, dynamic>,
-    );
+    ScheduleSlot.fromJson(json.decode(str) as Map<String, dynamic>);
 
-String scheduleSlotToJson(ScheduleSlot data) =>
-    json.encode(data.toJson());
+String scheduleSlotToJson(ScheduleSlot data) => json.encode(data.toJson());
 
 enum ScheduleSlotStatus {
   open,
@@ -70,9 +66,7 @@ enum ScheduleSlotStatus {
     }
   }
 
-  static ScheduleSlotStatus fromJson(
-    String value,
-  ) {
+  static ScheduleSlotStatus fromJson(String value) {
     switch (value.toLowerCase()) {
       case 'open':
         return ScheduleSlotStatus.open;
@@ -84,9 +78,7 @@ enum ScheduleSlotStatus {
         return ScheduleSlotStatus.blocked;
 
       default:
-        throw FormatException(
-          'Unknown schedule slot status: $value',
-        );
+        throw FormatException('Unknown schedule slot status: $value');
     }
   }
 }
@@ -96,15 +88,9 @@ class ScheduleSlot {
   final DateTime? date;
   final String? time;
   final ScheduleSlotStatus? status;
-  final String? sessionId;
+  final int? sessionId;
 
-  ScheduleSlot({
-    this.id,
-    this.date,
-    this.time,
-    this.status,
-    this.sessionId,
-  });
+  ScheduleSlot({this.id, this.date, this.time, this.status, this.sessionId});
 
   ScheduleSlot copyWith({
     int? id,
@@ -112,59 +98,51 @@ class ScheduleSlot {
     String? time,
     ScheduleSlotStatus? status,
     Object? sessionId = _keepSessionId,
-  }) =>
-      ScheduleSlot(
-        id: id ?? this.id,
-        date: date ?? this.date,
-        time: time ?? this.time,
-        status: status ?? this.status,
-        sessionId: sessionId == _keepSessionId
-            ? this.sessionId
-            : sessionId as String?,
-      );
+  }) => ScheduleSlot(
+    id: id ?? this.id,
+    date: date ?? this.date,
+    time: time ?? this.time,
+    status: status ?? this.status,
+    sessionId: sessionId == _keepSessionId ? this.sessionId : sessionId as int?,
+  );
 
-  factory ScheduleSlot.fromJson(
-    Map<String, dynamic> json,
-  ) =>
-      ScheduleSlot(
-        id: json['id'] as int?,
-        date: json['date'] == null
-            ? null
-            : DateTime.parse(
-                json['date'] as String,
-              ),
-        time:
-            json['time'] as String?,
-        status: json['status'] == null
-            ? null
-            : ScheduleSlotStatus.fromJson(
-                json['status'] as String,
-              ),
-        sessionId:
-            json['session_id'] as String?,
-      );
+  factory ScheduleSlot.fromJson(Map<String, dynamic> json) => ScheduleSlot(
+    id: json['id'] as int?,
+    date: json['date'] == null ? null : DateTime.parse(json['date'] as String),
+    time: json['time'] as String?,
+    status: json['status'] == null
+        ? null
+        : ScheduleSlotStatus.fromJson(json['status'] as String),
+    sessionId: json['session_id'] as int?,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'date': date == null
-            ? null
-            : _formatDate(date!),
-        'start_time': time,
-        'status': status?.value,
-        'session_id': sessionId,
-      };
+    'id': id,
+    'date': date == null ? null : _formatDate(date!),
+    'time': time,
+    'status': status?.value,
+    'session_id': sessionId,
+  };
 
-  static String _formatDate(
-    DateTime date,
-  ) {
-    final year =
-        date.year.toString().padLeft(4, '0');
+  DateTime get dateTime {
+    final parts = time!.split(':');
 
-    final month =
-        date.month.toString().padLeft(2, '0');
+    return DateTime(
+      date!.year,
+      date!.month,
+      date!.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+      parts.length > 2 ? int.parse(parts[2]) : 0,
+    );
+  }
 
-    final day =
-        date.day.toString().padLeft(2, '0');
+  static String _formatDate(DateTime date) {
+    final year = date.year.toString().padLeft(4, '0');
+
+    final month = date.month.toString().padLeft(2, '0');
+
+    final day = date.day.toString().padLeft(2, '0');
 
     return '$year-$month-$day';
   }

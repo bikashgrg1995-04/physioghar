@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:physioghar/app/router.dart';
+import 'package:physioghar/common_widgets/app_button.dart';
 
 import 'package:physioghar/common_widgets/app_confirmation_dialog.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
+import 'package:physioghar/core/utils/responsive_utils.dart';
 import 'package:physioghar/models/schedule_slot.dart';
+import 'package:physioghar/models/session.dart';
 import 'package:physioghar/screens/new/schedule/schedule_controller.dart';
 import 'package:physioghar/screens/new/schedule/widgets/schedule_slot_card.dart';
+import 'package:physioghar/screens/new/sessions/session_controller.dart';
 
 class ScheduleSlotsSection extends StatelessWidget {
   const ScheduleSlotsSection({
@@ -223,149 +228,295 @@ class ScheduleSlotsSection extends StatelessWidget {
     );
   }
 
-  void _showBookedSlotSheet(BuildContext context, ScheduleSlot slot) {
-    showModalBottomSheet<void>(
+  Future<void> _showBookedSlotSheet(
+    BuildContext context,
+    ScheduleSlot slot,
+  ) async {
+    final navigator = Navigator.of(context);
+
+    Session? session;
+
+    if (slot.sessionId != null) {
+      // First check already-loaded sessions.
+      for (final item in sessionController.sessions.value) {
+        if (item.id == slot.sessionId) {
+          session = item;
+          break;
+        }
+      }
+
+      // If not available locally, fetch the exact session.
+      session ??= await sessionController.getSession(slot.sessionId!);
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
+    final shouldOpenDetails = await showModalBottomSheet<bool>(
       context: context,
       showDragHandle: true,
       backgroundColor: AppColors.cream,
       builder: (sheetContext) {
+        if (session == null) {
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSizes.spacingXl),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.dangerPale,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: const Icon(
+                      Icons.error_outline,
+                      color: AppColors.danger,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(height: AppSizes.spacingLg),
+                  const Text(
+                    'Session not found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                  const SizedBox(height: AppSizes.spacingSm),
+                  const Text(
+                    'Unable to load the session details for this booked slot.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.inkMid),
+                  ),
+                  const SizedBox(height: AppSizes.spacingXl),
+                ],
+              ),
+            ),
+          );
+        }
+
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(AppSizes.spacingXl),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Booked Slot',
-                        style: Theme.of(sheetContext).textTheme.headlineLarge,
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingXl),
+            child: SizedBox(
+              height: ResponsiveUtils.heightPercent(context, 0.5),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Booked Session',
+                              style: Theme.of(sheetContext)
+                                  .textTheme
+                                  .headlineLarge,
+                            ),
+                            const SizedBox(height: AppSizes.spacingXs),
+                            Text(
+                              'Session details',
+                              style: Theme.of(sheetContext).textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    _StatusBadge(status: ScheduleSlotStatus.booked),
-                  ],
-                ),
-
-                const SizedBox(height: AppSizes.spacingLg),
-
-                Text(
-                  'Date',
-                  style: Theme.of(sheetContext).textTheme.labelSmall,
-                ),
-
-                const SizedBox(height: AppSizes.spacingXs),
-
-                Text(
-                  slot.date == null
-                      ? 'Not provided'
-                      : DateTimeUtils.formatFullDate(slot.date!),
-                  style: Theme.of(sheetContext).textTheme.bodyMedium,
-                ),
-
-                const SizedBox(height: AppSizes.spacingMd),
-
-                Text(
-                  'Time',
-                  style: Theme.of(sheetContext).textTheme.labelSmall,
-                ),
-
-                const SizedBox(height: AppSizes.spacingXs),
-
-                Text(
-                  _formatTimeRange(slot),
-                  style: Theme.of(sheetContext).textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                ),
-
-                if (slot.sessionId != null) ...[
-                  const SizedBox(height: AppSizes.spacingMd),
-                  Text(
-                    'Session ID',
-                    style: Theme.of(sheetContext).textTheme.labelSmall,
+                      _StatusBadge(status: session.status.toString().split(".").last),
+                    ],
                   ),
-                  const SizedBox(height: AppSizes.spacingXs),
-                  Text(
-                    slot.sessionId!,
-                    style: Theme.of(sheetContext).textTheme.bodyMedium,
+                  const SizedBox(height: AppSizes.spacingSm),
+                  _buildPatientCard(sheetContext, session),
+                  const SizedBox(height: AppSizes.spacingSm),
+                  _buildSessionInfoCard(sheetContext, slot, session),
+                  const SizedBox(height: AppSizes.spacingXl),
+                  AppButton(
+                    width: double.infinity,
+                    text: 'View Session',
+                    icon: const Icon(Icons.arrow_forward),
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop(true);
+                    },
                   ),
                 ],
-
-                const SizedBox(height: AppSizes.spacingLg),
-              ],
+              ),
             ),
           ),
         );
       },
     );
+
+    if (!context.mounted || shouldOpenDetails != true || session?.id == null) {
+      return;
+    }
+
+    navigator.pushNamed(AppRouter.sessionDetail, arguments: session!.id);
   }
 
-  String _formatTimeRange(ScheduleSlot slot) {
-    final time = _formatTime(slot.time);
-
-    if (time == '--') {
-      return 'Time not provided';
-    }
-
-    return time;
+  Widget _buildPatientCard(BuildContext context, dynamic session) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSizes.spacingMd),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        border: Border.all(color: AppColors.mist),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: AppColors.pinePale,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.person_outline,
+              color: AppColors.pine,
+              size: 27,
+            ),
+          ),
+          const SizedBox(width: AppSizes.spacingMd),
+          Expanded(
+            child: Text(
+              session.patientName,
+              style: Theme.of(context).textTheme.bodyLarge
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  String _formatTime(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return '--';
-    }
+  Widget _buildSessionInfoCard(
+    BuildContext context,
+    ScheduleSlot slot,
+    dynamic session,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSizes.spacingLg),
+      decoration: BoxDecoration(
+        color: AppColors.mist,
+        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+      ),
+      child: Column(
+        children: [
+            _SessionInfoRow(
+            icon: Icons.access_time_outlined,
+            label: 'Date',
+            value: DateTimeUtils.formatDate(slot.dateTime),
+          ),
+          const SizedBox(height: AppSizes.spacingSm),
+          _SessionInfoRow(
+            icon: Icons.access_time_outlined,
+            label: 'Time',
+            value: DateTimeUtils.formatTime(slot.dateTime),
+          ),
+          const SizedBox(height: AppSizes.spacingSm),
+          _SessionInfoRow(
+            icon: Icons.location_on_outlined,
+            label: 'Location',
+            value: session.location,
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-    final parts = value.split(':');
+class _SessionInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
 
-    if (parts.length < 2) {
-      return value;
-    }
+  const _SessionInfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
-    final hour = int.tryParse(parts[0]);
-
-    final minute = int.tryParse(parts[1]);
-
-    if (hour == null ||
-        minute == null ||
-        hour < 0 ||
-        hour > 23 ||
-        minute < 0 ||
-        minute > 59) {
-      return value;
-    }
-
-    final time = TimeOfDay(hour: hour, minute: minute);
-
-    final hourText = time.hourOfPeriod.toString().padLeft(2, '0');
-
-    final minuteText = minute.toString().padLeft(2, '0');
-
-    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-
-    return '$hourText:$minuteText $period';
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.pinePale,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, size: 20, color: AppColors.pine),
+        ),
+        const SizedBox(width: AppSizes.spacingMd),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: Theme.of(context).textTheme.labelSmall),
+              const SizedBox(height: AppSizes.spacingXs),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({required this.status});
+  final String status;
 
-  final ScheduleSlotStatus status;
 
+  
   @override
   Widget build(BuildContext context) {
+    final backgroundColor = status == 'requested'
+        ? AppColors.pinePale
+        : status == 'upcoming'
+            ? AppColors.amberPale
+            : status == 'completed'
+                ? AppColors.mist
+                : AppColors.dangerPale;
+
+    final textColor = status == 'requested'
+        ? AppColors.pine
+        : status == 'upcoming'
+            ? AppColors.amber
+            : status == 'completed'
+                ? AppColors.inkMid
+                : AppColors.danger;
+    
     return Container(
       constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingMd),
       decoration: BoxDecoration(
-        color: status.backgroundColor,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
       ),
       child: Text(
-        status.label,
+        status.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall
-            ?.copyWith(color: status.color, fontWeight: FontWeight.w700),
+            ?.copyWith(color: textColor, fontWeight: FontWeight.w700),
       ),
     );
   }
