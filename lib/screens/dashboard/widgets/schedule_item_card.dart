@@ -1,119 +1,117 @@
-// import 'package:flutter/material.dart';
-// import 'package:physioghar/core/constants/app_colors.dart';
-// import 'package:physioghar/core/constants/app_sizes.dart';
-// import 'package:physioghar/models/session.dart';
+import 'package:flutter/material.dart';
 
-// class ScheduleItemCard extends StatelessWidget {
-//   final Session session;
-//   final VoidCallback? onTap;
-//   final Key? cardKey;
+import 'package:physioghar/core/constants/app_colors.dart';
+import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/utils/date_time_utils.dart';
+import 'package:physioghar/models/session.dart';
 
-//   const ScheduleItemCard({super.key, required this.session, this.onTap, this.cardKey});
+class ScheduleItemCard extends StatelessWidget {
+  const ScheduleItemCard({
+    super.key,
+    required this.session,
+    this.onTap,
+    this.cardKey,
+  });
 
-//   String _formatTime(DateTime dateTime) {
-//     final hour = dateTime.hour;
-//     final minute = dateTime.minute;
+  final Session session;
+  final VoidCallback? onTap;
+  final Key? cardKey;
 
-//     final period = hour >= 12 ? 'PM' : 'AM';
-//     final displayHour = hour % 12 == 0 ? 12 : hour % 12;
-//     final displayMinute = minute.toString().padLeft(2, '0');
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
 
-//     return '$displayHour:$displayMinute $period';
-//   }
+    return Material(
+      key: cardKey,
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSizes.spacingMd),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Time
+              SizedBox(
+                width: 64,
+                child: Text(
+                  DateTimeUtils.formatTimeString(
+                    session.scheduleTime,
+                  ),
+                  style: textTheme.labelLarge?.copyWith(
+                    color: AppColors.pine,
+                    fontSize: AppSizes.fontSizeSm,
+                  ),
+                ),
+              ),
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final textTheme = Theme.of(context).textTheme;
+              const SizedBox(width: AppSizes.spacingMd),
 
-//     return Material(
-//       key: cardKey,
-//       color: Colors.white,
-//       borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-//       child: InkWell(
-//         onTap: onTap,
-//         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-//         child: Padding(
-//           padding: const EdgeInsets.all(AppSizes.spacingMd),
-//           child: Row(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               // Time
-//               SizedBox(
-//                 width: 64,
-//                 child: Text(
-//                   _formatTime(session.dateTime),
-//                   style: textTheme.labelLarge?.copyWith(
-//                     color: AppColors.pine,
-//                     fontSize: AppSizes.fontSizeSm,
-//                   ),
-//                 ),
-//               ),
+              // Session details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      session.patientName.toString(),
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
 
-//               const SizedBox(width: AppSizes.spacingMd),
+                    const SizedBox(height: AppSizes.spacingXs),
 
-//               // Session details
-//               Expanded(
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     Text(
-//                       session.patientName,
-//                       style: textTheme.bodyLarge?.copyWith(
-//                         fontWeight: FontWeight.w600,
-//                       ),
-//                       maxLines: 1,
-//                       overflow: TextOverflow.ellipsis,
-//                     ),
+                    Text(
+                      session.treatment.toString(),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.inkMid,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
 
-//                     const SizedBox(height: AppSizes.spacingXs),
+                    const SizedBox(height: AppSizes.spacingXs),
 
-//                     Text(
-//                       session.treatment,
-//                       style: textTheme.bodyMedium?.copyWith(
-//                         color: AppColors.inkMid,
-//                       ),
-//                       maxLines: 1,
-//                       overflow: TextOverflow.ellipsis,
-//                     ),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 16,
+                          color: AppColors.inkMute,
+                        ),
+                        const SizedBox(width: AppSizes.spacingXs),
+                        Expanded(
+                          child: Text(
+                            session.location.toString(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: AppColors.inkMute,
+                              fontSize: AppSizes.fontSizeSm,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
 
-//                     const SizedBox(height: AppSizes.spacingXs),
+              const SizedBox(width: AppSizes.spacingSm),
 
-//                     Row(
-//                       children: [
-//                         const Icon(
-//                           Icons.location_on_outlined,
-//                           size: 16,
-//                           color: AppColors.inkMute,
-//                         ),
-//                         const SizedBox(width: AppSizes.spacingXs),
-//                         Expanded(
-//                           child: Text(
-//                             session.location,
-//                             style: textTheme.bodyMedium?.copyWith(
-//                               color: AppColors.inkMute,
-//                               fontSize: AppSizes.fontSizeSm,
-//                             ),
-//                             maxLines: 1,
-//                             overflow: TextOverflow.ellipsis,
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ],
-//                 ),
-//               ),
-
-//               const SizedBox(width: AppSizes.spacingSm),
-
-//               const Icon(
-//                 Icons.chevron_right,
-//                 size: 20,
-//                 color: AppColors.inkMute,
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
+              const Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: AppColors.inkMute,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

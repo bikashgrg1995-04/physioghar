@@ -22,30 +22,67 @@ class SessionController {
 
   String? get errorMessage => _errorMessage;
 
-  Future<bool> loadSessions({SessionStatus? status, int? patientId}) async {
-    if (isLoading.value) {
-      return false;
-    }
-
-    isLoading.value = true;
-    _errorMessage = null;
-
-    try {
-      final result = await _sessionRepository.getSessions(status: status, patientId: patientId);
-
-      sessions.value = result;
-
-      return true;
-    } catch (error) {
-      debugPrint('Failed to load sessions: $error');
-
-      _errorMessage = 'Unable to load sessions.';
-
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+  Future<bool> loadSessions({
+  SessionStatus? status,
+  int? patientId,
+}) async {
+  if (isLoading.value) {
+    return false;
   }
+
+  isLoading.value = true;
+  _errorMessage = null;
+
+  try {
+    final effectiveStatus = status ?? selectedStatus.value;
+
+    final result = await _sessionRepository.getSessions(
+      status: effectiveStatus,
+      patientId: patientId,
+    );
+
+    sessions.value = result;
+    sessions.value.sort(_compareSessions);
+
+    return true;
+  } catch (error) {
+    debugPrint('Failed to load sessions: $error');
+
+    _errorMessage = 'Unable to load sessions.';
+
+    return false;
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+Future<bool> loadAllSessions({int? patientId}) async {
+  if (isLoading.value) {
+    return false;
+  }
+
+  isLoading.value = true;
+  _errorMessage = null;
+
+  try {
+    final result = await _sessionRepository.getSessions(
+      patientId: patientId,
+    );
+
+    sessions.value = result;
+    sessions.value.sort(_compareSessions);
+
+    return true;
+  } catch (error) {
+    debugPrint('Failed to load all sessions: $error');
+
+    _errorMessage = 'Unable to load sessions.';
+
+    return false;
+  } finally {
+    isLoading.value = false;
+  }
+}
 
   Future<Session?> getSession(int sessionId) async {
     try {
@@ -179,37 +216,26 @@ class SessionController {
   }
 
   void _updateLocalSession(Session updatedSession) {
-    // Update the currently opened detail session.
-    if (selectedSession.value?.id == updatedSession.id) {
-      selectedSession.value = updatedSession;
-    }
-
-    // Update the session list.
-    final currentStatus = selectedStatus.value;
-
-    final updatedSessions = List<Session>.from(sessions.value);
-
-    final index = updatedSessions.indexWhere(
-      (item) => item.id == updatedSession.id,
-    );
-
-    if (updatedSession.status != currentStatus) {
-      if (index != -1) {
-        updatedSessions.removeAt(index);
-      }
-    } else {
-      if (index != -1) {
-        updatedSessions[index] = updatedSession;
-      } else {
-        updatedSessions.add(updatedSession);
-      }
-    }
-
-    updatedSessions.sort(_compareSessions);
-
-    sessions.value = updatedSessions;
+  if (selectedSession.value?.id == updatedSession.id) {
+    selectedSession.value = updatedSession;
   }
 
+  final updatedSessions = List<Session>.from(sessions.value);
+
+  final index = updatedSessions.indexWhere(
+    (item) => item.id == updatedSession.id,
+  );
+
+  if (index != -1) {
+    updatedSessions[index] = updatedSession;
+  } else {
+    updatedSessions.add(updatedSession);
+  }
+
+  updatedSessions.sort(_compareSessions);
+
+  sessions.value = updatedSessions;
+}
   int _compareSessions(Session a, Session b) {
     final aDate = a.scheduleDate;
     final bDate = b.scheduleDate;

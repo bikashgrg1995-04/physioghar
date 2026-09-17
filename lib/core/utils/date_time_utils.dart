@@ -36,6 +36,18 @@ class DateTimeUtils {
     'December',
   ];
 
+  static String getGreeting([DateTime? dateTime]) {
+    final hour = (dateTime ?? DateTime.now()).hour;
+
+    if (hour < 12) {
+      return 'Good Morning';
+    } else if (hour < 17) {
+      return 'Good Afternoon';
+    } else {
+      return 'Good Evening';
+    }
+  }
+
   static String formatTime(DateTime dateTime) {
     final hour = dateTime.hour;
     final minute = dateTime.minute;
@@ -44,6 +56,34 @@ class DateTimeUtils {
     final displayHour = hour % 12 == 0 ? 12 : hour % 12;
 
     return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+  }
+
+  static String formatTimeString(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return '--';
+    }
+
+    final parts = value.split(':');
+
+    if (parts.length < 2) {
+      return value;
+    }
+
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+
+    if (hour == null ||
+        minute == null ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59) {
+      return value;
+    }
+
+    return formatTime(
+      DateTime(2000, 1, 1, hour, minute),
+    );
   }
 
   static String formatDate(DateTime dateTime) {

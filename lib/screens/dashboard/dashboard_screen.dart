@@ -1,119 +1,142 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:physioghar/core/constants/app_sizes.dart';
-// import 'package:physioghar/core/utils/date_time_utils.dart';
-// import 'package:physioghar/core/utils/responsive_utils.dart';
-// import 'package:physioghar/models/session.dart';
-// import 'package:physioghar/providers/session_provider.dart';
-// import 'package:physioghar/screens/dashboard/widgets/dashboard_summary_card.dart';
-// import 'package:physioghar/screens/dashboard/widgets/therapist_header.dart';
-// import 'package:physioghar/screens/dashboard/widgets/today_schedule_section.dart';
-// import 'package:physioghar/screens/dashboard/widgets/upcoming_sessions_section.dart';
+import 'package:flutter/material.dart';
 
-// class DashboardScreen extends ConsumerWidget {
-//   const DashboardScreen({super.key});
+import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/utils/responsive_utils.dart';
+import 'package:physioghar/models/session.dart';
+import 'package:physioghar/screens/dashboard/dashboard_controller.dart';
+import 'package:physioghar/screens/dashboard/widgets/dashboard_session_section.dart';
+import 'package:physioghar/screens/dashboard/widgets/dashboard_summary_card.dart';
+import 'package:physioghar/screens/dashboard/widgets/therapist_header.dart';
+import 'package:physioghar/screens/new/profile/therapist_controller.dart';
+import 'package:physioghar/screens/new/sessions/session_controller.dart';
 
-//   @override
-//   Widget build(BuildContext context, WidgetRef ref) {
-//     final sessions = ref.watch(sessionProvider);
-//     final today = DateTime.now();
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
 
-//     // Today's dashboard sessions.
-//     final todaySessions =
-//         sessions
-//             .where(
-//               (session) =>
-//                   session.source == SessionSource.dashboard &&
-//                   DateTimeUtils.isSameDay(session.dateTime, today) &&
-//                   session.status == SessionStatus.upcoming,
-//             )
-//             .toList()
-//           ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
 
-//     // Booking requests.
-//     final upcomingRequests =
-//         sessions
-//             .where((session) => session.status == SessionStatus.requested)
-//             .toList()
-//           ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+class _DashboardScreenState extends State<DashboardScreen> {
+  late final DashboardController _controller;
 
-//     // Upcoming accepted sessions.
-//     final upcomingSessions =
-//         sessions
-//             .where((session) => session.status == SessionStatus.upcoming)
-//             .toList()
-//           ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+  // Global shared controllers.
+  final TherapistController _therapistController = therapistController;
 
-//     // Completed sessions.
-//     final completedSessions = sessions
-//         .where((session) => session.status == SessionStatus.completed)
-//         .toList();
+  final SessionController _sessionController = sessionController;
 
-//     final listHeight = ResponsiveUtils.isMobile(context)
-//         ? ResponsiveUtils.height(context) * 0.28
-//         : ResponsiveUtils.height(context) * 0.25;
+  @override
+  void initState() {
+    super.initState();
 
-//     return SafeArea(
-//       child: Padding(
-//         padding: const EdgeInsets.all(20),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             const TherapistHeader(),
+    _controller = DashboardController(
+      therapistController: _therapistController,
+      sessionController: _sessionController,
+    );
 
-//             const SizedBox(height: AppSizes.spacingSm),
+    _controller.loadDashboard();
+  }
 
-//             Row(
-//               children: [
-//                 Expanded(
-//                   child: DashboardSummaryCard(
-//                     title: "Today's Sessions",
-//                     value: todaySessions.length.toString(),
-//                     icon: Icons.calendar_today_outlined,
-//                   ),
-//                 ),
-//                 const SizedBox(width: AppSizes.spacingMd),
-//                 Expanded(
-//                   child: DashboardSummaryCard(
-//                     title: 'Upcoming Requests',
-//                     value: upcomingRequests.length.toString(),
-//                     icon: Icons.pending_actions_outlined,
-//                   ),
-//                 ),
-//                 const SizedBox(width: AppSizes.spacingMd),
-//                 Expanded(
-//                   child: DashboardSummaryCard(
-//                     title: 'Completed Sessions',
-//                     value: completedSessions.length.toString(),
-//                     icon: Icons.check_circle_outline,
-//                   ),
-//                 ),
-//               ],
-//             ),
-//             const SizedBox(height: AppSizes.spacingSection),
-//             Expanded(
-//               child: SingleChildScrollView(
-//                 key: const Key('dashboard-content-scroll'),
-//                 child: Column(
-//                   children: [
-//                     TodayScheduleSection(
-//                       sessions: todaySessions,
-//                       listHeight: listHeight,
-//                     ),
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
-//                     const SizedBox(height: AppSizes.spacingSm),
+  @override
+  Widget build(BuildContext context) {
+    final listHeight = ResponsiveUtils.isMobile(context)
+        ? ResponsiveUtils.height(context) * 0.28
+        : ResponsiveUtils.height(context) * 0.25;
 
-//                     UpcomingSessionsSection(
-//                       sessions: upcomingSessions,
-//                       listHeight: listHeight,
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSizes.spacingXl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // -----------------------------------------------------------------
+            // Therapist Header
+            // -----------------------------------------------------------------
+            TherapistHeader(controller: _therapistController),
+
+            const SizedBox(height: AppSizes.spacingSm),
+
+            // -----------------------------------------------------------------
+            // Dashboard Summary
+            // -----------------------------------------------------------------
+            ValueListenableBuilder<List<Session>>(
+              valueListenable: _sessionController.sessions,
+              builder: (context, sessions, _) {
+                return Row(
+                  children: [
+                    Expanded(
+                      child: DashboardSummaryCard(
+                        title: "Today's Sessions",
+                        value: _controller.todaySessionsCount.toString(),
+                        icon: Icons.calendar_today_outlined,
+                      ),
+                    ),
+
+                    const SizedBox(width: AppSizes.spacingMd),
+
+                    Expanded(
+                      child: DashboardSummaryCard(
+                        title: 'Upcoming Requests',
+                        value: _controller.upcomingRequestsCount.toString(),
+                        icon: Icons.pending_actions_outlined,
+                      ),
+                    ),
+
+                    const SizedBox(width: AppSizes.spacingMd),
+
+                    Expanded(
+                      child: DashboardSummaryCard(
+                        title: 'Completed Sessions',
+                        value: _controller.completedSessionsCount.toString(),
+                        icon: Icons.check_circle_outline,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            const SizedBox(height: AppSizes.spacingSection),
+
+            // -----------------------------------------------------------------
+            // Dashboard Sessions
+            // -----------------------------------------------------------------
+            Expanded(
+              child: ValueListenableBuilder<List<Session>>(
+                valueListenable: _sessionController.sessions,
+                builder: (context, sessions, _) {
+                  return SingleChildScrollView(
+                    key: const Key('dashboard-content-scroll'),
+                    child: Column(
+                      children: [
+                        DashboardSessionSection(
+                          title: "Today's Schedule",
+                          sessions: _controller.todaySessions,
+                          listHeight: listHeight,
+                          cardKeyPrefix: 'today',
+                        ),
+                        const SizedBox(height: AppSizes.spacingSm),
+                        DashboardSessionSection(
+                          title: 'Upcoming Sessions',
+                          sessions: _controller.upcomingSessions,
+                          listHeight: listHeight,
+                          cardKeyPrefix: 'upcoming',
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
