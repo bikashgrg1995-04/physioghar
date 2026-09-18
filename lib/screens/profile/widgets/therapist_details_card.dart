@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/models/therapist.dart';
 
 class TherapistDetailsCard extends StatelessWidget {
@@ -19,100 +19,121 @@ class TherapistDetailsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: AppSizes.spacingXl),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSizes.spacingXl,
+      ),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        border: Border.all(color: AppColors.mist),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(
+          AppSizes.cardRadius,
+        ),
+        border: Border.all(
+          color: AppColors.mist,
+        ),
       ),
       child: Stack(
         children: [
-        const Positioned.fill(child: _DetailsWaveBackground()),
+          const Positioned.fill(
+            child: _DetailsWaveBackground(),
+          ),
 
           Positioned(
             bottom: 60,
             right: 30,
             child: Opacity(
               opacity: 0.45,
-              child: Image.asset('assets/images/app_branding.png', height: 60),
+              child: Image.asset(
+                'assets/images/app_branding.png',
+                height: 60,
+              ),
             ),
           ),
 
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal:  AppSizes.spacingLg, vertical: AppSizes.spacingSm),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.spacingLg,
+              vertical: AppSizes.spacingSm,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Therapist Details',
-                      style: GoogleFonts.fraunces(
-                        fontSize: AppSizes.fontSizeXl,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.ink,
+                    Expanded(
+                      child: Text(
+                        'Therapist Details',
+                        style: context.textTheme.headlineLarge,
                       ),
                     ),
                     IconButton(
                       onPressed: onEdit,
                       tooltip: 'Edit profile',
-                      icon: const Icon(Icons.edit_outlined),
+                      constraints: const BoxConstraints(
+                        minWidth: AppSizes.minTapTarget,
+                        minHeight: AppSizes.minTapTarget,
+                      ),
+                      icon: const Icon(
+                        Icons.edit_outlined,
+                      ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: AppSizes.spacingSm),
+                const SizedBox(
+                  height: AppSizes.spacingSm,
+                ),
 
                 _DetailRow(
                   icon: Icons.email_outlined,
                   label: 'Email',
-                  value: therapist.email ?? '',
+                  value: therapist.email,
                 ),
 
-                const SizedBox(height: AppSizes.spacingMd),
+                const SizedBox(
+                  height: AppSizes.spacingMd,
+                ),
 
                 _DetailRow(
                   icon: Icons.phone_outlined,
                   label: 'Phone',
-                  value: therapist.phone ?? '',
+                  value: therapist.phone,
                 ),
 
-                const SizedBox(height: AppSizes.spacingMd),
+                const SizedBox(
+                  height: AppSizes.spacingMd,
+                ),
 
                 _DetailRow(
                   icon: Icons.work_outline,
                   label: 'Experience',
-                  value: therapist.experience ?? '',
+                  value: therapist.experience,
                 ),
 
-                // const SizedBox(height: AppSizes.spacingMd),
-
-                // _DetailRow(
-                //   icon: Icons.medical_services_outlined,
-                //   label: 'Specialization',
-                //   value: therapist.specialization ?? '',
-                // ),
-
-                const SizedBox(height: AppSizes.spacingMd),
+                const SizedBox(
+                  height: AppSizes.spacingMd,
+                ),
 
                 _DetailRow(
                   icon: Icons.location_on_outlined,
                   label: 'Address',
-                  value: therapist.address ?? '',
+                  value: therapist.address,
                 ),
 
-                if ((therapist.bio ?? '').isNotEmpty) ...[
-                  const SizedBox(height: AppSizes.spacingMd),
+                if (therapist.bio?.trim().isNotEmpty == true) ...[
+                  const SizedBox(
+                    height: AppSizes.spacingMd,
+                  ),
                   _DetailRow(
                     icon: Icons.notes_outlined,
                     label: 'Bio',
-                    value: therapist.bio ?? '',
+                    value: therapist.bio,
                   ),
                 ],
 
-                const SizedBox(height: AppSizes.spacingLg),
+                const SizedBox(
+                  height: AppSizes.spacingLg,
+                ),
               ],
             ),
           ),
@@ -131,10 +152,12 @@ class _DetailRow extends StatelessWidget {
 
   final IconData icon;
   final String label;
-  final String value;
+  final String? value;
 
   @override
   Widget build(BuildContext context) {
+    final hasValue = value?.trim().isNotEmpty == true;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -143,13 +166,21 @@ class _DetailRow extends StatelessWidget {
           height: AppSizes.minTapTarget,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: AppColors.pinePale.withValues(alpha: 0.55),
+            color: AppColors.pinePale.withValues(
+              alpha: 0.55,
+            ),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, size: 19, color: AppColors.pine),
+          child: Icon(
+            icon,
+            size: 19,
+            color: AppColors.pine,
+          ),
         ),
 
-        const SizedBox(width: AppSizes.spacingMd),
+        const SizedBox(
+          width: AppSizes.spacingMd,
+        ),
 
         Expanded(
           child: Column(
@@ -157,22 +188,24 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label.toUpperCase(),
-                style: GoogleFonts.ibmPlexMono(
-                  fontSize: AppSizes.fontSizeXs,
+                style: context.textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
-                  color: AppColors.inkMute,
                 ),
               ),
 
-              const SizedBox(height: AppSizes.spacingXs),
+              const SizedBox(
+                height: AppSizes.spacingXs,
+              ),
 
               Text(
-                value.isEmpty ? 'Not provided' : value,
-                style: GoogleFonts.inter(
+                hasValue ? value!.trim() : 'Not provided',
+                style: context.textTheme.bodyMedium?.copyWith(
                   fontSize: AppSizes.fontSizeSm,
                   fontWeight: FontWeight.w500,
-                  color: value.isEmpty ? AppColors.inkMute : AppColors.ink,
+                  color: hasValue
+                      ? AppColors.ink
+                      : AppColors.inkMute,
                 ),
               ),
             ],
@@ -182,12 +215,15 @@ class _DetailRow extends StatelessWidget {
     );
   }
 }
+
 class _DetailsWaveBackground extends StatelessWidget {
   const _DetailsWaveBackground();
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: _DetailsWavePainter());
+    return CustomPaint(
+      painter: _DetailsWavePainter(),
+    );
   }
 }
 
@@ -195,12 +231,17 @@ class _DetailsWavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.pinePale.withValues(alpha: 0.22)
+      ..color = AppColors.pinePale.withValues(
+        alpha: 0.22,
+      )
       ..style = PaintingStyle.fill;
 
     final path = Path();
 
-    path.moveTo(size.width * 0.55, 0);
+    path.moveTo(
+      size.width * 0.55,
+      0,
+    );
 
     path.cubicTo(
       size.width * 0.72,
@@ -211,18 +252,30 @@ class _DetailsWavePainter extends CustomPainter {
       size.height * 0.12,
     );
 
-    path.lineTo(size.width, 0);
+    path.lineTo(
+      size.width,
+      0,
+    );
+
     path.close();
 
-    canvas.drawPath(path, paint);
+    canvas.drawPath(
+      path,
+      paint,
+    );
 
     final bottomPaint = Paint()
-      ..color = AppColors.pinePale.withValues(alpha: 0.16)
+      ..color = AppColors.pinePale.withValues(
+        alpha: 0.16,
+      )
       ..style = PaintingStyle.fill;
 
     final bottomPath = Path();
 
-    bottomPath.moveTo(0, size.height * 0.88);
+    bottomPath.moveTo(
+      0,
+      size.height * 0.88,
+    );
 
     bottomPath.cubicTo(
       size.width * 0.20,
@@ -242,15 +295,28 @@ class _DetailsWavePainter extends CustomPainter {
       size.height * 0.76,
     );
 
-    bottomPath.lineTo(size.width, size.height);
-    bottomPath.lineTo(0, size.height);
+    bottomPath.lineTo(
+      size.width,
+      size.height,
+    );
+
+    bottomPath.lineTo(
+      0,
+      size.height,
+    );
+
     bottomPath.close();
 
-    canvas.drawPath(bottomPath, bottomPaint);
+    canvas.drawPath(
+      bottomPath,
+      bottomPaint,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+  bool shouldRepaint(
+    covariant CustomPainter oldDelegate,
+  ) {
     return false;
   }
 }

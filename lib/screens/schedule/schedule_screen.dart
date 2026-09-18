@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:physioghar/common_widgets/app_button.dart';
+import 'package:physioghar/common_widgets/app_error_state.dart';
+import 'package:physioghar/common_widgets/app_loading.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/models/schedule_slot.dart';
 import 'package:physioghar/models/therapist.dart';
@@ -129,11 +131,20 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         valueListenable: _controller.isLoading,
                         builder: (context, isLoading, _) {
                           if (isLoading && slots.isEmpty) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
+                            return const AppLoading();
                           }
 
+                          final errorMessage = _controller.errorMessage;
+
+                          if (errorMessage != null && slots.isEmpty) {
+                            return AppErrorState(
+                              title: 'Unable to load schedule',
+                              message: errorMessage,
+                              onRetry: () {
+                                _controller.loadSchedules(date: selectedDate);
+                              },
+                            );
+                          }
                           return ScheduleSlotsSection(
                             selectedDate: selectedDate,
                             slots: slots,

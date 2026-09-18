@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 
 class SessionsHeader extends StatelessWidget {
   const SessionsHeader({
@@ -34,21 +34,14 @@ class SessionsHeader extends StatelessWidget {
                   key: const Key(
                     'sessions-screen-title',
                   ),
-                  style: GoogleFonts.fraunces(
-                    fontSize: AppSizes.fontSizeXxl,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.ink,
-                  ),
+                 style: context.textTheme.displayMedium,
                 ),
                 const SizedBox(
                   height: AppSizes.spacingXs,
                 ),
                 Text(
                   'Manage your bookings & appointments',
-                  style: GoogleFonts.inter(
-                    fontSize: AppSizes.fontSizeMd,
-                    color: AppColors.inkMid,
-                  ),
+                 style: context.textTheme.bodyMedium,
                 ),
               ],
             ),

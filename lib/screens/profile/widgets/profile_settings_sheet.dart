@@ -1,9 +1,8 @@
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/screens/profile/language_controller.dart';
 import 'package:physioghar/screens/profile/therapist_controller.dart';
 
@@ -22,15 +21,12 @@ class ProfileSettingsSheet extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: therapistController.therapist,
       builder: (context, therapist, _) {
-        final isAvailable =
-            therapist?.isAvailable ?? false;
+        final isAvailable = therapist?.isAvailable ?? false;
 
         return ValueListenableBuilder<AppLanguage>(
-          valueListenable:
-              languageController.selectedLanguage,
+          valueListenable: languageController.selectedLanguage,
           builder: (context, language, _) {
-            final isEnglish =
-                language == AppLanguage.english;
+            final isEnglish = language == AppLanguage.english;
 
             return SafeArea(
               child: Padding(
@@ -42,36 +38,17 @@ class ProfileSettingsSheet extends StatelessWidget {
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 42,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: AppColors.inkMute.withValues(
-                            alpha: 0.35,
-                          ),
-                          borderRadius:
-                              BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
+                    const _BottomSheetHandle(),
 
                     const SizedBox(
                       height: AppSizes.spacingLg,
                     ),
 
                     Text(
-                      isEnglish
-                          ? 'Settings'
-                          : 'सेटिङ्स',
-                      style: GoogleFonts.fraunces(
-                        fontSize: AppSizes.fontSizeXl,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.ink,
-                      ),
+                      isEnglish ? 'Settings' : 'सेटिङ्स',
+                      style: context.textTheme.headlineLarge,
                     ),
 
                     const SizedBox(
@@ -99,10 +76,8 @@ class ProfileSettingsSheet extends StatelessWidget {
                       trailing: Switch(
                         value: isAvailable,
                         activeThumbColor: AppColors.pine,
-                        onChanged: (value) {
-                          therapistController
-                              .updateAvailability(value);
-                        },
+                        onChanged: therapistController
+                            .updateAvailability,
                       ),
                     ),
 
@@ -113,18 +88,12 @@ class ProfileSettingsSheet extends StatelessWidget {
                     _SettingsTile(
                       icon: Icons.language_outlined,
                       iconColor: AppColors.pine,
-                      iconBackgroundColor:
-                          AppColors.pinePale,
-                      title: isEnglish
-                          ? 'Language'
-                          : 'भाषा',
-                      subtitle: isEnglish
-                          ? 'English'
-                          : 'नेपाली',
+                      iconBackgroundColor: AppColors.pinePale,
+                      title: isEnglish ? 'Language' : 'भाषा',
+                      subtitle: isEnglish ? 'English' : 'नेपाली',
                       trailing: _LanguageToggle(
                         selectedLanguage: language,
-                        onChanged: languageController
-                            .setLanguage,
+                        onChanged: languageController.setLanguage,
                       ),
                     ),
 
@@ -138,6 +107,24 @@ class ProfileSettingsSheet extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _BottomSheetHandle extends StatelessWidget {
+  const _BottomSheetHandle();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 42,
+        height: 4,
+        decoration: BoxDecoration(
+          color: AppColors.inkMute.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
     );
   }
 }
@@ -199,15 +186,13 @@ class _SettingsTile extends StatelessWidget {
 
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.inter(
-                    fontSize: AppSizes.fontSizeMd,
-                    fontWeight: FontWeight.w600,
+                  style: context.textTheme.bodyMedium?.copyWith(
                     color: AppColors.ink,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(
@@ -217,13 +202,17 @@ class _SettingsTile extends StatelessWidget {
                   subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
+                  style: context.textTheme.bodyMedium?.copyWith(
                     fontSize: AppSizes.fontSizeSm,
                     color: AppColors.inkMid,
                   ),
                 ),
               ],
             ),
+          ),
+
+          const SizedBox(
+            width: AppSizes.spacingSm,
           ),
 
           trailing,
@@ -244,8 +233,7 @@ class _LanguageToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isEnglish =
-        selectedLanguage == AppLanguage.english;
+    final isEnglish = selectedLanguage == AppLanguage.english;
 
     return Container(
       height: 40,
@@ -294,7 +282,7 @@ class _LanguageOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: isSelected
-          ? Colors.white
+          ? AppColors.white
           : Colors.transparent,
       borderRadius: BorderRadius.circular(
         AppSizes.buttonRadius,
@@ -315,7 +303,7 @@ class _LanguageOption extends StatelessWidget {
           ),
           child: Text(
             label,
-            style: GoogleFonts.inter(
+            style: context.textTheme.labelSmall?.copyWith(
               fontSize: AppSizes.fontSizeXs,
               fontWeight: FontWeight.w700,
               color: isSelected

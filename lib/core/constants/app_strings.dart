@@ -1,9 +1,7 @@
-
 class AppStrings {
   AppStrings._();
 
   // App
-  static const String appName = 'PhysioGhar';
   static const String appTagline = 'Move better. Live better.';
 
   // Authentication
@@ -20,11 +18,9 @@ class AppStrings {
   static const String forgotPassword = 'Forgot Password?';
   static const String login = 'Login';
 
-  static const String secureAccess =
-      'THERAPIST PORTAL • SECURE ACCESS';
+  static const String secureAccess = 'THERAPIST PORTAL • SECURE ACCESS';
 
-  static const String accountProtected =
-      'Your account is protected';
+  static const String accountProtected = 'Your account is protected';
 
   // Validation
   static const String emailRequired = 'Please enter your email';
@@ -36,4 +32,21 @@ class AppStrings {
   static const String forgotPasswordMessage =
       'Password reset will be connected to the backend shortly.';
   static const String ok = 'OK';
+
+  // Authentication actions
+  static const String loginSuccess = 'Login successful.';
+  static const String genericError = 'Something went wrong. Please try again.';
+  static const String enterEmailFirst = 'Enter your email address first.';
+  static const String invalidEmailAddress =
+      'Please enter a valid email address.';
+  static const String serviceUnavailable = 'This service isn’t available yet.';
+
+  static const String logout = 'Logout';
+  static const String logoutConfirmation = 'Are you sure you want to logout?';
+  static const String logoutSuccess = 'Logged out successfully.';
+  static const String logoutDeviceInfo =
+      'You have been logged out from this device.';
+
+  static const String sessionExpired =
+      'Session expired. Please login to continue.';
 }

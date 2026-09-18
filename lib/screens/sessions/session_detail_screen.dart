@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/common_widgets/app_button.dart';
+import 'package:physioghar/common_widgets/app_card.dart';
 import 'package:physioghar/common_widgets/app_confirmation_dialog.dart';
+import 'package:physioghar/common_widgets/app_loading.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/screens/schedule/schedule_controller.dart';
@@ -38,23 +40,21 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
   }
 
   Future<void> _loadSession() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
     await _controller.getSession(widget.sessionId);
+
     if (!mounted) {
       return;
     }
+
     setState(() {
       _isLoading = false;
     });
-  }
-
-  @override
-  void dispose() {
-    _scheduleController.dispose();
-
-    super.dispose();
   }
 
   @override
@@ -67,10 +67,8 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
         scrolledUnderElevation: 0,
         title: Text(
           'Session Details',
-          style: GoogleFonts.fraunces(
-            fontSize: AppSizes.fontSizeXl,
-            fontWeight: FontWeight.w600,
-            color: AppColors.ink,
+          style: context.textTheme.labelLarge?.copyWith(
+            color: AppColors.danger,
           ),
         ),
       ),
@@ -78,7 +76,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
         valueListenable: _controller.selectedSession,
         builder: (context, session, _) {
           if (_isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const AppLoading();
           }
 
           if (session == null) {
@@ -170,24 +168,14 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
 
             const SizedBox(height: AppSizes.spacingMd),
 
-            Text(
-              'Session not found',
-              style: GoogleFonts.fraunces(
-                fontSize: AppSizes.fontSizeXl,
-                fontWeight: FontWeight.w600,
-                color: AppColors.ink,
-              ),
-            ),
+            Text('Session not found', style: context.textTheme.headlineLarge),
 
             const SizedBox(height: AppSizes.spacingSm),
 
             Text(
               _controller.errorMessage ?? 'Unable to load session details.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: AppSizes.fontSizeMd,
-                color: AppColors.inkMid,
-              ),
+              style: context.textTheme.bodyLarge,
             ),
           ],
         ),
@@ -246,22 +234,18 @@ class _SessionActions extends StatelessWidget {
           notes: notes,
         );
 
-        
         if (!success) {
           AppSnackBar.showError(
             controller.errorMessage ?? 'Unable to complete session.',
           );
+          return;
         }
 
         if (!context.mounted) {
           return;
         }
 
-
         AppSnackBar.showSuccess('Session completed successfully.');
-
-
-        Navigator.of(context).pop();
       },
     );
   }
@@ -317,7 +301,6 @@ class _SessionActions extends StatelessWidget {
         cancellationReason: reason,
       );
 
-      
       if (!success) {
         AppSnackBar.showError(
           controller.errorMessage ?? 'Unable to cancel session.',
@@ -330,9 +313,7 @@ class _SessionActions extends StatelessWidget {
         return;
       }
 
-
       AppSnackBar.showSuccess('Session cancelled successfully.');
-
 
       Navigator.of(context).pop();
     } finally {
@@ -370,14 +351,7 @@ class _SessionActions extends StatelessWidget {
 
         TextButton(
           onPressed: () => _cancel(context),
-          child: Text(
-            'Cancel Session',
-            style: GoogleFonts.inter(
-              fontSize: AppSizes.fontSizeMd,
-              fontWeight: FontWeight.w600,
-              color: AppColors.danger,
-            ),
-          ),
+          child: Text('Cancel Session', style: context.textTheme.bodyMedium),
         ),
       ],
     );
@@ -391,14 +365,9 @@ class _PatientCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return AppCard(
       padding: const EdgeInsets.all(AppSizes.spacingXl),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        border: Border.all(color: AppColors.mist),
-      ),
+
       child: Row(
         children: [
           Container(
@@ -423,11 +392,7 @@ class _PatientCard extends StatelessWidget {
               children: [
                 Text(
                   session.patientName ?? 'Unknown Patient',
-                  style: GoogleFonts.fraunces(
-                    fontSize: AppSizes.fontSizeXl,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.ink,
-                  ),
+                  style: context.textTheme.headlineLarge,
                 ),
 
                 const SizedBox(height: AppSizes.spacingXs),
@@ -436,10 +401,7 @@ class _PatientCard extends StatelessWidget {
                   session.patientId == null
                       ? 'Patient ID not available'
                       : 'Patient ID: ${session.patientId}',
-                  style: GoogleFonts.inter(
-                    fontSize: AppSizes.fontSizeSm,
-                    color: AppColors.inkMid,
-                  ),
+                  style: context.textTheme.bodyMedium,
                 ),
               ],
             ),
@@ -457,14 +419,9 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return AppCard(
       padding: const EdgeInsets.all(AppSizes.spacingLg),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        border: Border.all(color: AppColors.mist),
-      ),
+
       child: Column(
         children: [
           _InfoRow(
@@ -488,7 +445,11 @@ class _InfoCard extends StatelessWidget {
           _InfoRow(
             icon: Icons.access_time_outlined,
             label: 'Time',
-            value: _formatTime(session.scheduleTime),
+            value:
+                session.scheduleTime == null ||
+                    session.scheduleTime!.trim().isEmpty
+                ? 'Not provided'
+                : DateTimeUtils.formatTimeString(session.scheduleTime),
           ),
 
           const Divider(height: AppSizes.spacingXxl),
@@ -502,41 +463,6 @@ class _InfoCard extends StatelessWidget {
       ),
     );
   }
-
-  String _formatTime(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Not provided';
-    }
-
-    final parts = value.split(':');
-
-    if (parts.length < 2) {
-      return value;
-    }
-
-    final hour = int.tryParse(parts[0]);
-
-    final minute = int.tryParse(parts[1]);
-
-    if (hour == null ||
-        minute == null ||
-        hour < 0 ||
-        hour > 23 ||
-        minute < 0 ||
-        minute > 59) {
-      return value;
-    }
-
-    final time = TimeOfDay(hour: hour, minute: minute);
-
-    final hourText = time.hourOfPeriod.toString().padLeft(2, '0');
-
-    final minuteText = minute.toString().padLeft(2, '0');
-
-    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-
-    return '$hourText:$minuteText $period';
-  }
 }
 
 class _StatusCard extends StatelessWidget {
@@ -548,13 +474,9 @@ class _StatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final config = _statusConfig(status);
 
-    return Container(
-      width: double.infinity,
+    return AppCard(
       padding: const EdgeInsets.all(AppSizes.spacingLg),
-      decoration: BoxDecoration(
-        color: config.$1,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-      ),
+
       child: Row(
         children: [
           Icon(config.$2, color: config.$3, size: 22),
@@ -563,7 +485,7 @@ class _StatusCard extends StatelessWidget {
 
           Text(
             config.$4,
-            style: GoogleFonts.ibmPlexMono(
+            style: context.textTheme.labelSmall?.copyWith(
               fontSize: AppSizes.fontSizeSm,
               fontWeight: FontWeight.w600,
               color: config.$3,
@@ -633,18 +555,12 @@ class _NotesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasNotes = notes != null && notes!.trim().isNotEmpty;
 
-    return Container(
-      width: double.infinity,
+    return AppCard(
       padding: const EdgeInsets.all(AppSizes.spacingLg),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        border: Border.all(color: AppColors.mist),
-      ),
+      borderColor: AppColors.mist,
       child: Text(
         hasNotes ? notes!.trim() : emptyText,
-        style: GoogleFonts.inter(
-          fontSize: AppSizes.fontSizeMd,
+        style: context.textTheme.bodyMedium?.copyWith(
           height: 1.5,
           color: hasNotes ? AppColors.inkMid : AppColors.inkMute,
         ),
@@ -679,8 +595,7 @@ class _InfoRow extends StatelessWidget {
             children: [
               Text(
                 label.toUpperCase(),
-                style: GoogleFonts.ibmPlexMono(
-                  fontSize: AppSizes.fontSizeXs,
+                style: context.textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.inkMute,
                   letterSpacing: 0.5,
@@ -691,8 +606,7 @@ class _InfoRow extends StatelessWidget {
 
               Text(
                 value,
-                style: GoogleFonts.inter(
-                  fontSize: AppSizes.fontSizeMd,
+                style: context.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w500,
                   color: AppColors.ink,
                 ),
@@ -714,8 +628,7 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: GoogleFonts.ibmPlexMono(
-        fontSize: AppSizes.fontSizeXs,
+      style: context.textTheme.labelSmall?.copyWith(
         fontWeight: FontWeight.w600,
         color: AppColors.inkMute,
         letterSpacing: 0.8,

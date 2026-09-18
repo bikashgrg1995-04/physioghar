@@ -27,7 +27,6 @@ class TherapistController {
 
   final therapist = ValueNotifier<Therapist?>(null);
 
-  final avatarImage = ValueNotifier<File?>(null);
   final isAvatarUpdating = ValueNotifier<bool>(false);
 
   Future<void> loadProfile() async {
@@ -41,9 +40,6 @@ class TherapistController {
       final result = await _therapistRepository.getProfile();
 
       therapist.value = result;
-
-      // Profile API currently does not include avatar,
-      //// so load it from the dedicated avatar endpoint.
       try {
         final avatar = await _therapistRepository.getAvatar();
         therapist.value = result.copyWith(avatar: avatar);
@@ -96,23 +92,10 @@ class TherapistController {
     }
   }
 
-  Future<void> loadAvatar() async {
-    try {
-      final avatar = await _therapistRepository.getAvatar();
-
-      final currentTherapist = therapist.value;
-
-      if (currentTherapist == null) {
-        return;
-      }
-
-      therapist.value = currentTherapist.copyWith(avatar: avatar);
-    } catch (error) {
-      debugPrint('Failed to load therapist avatar: $error');
-    }
-  }
-
   Future<void> changeAvatar(BuildContext context) async {
+    if (isAvatarUpdating.value) {
+  return;
+}
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) {

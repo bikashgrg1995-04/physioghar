@@ -1,10 +1,10 @@
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/common_widgets/app_button.dart';
+import 'package:physioghar/common_widgets/app_text_field.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/models/session.dart';
 
 void showCompleteSessionBottomSheet(
@@ -25,8 +25,7 @@ void showCompleteSessionBottomSheet(
   );
 }
 
-class _CompleteSessionBottomSheet
-    extends StatefulWidget {
+class _CompleteSessionBottomSheet extends StatefulWidget {
   const _CompleteSessionBottomSheet({
     required this.session,
     required this.onComplete,
@@ -60,8 +59,7 @@ class _CompleteSessionBottomSheetState
   }
 
   bool get _canSubmit {
-    return _notesController.text.trim().isNotEmpty &&
-        !_isSubmitting;
+    return _notesController.text.trim().isNotEmpty && !_isSubmitting;
   }
 
   Future<void> _submit() async {
@@ -96,8 +94,7 @@ class _CompleteSessionBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset =
-        MediaQuery.viewInsetsOf(context).bottom;
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -107,11 +104,9 @@ class _CompleteSessionBottomSheetState
         AppSizes.spacingLg + bottomInset,
       ),
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(
-            AppSizes.cardRadius,
-          ),
+          top: Radius.circular(AppSizes.cardRadius),
         ),
       ),
       child: SafeArea(
@@ -119,141 +114,68 @@ class _CompleteSessionBottomSheetState
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHandle(),
 
-              const SizedBox(
-                height: AppSizes.spacingLg,
-              ),
+              const SizedBox(height: AppSizes.spacingLg),
+
+              Text('Complete Session', style: context.textTheme.headlineLarge),
+
+              const SizedBox(height: AppSizes.spacingXs),
 
               Text(
-                'Complete Session',
-                style: GoogleFonts.fraunces(
-                  fontSize: AppSizes.fontSizeXl,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
-                ),
+                widget.session.patientName ?? 'Unknown Patient',
+                style: context.textTheme.bodyMedium,
               ),
 
-              const SizedBox(
-                height: AppSizes.spacingXs,
-              ),
-
-              Text(
-                widget.session.patientName ??
-                    'Unknown Patient',
-                style: GoogleFonts.inter(
-                  fontSize: AppSizes.fontSizeMd,
-                  color: AppColors.inkMid,
-                ),
-              ),
-
-              const SizedBox(
-                height: AppSizes.spacingLg,
-              ),
+              const SizedBox(height: AppSizes.spacingLg),
 
               Text(
                 'THERAPIST REMARKS',
-                style: GoogleFonts.ibmPlexMono(
-                  fontSize: AppSizes.fontSizeXs,
+                style: context.textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.6,
                   color: AppColors.inkMid,
                 ),
               ),
 
-              const SizedBox(
-                height: AppSizes.spacingSm,
-              ),
+              const SizedBox(height: AppSizes.spacingSm),
 
-              TextField(
+              AppTextField(
                 controller: _notesController,
-                minLines: 4,
+                hintText: 'Write session remarks or notes...',
+                prefixIcon: null,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
                 maxLines: 6,
-                textInputAction:
-                    TextInputAction.newline,
                 enabled: !_isSubmitting,
                 onChanged: (_) {
                   setState(() {});
                 },
-                decoration: InputDecoration(
-                  hintText:
-                      'Write session remarks or notes...',
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: AppSizes.fontSizeMd,
-                    color: AppColors.inkMute,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.cream,
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(
-                      AppSizes.cardRadius,
-                    ),
-                    borderSide: const BorderSide(
-                      color: AppColors.mist,
-                    ),
-                  ),
-                  enabledBorder:
-                      OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(
-                      AppSizes.cardRadius,
-                    ),
-                    borderSide: const BorderSide(
-                      color: AppColors.mist,
-                    ),
-                  ),
-                  focusedBorder:
-                      OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(
-                      AppSizes.cardRadius,
-                    ),
-                    borderSide:
-                        const BorderSide(
-                      color: AppColors.pine,
-                    ),
-                  ),
-                ),
               ),
-
-              const SizedBox(
-                height: AppSizes.spacingLg,
-              ),
+              const SizedBox(height: AppSizes.spacingLg),
 
               Row(
                 children: [
                   Expanded(
                     child: AppButton(
                       text: 'Cancel',
-                      variant:
-                          AppButtonVariant.secondary,
+                      variant: AppButtonVariant.secondary,
                       onPressed: _isSubmitting
                           ? null
                           : () {
-                              Navigator.of(
-                                context,
-                              ).pop();
+                              Navigator.of(context).pop();
                             },
                     ),
                   ),
 
-                  const SizedBox(
-                    width: AppSizes.spacingMd,
-                  ),
+                  const SizedBox(width: AppSizes.spacingMd),
 
                   Expanded(
                     child: AppButton(
-                      text: _isSubmitting
-                          ? 'Submitting...'
-                          : 'Submit',
-                      onPressed:
-                          _canSubmit
-                              ? _submit
-                              : null,
+                      text: _isSubmitting ? 'Submitting...' : 'Submit',
+                      onPressed: _canSubmit ? _submit : null,
                     ),
                   ),
                 ],
@@ -272,8 +194,7 @@ class _CompleteSessionBottomSheetState
         height: 4,
         decoration: BoxDecoration(
           color: AppColors.mist,
-          borderRadius:
-              BorderRadius.circular(50),
+          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
         ),
       ),
     );

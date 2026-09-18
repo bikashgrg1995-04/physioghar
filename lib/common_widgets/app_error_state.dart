@@ -1,17 +1,20 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/extensions/context_extensions.dart';
 
-class PatientEmptyState extends StatelessWidget {
-  const PatientEmptyState({
+class AppErrorState extends StatelessWidget {
+  const AppErrorState({
     super.key,
-    this.hasSearch = false,
+    this.title = 'Something went wrong',
+    this.message = 'Unable to load this information.',
+    this.onRetry,
   });
 
-  final bool hasSearch;
+  final String title;
+  final String message;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -21,34 +24,32 @@ class PatientEmptyState extends StatelessWidget {
           AppSizes.spacingXl,
         ),
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 64,
               height: 64,
               decoration: const BoxDecoration(
-                color: AppColors.pinePale,
+                color: AppColors.dangerPale,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.people_outline,
-                color: AppColors.pine,
+                Icons.error_outline,
                 size: 30,
+                color: AppColors.danger,
               ),
             ),
 
             const SizedBox(
-              height: AppSizes.spacingLg,
+              height: AppSizes.spacingMd,
             ),
 
             Text(
-              hasSearch
-                  ? 'No patients found'
-                  : 'No patient records',
+              title,
               textAlign: TextAlign.center,
-              style: context.textTheme.headlineLarge?.copyWith(
-                fontSize: AppSizes.fontSizeLg,
+              style: context.textTheme.labelLarge?.copyWith(
+                color: AppColors.ink,
+                fontWeight: FontWeight.w600,
               ),
             ),
 
@@ -57,14 +58,27 @@ class PatientEmptyState extends StatelessWidget {
             ),
 
             Text(
-              hasSearch
-                  ? 'Try searching with another name or condition.'
-                  : 'Patient records will appear here.',
+              message,
               textAlign: TextAlign.center,
               style: context.textTheme.bodyMedium?.copyWith(
                 color: AppColors.inkMid,
               ),
             ),
+
+            if (onRetry != null) ...[
+              const SizedBox(
+                height: AppSizes.spacingLg,
+              ),
+              OutlinedButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(
+                  Icons.refresh,
+                ),
+                label: const Text(
+                  'Try Again',
+                ),
+              ),
+            ],
           ],
         ),
       ),

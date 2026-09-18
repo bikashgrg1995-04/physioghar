@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/common_widgets/app_text_field.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/models/complaint.dart';
 import 'package:physioghar/screens/profile/complaint_controller.dart';
 
@@ -46,9 +46,10 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
     final complaint = widget.complaint;
 
     if (complaint != null) {
-      _selectedCategory = categories.containsKey(complaint.category)
-          ? complaint.category!
-          : 'other';
+      _selectedCategory =
+          categories.containsKey(complaint.category)
+              ? complaint.category!
+              : 'other';
 
       _subjectController.text = complaint.subject ?? '';
       _descriptionController.text = complaint.description ?? '';
@@ -69,7 +70,6 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
 
     final subject = _subjectController.text.trim();
     final description = _descriptionController.text.trim();
-
     final complaint = widget.complaint;
 
     final result = complaint == null
@@ -128,32 +128,15 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Container(
-                    width: 42,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.inkMute.withValues(
-                        alpha: 0.35,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
+                const _BottomSheetHandle(),
 
                 const SizedBox(
                   height: AppSizes.spacingLg,
                 ),
 
                 Text(
-                  isEditing
-                      ? 'Edit Report'
-                      : 'Report an Issue',
-                  style: GoogleFonts.fraunces(
-                    fontSize: AppSizes.fontSizeXl,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.ink,
-                  ),
+                  isEditing ? 'Edit Report' : 'Report an Issue',
+                  style: context.textTheme.headlineLarge,
                 ),
 
                 const SizedBox(
@@ -164,17 +147,14 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                   isEditing
                       ? 'Update the details of your report.'
                       : 'Tell us about a problem you are facing.',
-                  style: GoogleFonts.inter(
-                    fontSize: AppSizes.fontSizeMd,
-                    color: AppColors.inkMid,
-                  ),
+                  style: context.textTheme.bodyMedium,
                 ),
 
                 const SizedBox(
                   height: AppSizes.spacingLg,
                 ),
 
-                _FieldLabel(
+                const _FieldLabel(
                   label: 'CATEGORY',
                 ),
 
@@ -190,8 +170,7 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                       value: entry.key,
                       child: Text(
                         entry.value,
-                        style: GoogleFonts.inter(
-                          fontSize: AppSizes.fontSizeMd,
+                        style: context.textTheme.bodyMedium?.copyWith(
                           color: AppColors.ink,
                         ),
                       ),
@@ -253,8 +232,7 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                 ),
 
                 ValueListenableBuilder<bool>(
-                  valueListenable:
-                      complaintController.isSubmitting,
+                  valueListenable: complaintController.isSubmitting,
                   builder: (context, isSubmitting, _) {
                     return AppButton(
                       width: double.infinity,
@@ -271,7 +249,7 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                               height: 18,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: AppColors.white,
                               ),
                             )
                           : Icon(
@@ -280,8 +258,9 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                                   : Icons.send_outlined,
                               size: 18,
                             ),
-                      onPressed:
-                          isSubmitting ? null : _submitComplaint,
+                      onPressed: isSubmitting
+                          ? null
+                          : _submitComplaint,
                     );
                   },
                 ),
@@ -341,6 +320,26 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
   }
 }
 
+class _BottomSheetHandle extends StatelessWidget {
+  const _BottomSheetHandle();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 42,
+        height: 4,
+        decoration: BoxDecoration(
+          color: AppColors.inkMute.withValues(
+            alpha: 0.35,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+}
+
 class _FieldLabel extends StatelessWidget {
   const _FieldLabel({
     required this.label,
@@ -352,10 +351,8 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: GoogleFonts.ibmPlexMono(
-        fontSize: AppSizes.fontSizeXs,
+      style: context.textTheme.labelSmall?.copyWith(
         fontWeight: FontWeight.w600,
-        color: AppColors.inkMute,
         letterSpacing: 0.7,
       ),
     );

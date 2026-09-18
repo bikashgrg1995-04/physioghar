@@ -12,6 +12,8 @@ class SessionController {
   final isLoading = ValueNotifier<bool>(false);
   final isUpdating = ValueNotifier<bool>(false);
 
+  final allSessions = ValueNotifier<List<Session>>([]);
+
   final sessions = ValueNotifier<List<Session>>([]);
 
   final selectedStatus = ValueNotifier<SessionStatus>(SessionStatus.requested);
@@ -30,6 +32,8 @@ class SessionController {
     isLoading.value = true;
     _errorMessage = null;
 
+    sessions.value = [];
+
     try {
       final effectiveStatus = status ?? selectedStatus.value;
 
@@ -43,8 +47,6 @@ class SessionController {
 
       return true;
     } catch (error) {
-      debugPrint('Failed to load sessions: $error');
-
       _errorMessage = 'Unable to load sessions.';
 
       return false;
@@ -64,13 +66,14 @@ class SessionController {
     try {
       final result = await _sessionRepository.getSessions(patientId: patientId);
 
-      sessions.value = result;
-      sessions.value.sort(_compareSessions);
+      result.sort(_compareSessions);
+      allSessions.value = result;
+
+      // Initially show selected status.
+      _filterSessionsByStatus();
 
       return true;
     } catch (error) {
-      debugPrint('Failed to load all sessions: $error');
-
       _errorMessage = 'Unable to load sessions.';
 
       return false;
@@ -86,7 +89,6 @@ class SessionController {
       selectedSession.value = result;
       return result;
     } catch (error) {
-      debugPrint('Failed to load session details: $error');
       _errorMessage = 'Unable to load session details.';
       selectedSession.value = null;
       return null;
@@ -100,28 +102,28 @@ class SessionController {
   }
 
   //for test purpose only
- Future<bool> createSession({
-  required int patientId,
-  required int scheduleSlotId,
-  required String treatment,
-  required String location,
-  String? notes,
-}) async {
-  return _performUpdate(() async {
-    final newSession = await _sessionRepository.createSession(
-      patientId: patientId,
-      scheduleSlotId: scheduleSlotId,
-      treatment: treatment,
-      location: location,
-      notes: notes,
-    );
+  Future<bool> createSession({
+    required int patientId,
+    required int scheduleSlotId,
+    required String treatment,
+    required String location,
+    String? notes,
+  }) async {
+    return _performUpdate(() async {
+      final newSession = await _sessionRepository.createSession(
+        patientId: patientId,
+        scheduleSlotId: scheduleSlotId,
+        treatment: treatment,
+        location: location,
+        notes: notes,
+      );
 
-    _updateLocalSession(newSession);
+      _updateLocalSession(newSession);
 
-    return true;
-  });
-}
-  
+      return true;
+    });
+  }
+
   Future<bool> acceptSession(int sessionId) async {
     return _performUpdate(() async {
       final updatedSession = await _sessionRepository.acceptSession(sessionId);
@@ -223,8 +225,6 @@ class SessionController {
     try {
       return await action();
     } catch (error) {
-      debugPrint('Session update failed: $error');
-
       _errorMessage = 'Unable to update session.';
 
       return false;
@@ -234,27 +234,48 @@ class SessionController {
   }
 
   void _updateLocalSession(Session updatedSession) {
-    if (selectedSession.value?.id == updatedSession.id) {
-      selectedSession.value = updatedSession;
-    }
-
-    final updatedSessions = List<Session>.from(sessions.value);
-
-    final index = updatedSessions.indexWhere(
-      (item) => item.id == updatedSession.id,
-    );
-
-    if (index != -1) {
-      updatedSessions[index] = updatedSession;
-    } else {
-      updatedSessions.add(updatedSession);
-    }
-
-    updatedSessions.sort(_compareSessions);
-
-    sessions.value = updatedSessions;
+  if (selectedSession.value?.id == updatedSession.id) {
+    selectedSession.value = updatedSession;
   }
 
+  // Update all sessions used by Dashboard.
+  final updatedAllSessions = List<Session>.from(allSessions.value);
+
+  final allIndex = updatedAllSessions.indexWhere(
+    (item) => item.id == updatedSession.id,
+  );
+
+  if (allIndex != -1) {
+    updatedAllSessions[allIndex] = updatedSession;
+  } else {
+    updatedAllSessions.add(updatedSession);
+  }
+
+  updatedAllSessions.sort(_compareSessions);
+  allSessions.value = updatedAllSessions;
+
+  // Update currently filtered sessions used by Sessions screen.
+  final updatedSessions = List<Session>.from(sessions.value);
+
+  final index = updatedSessions.indexWhere(
+    (item) => item.id == updatedSession.id,
+  );
+
+  final currentStatus = selectedStatus.value;
+
+  if (updatedSession.status != currentStatus) {
+    if (index != -1) {
+      updatedSessions.removeAt(index);
+    }
+  } else if (index != -1) {
+    updatedSessions[index] = updatedSession;
+  } else {
+    updatedSessions.add(updatedSession);
+  }
+
+  updatedSessions.sort(_compareSessions);
+  sessions.value = updatedSessions;
+}
   int _compareSessions(Session a, Session b) {
     final aDate = a.scheduleDate;
     final bDate = b.scheduleDate;
@@ -320,6 +341,19 @@ class SessionController {
     isUpdating.dispose();
     sessions.dispose();
     selectedStatus.dispose();
+    selectedSession.dispose();
+  }
+
+  void _filterSessionsByStatus() {
+    final status = selectedStatus.value;
+
+    final filtered = allSessions.value
+        .where((session) => session.status == status)
+        .toList();
+
+    filtered.sort(_compareSessions);
+
+    sessions.value = filtered;
   }
 }
 

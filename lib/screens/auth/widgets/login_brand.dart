@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
+import 'package:physioghar/core/constants/app_constants.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/constants/app_strings.dart';
 import 'package:physioghar/core/utils/responsive_utils.dart';
@@ -27,9 +28,9 @@ class LoginBrand extends StatelessWidget {
             borderRadius: BorderRadius.circular(
               ResponsiveUtils.width(context) * 0.06,
             ),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Color.fromRGBO(47, 93, 80, 0.12),
+                color: AppColors.pine.withValues(alpha: 0.12),
                 blurRadius: 20,
                 offset: Offset(0, 8),
               ),
@@ -52,7 +53,7 @@ class LoginBrand extends StatelessWidget {
         SizedBox(height: ResponsiveUtils.height(context) * 0.01),
 
         Text(
-          AppStrings.appName,
+          AppConstants.appName,
           textAlign: TextAlign.center,
           style: GoogleFonts.fraunces(
             fontSize: (ResponsiveUtils.width(context) * 0.082).clamp(

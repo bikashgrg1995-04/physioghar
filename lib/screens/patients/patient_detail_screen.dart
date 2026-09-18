@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:physioghar/common_widgets/app_empty_state.dart';
+import 'package:physioghar/common_widgets/app_loading.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
@@ -46,14 +48,18 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           valueListenable: _controller.isLoading,
           builder: (context, isLoading, _) {
             if (isLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const AppLoading();
             }
 
             return ValueListenableBuilder(
               valueListenable: _controller.selectedPatient,
               builder: (context, patient, _) {
                 if (patient == null) {
-                  return const Center(child: Text('Patient not found'));
+                  return const AppEmptyState(
+                    icon: Icons.person_off_outlined,
+                    title: 'Patient not found',
+                    message: 'The patient record could not be found.',
+                  );
                 }
 
                 return SingleChildScrollView(

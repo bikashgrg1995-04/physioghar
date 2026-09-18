@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/common_widgets/app_date_selector.dart';
+import 'package:physioghar/common_widgets/app_error_state.dart';
+import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/patient.dart';
 import 'package:physioghar/models/schedule_slot.dart';
@@ -51,6 +54,7 @@ class _SessionsScreenState extends State<SessionsScreen>
     super.initState();
 
     _scheduleController = ScheduleController();
+
 
     _tabController = TabController(length: _statuses.length, vsync: this);
 
@@ -102,16 +106,34 @@ class _SessionsScreenState extends State<SessionsScreen>
                   return ValueListenableBuilder<List<Session>>(
                     valueListenable: _controller.sessions,
                     builder: (context, sessions, _) {
+                      final errorMessage = _controller.errorMessage;
+
+                      // Initial loading
                       if (isLoading && sessions.isEmpty) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const _SessionsLoadingState();
                       }
 
+                      // API error
+                      if (errorMessage != null && sessions.isEmpty) {
+                        return AppErrorState(
+                          title: 'Unable to load sessions',
+                          message: errorMessage,
+                          onRetry: () {
+                            _controller.loadSessions(
+                              status: _controller.selectedStatus.value,
+                            );
+                          },
+                        );
+                      }
+
+                      // Empty state
                       if (sessions.isEmpty) {
                         return _EmptySessionsState(
                           status: _controller.selectedStatus.value,
                         );
                       }
 
+                      // Loaded sessions
                       return SessionList(
                         sessions: sessions,
                         controller: _controller,
@@ -124,6 +146,84 @@ class _SessionsScreenState extends State<SessionsScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SessionsLoadingState extends StatelessWidget {
+  const _SessionsLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(
+        AppSizes.spacingXl,
+        AppSizes.spacingMd,
+        AppSizes.spacingXl,
+        AppSizes.spacingXl,
+      ),
+      itemCount: 4,
+      separatorBuilder: (_, _) => const SizedBox(height: AppSizes.spacingSm),
+      itemBuilder: (_, _) {
+        return const _SessionLoadingCard();
+      },
+    );
+  }
+}
+
+class _SessionLoadingCard extends StatelessWidget {
+  const _SessionLoadingCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 180,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        border: Border.all(color: AppColors.mist),
+      ),
+      padding: const EdgeInsets.all(AppSizes.spacingLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 150,
+            height: 20,
+            decoration: BoxDecoration(
+              color: AppColors.mist,
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          const SizedBox(height: AppSizes.spacingLg),
+          Container(
+            width: double.infinity,
+            height: 14,
+            decoration: BoxDecoration(
+              color: AppColors.mist,
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          const SizedBox(height: AppSizes.spacingSm),
+          Container(
+            width: 220,
+            height: 14,
+            decoration: BoxDecoration(
+              color: AppColors.mist,
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          const SizedBox(height: AppSizes.spacingSm),
+          Container(
+            width: 180,
+            height: 14,
+            decoration: BoxDecoration(
+              color: AppColors.mist,
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -147,6 +247,8 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
     7,
     (index) => DateTime.now().add(Duration(days: index)),
   );
+
+  bool _isCreating = false;
 
   @override
   void initState() {
@@ -186,26 +288,27 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
 
   List<ScheduleSlot> _getOpenSlots(List<ScheduleSlot> slots) {
     return slots.where((slot) {
-      return slot.status == ScheduleSlotStatus.open && slot.sessionId == null;
+      return slot.status == ScheduleSlotStatus.open;
     }).toList();
   }
 
   Future<void> _createTestSession() async {
+    if (_isCreating) {
+      return;
+    }
+
     final slot = _selectedSlot;
 
     if (slot == null || slot.id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an available time slot.')),
-      );
+      AppSnackBar.showError('Please select an available time slot.');
       return;
     }
 
     final patients = _patientController.patients.value;
 
     if (patients.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No patient is available for testing.')),
-      );
+      AppSnackBar.showError('No patient is available for testing.');
+
       return;
     }
 
@@ -215,41 +318,45 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
     );
 
     if (patient.id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No valid patient is available for testing.'),
-        ),
-      );
+      AppSnackBar.showError('No valid patient is available for testing.');
+
       return;
     }
 
-    final success = await sessionController.createSession(
-      patientId: patient.id!,
-      scheduleSlotId: slot.id!,
-      treatment: 'Test Session',
-      location: 'Test',
-    );
+    setState(() {
+      _isCreating = true;
+    });
 
-    if (!mounted) return;
-
-    if (!success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to create test session.')),
+    try {
+      final success = await sessionController.createSession(
+        patientId: patient.id!,
+        scheduleSlotId: slot.id!,
+        treatment: 'Test Session',
+        location: 'Test',
       );
-      return;
+
+      if (!mounted) return;
+
+      if (!success) {
+        AppSnackBar.showError('Unable to create test session.');
+
+        return;
+      }
+
+      Navigator.of(context).pop();
+
+      AppSnackBar.showSuccess(
+        'Test session created for '
+        '${DateTimeUtils.formatDate(_selectedDate)} '
+        'at ${DateTimeUtils.formatTimeString(slot.time)}',
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCreating = false;
+        });
+      }
     }
-
-    Navigator.of(context).pop();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Test session created for '
-          '${DateTimeUtils.formatDate(_selectedDate)} '
-          'at ${DateTimeUtils.formatTimeString(slot.time)}',
-        ),
-      ),
-    );
   }
 
   @override
@@ -264,7 +371,9 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
         ),
         decoration: const BoxDecoration(
           color: AppColors.cream,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppSizes.cardRadius),
+          ),
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -276,11 +385,7 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
                   Expanded(
                     child: Text(
                       'Add Test Session',
-                      style: GoogleFonts.fraunces(
-                        fontSize: AppSizes.fontSizeXl,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.ink,
-                      ),
+                      style: context.textTheme.headlineLarge,
                     ),
                   ),
                   IconButton(
@@ -296,9 +401,7 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
 
               Text(
                 'Testing purpose only',
-                style: GoogleFonts.inter(
-                  fontSize: AppSizes.fontSizeSm,
-                  fontWeight: FontWeight.w600,
+                style: context.textTheme.bodyMedium?.copyWith(
                   color: AppColors.amber,
                 ),
               ),
@@ -307,10 +410,8 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
 
               Text(
                 'Select Date',
-                style: GoogleFonts.inter(
-                  fontSize: AppSizes.fontSizeMd,
+                style: context.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
                 ),
               ),
 
@@ -326,10 +427,8 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
 
               Text(
                 'Available Time',
-                style: GoogleFonts.inter(
-                  fontSize: AppSizes.fontSizeMd,
+                style: context.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
                 ),
               ),
 
@@ -347,6 +446,41 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
                     );
                   }
 
+                  final errorMessage = _scheduleController.errorMessage;
+
+                  if (errorMessage != null) {
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(AppSizes.spacingLg),
+                      decoration: BoxDecoration(
+                        color: AppColors.dangerPale,
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.cardRadius,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: AppColors.danger,
+                          ),
+                          const SizedBox(height: AppSizes.spacingSm),
+                          Text(
+                            errorMessage,
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: AppSizes.spacingSm),
+                          TextButton(
+                            onPressed: () {
+                              _scheduleController.selectDate(_selectedDate);
+                            },
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                   return ValueListenableBuilder<List<ScheduleSlot>>(
                     valueListenable: _scheduleController.slots,
                     builder: (context, slots, _) {
@@ -366,10 +500,7 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
                             'No open schedule slots available '
                             'for this date.',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                              fontSize: AppSizes.fontSizeSm,
-                              color: AppColors.inkMid,
-                            ),
+                            style: context.textTheme.bodyMedium,
                           ),
                         );
                       }
@@ -383,6 +514,11 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
                           return ChoiceChip(
                             label: Text(
                               DateTimeUtils.formatTimeString(slot.time),
+                              style: context.textTheme.bodyMedium?.copyWith(
+                                color: isSelected
+                                    ? AppColors.mist
+                                    : AppColors.pine,
+                              ),
                             ),
                             selected: isSelected,
                             onSelected: (_) {
@@ -397,13 +533,7 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
                                   ? AppColors.pine
                                   : AppColors.mist,
                             ),
-                            labelStyle: GoogleFonts.inter(
-                              fontSize: AppSizes.fontSizeSm,
-                              fontWeight: FontWeight.w500,
-                              color: isSelected
-                                  ? AppColors.white
-                                  : AppColors.ink,
-                            ),
+                            labelStyle: context.textTheme.bodyMedium,
                           );
                         }).toList(),
                       );
@@ -414,13 +544,22 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
 
               const SizedBox(height: AppSizes.spacingXl),
 
-              SizedBox(
+              AppButton(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _selectedSlot == null ? null : _createTestSession,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create Test Session'),
-                ),
+                text: _isCreating ? 'Creating...' : 'Create Test Session',
+                icon: _isCreating
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.white,
+                        ),
+                      )
+                    : const Icon(Icons.add),
+                onPressed: _isCreating || _selectedSlot == null
+                    ? null
+                    : _createTestSession,
               ),
             ],
           ),

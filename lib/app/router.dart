@@ -38,9 +38,7 @@ class AppRouter {
         final sessionId = settings.arguments as int;
 
         return MaterialPageRoute(
-          builder: (_) => SessionDetailScreen(
-            sessionId: sessionId,
-          ),
+          builder: (_) => SessionDetailScreen(sessionId: sessionId),
         );
 
       case patientDetail:
@@ -51,7 +49,7 @@ class AppRouter {
         );
 
       case complaints:
-        return MaterialPageRoute(builder: (_)=>  const MyReportsScreen());
+        return MaterialPageRoute(builder: (_) => const MyReportsScreen());
 
       default:
         return MaterialPageRoute(builder: (_) => const AuthGate());

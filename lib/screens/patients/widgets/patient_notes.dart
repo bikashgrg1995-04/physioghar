@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:physioghar/common_widgets/app_card.dart';
+import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
+import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/patient_note.dart';
 import 'package:physioghar/screens/patients/patient_controller.dart';
 
@@ -31,11 +35,9 @@ class PatientNotes extends StatelessWidget {
               context,
               visibleNotes.length,
             ),
-
             const SizedBox(
               height: AppSizes.spacingSm,
             ),
-
             if (visibleNotes.isEmpty)
               _buildEmptyState(context)
             else
@@ -55,29 +57,27 @@ class PatientNotes extends StatelessWidget {
   ) {
     return Row(
       children: [
-        const Text(
-          'Patient Notes',
-          style: TextStyle(
-            fontSize: AppSizes.fontSizeLg,
-            fontWeight: FontWeight.w700,
-            color: AppColors.ink,
+        Expanded(
+          child: Text(
+            'Patient Notes',
+            style: context.textTheme.headlineLarge?.copyWith(
+              fontSize: AppSizes.fontSizeLg,
+            ),
           ),
         ),
-
-        const Spacer(),
-
+        const SizedBox(
+          width: AppSizes.spacingSm,
+        ),
         Text(
           '$noteCount ${noteCount == 1 ? 'note' : 'notes'}',
-          style: const TextStyle(
+          style: context.textTheme.bodyMedium?.copyWith(
             fontSize: AppSizes.fontSizeSm,
             color: AppColors.inkMute,
           ),
         ),
-
         const SizedBox(
           width: AppSizes.spacingSm,
         ),
-
         TextButton.icon(
           onPressed: () {
             _showAddNoteSheet(context);
@@ -97,25 +97,18 @@ class PatientNotes extends StatelessWidget {
             Icons.add_rounded,
             size: 19,
           ),
-          label: const Text(
-            'Add Note',
-          ),
+          label: const Text('Add Note'),
         ),
       ],
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Container(
-      width: double.infinity,
+  Widget _buildEmptyState(
+    BuildContext context,
+  ) {
+    return AppCard(
       padding: const EdgeInsets.all(
         AppSizes.spacingXl,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(
-          AppSizes.cardRadius,
-        ),
       ),
       child: Column(
         children: [
@@ -124,37 +117,29 @@ class PatientNotes extends StatelessWidget {
             size: 32,
             color: AppColors.inkMute,
           ),
-
           const SizedBox(
             height: AppSizes.spacingSm,
           ),
-
-          const Text(
+          Text(
             'No notes yet',
-            style: TextStyle(
-              fontSize: AppSizes.fontSizeMd,
-              fontWeight: FontWeight.w600,
+            style: context.textTheme.labelLarge?.copyWith(
               color: AppColors.ink,
             ),
           ),
-
           const SizedBox(
             height: AppSizes.spacingXs,
           ),
-
-          const Text(
+          Text(
             'Add a note to keep track of this patient.',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: context.textTheme.bodyMedium?.copyWith(
               fontSize: AppSizes.fontSizeSm,
               color: AppColors.inkMute,
             ),
           ),
-
           const SizedBox(
             height: AppSizes.spacingMd,
           ),
-
           OutlinedButton.icon(
             onPressed: () {
               _showAddNoteSheet(context);
@@ -163,9 +148,7 @@ class PatientNotes extends StatelessWidget {
               Icons.add_rounded,
               size: 18,
             ),
-            label: const Text(
-              'Add Note',
-            ),
+            label: const Text('Add Note'),
           ),
         ],
       ),
@@ -176,13 +159,8 @@ class PatientNotes extends StatelessWidget {
     BuildContext context,
     List<PatientNote> notes,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(
-          AppSizes.cardRadius,
-        ),
-      ),
+    return AppCard(
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           for (int index = 0; index < notes.length; index++) ...[
@@ -195,12 +173,12 @@ class PatientNotes extends StatelessWidget {
                 );
               },
             ),
-
             if (index != notes.length - 1)
               const Divider(
                 height: 1,
-                indent: 16,
-                endIndent: 16,
+                indent: AppSizes.spacingLg,
+                endIndent: AppSizes.spacingLg,
+                color: AppColors.mist,
               ),
           ],
         ],
@@ -212,7 +190,7 @@ class PatientNotes extends StatelessWidget {
     BuildContext context,
     PatientNote note,
   ) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -220,7 +198,7 @@ class PatientNotes extends StatelessWidget {
         return _NoteDetailsBottomSheet(
           note: note,
           onEdit: () {
-            Navigator.pop(context);
+            Navigator.of(context).pop();
 
             _showEditNoteSheet(
               context,
@@ -228,7 +206,7 @@ class PatientNotes extends StatelessWidget {
             );
           },
           onDelete: () {
-            Navigator.pop(context);
+            Navigator.of(context).pop();
 
             _confirmDeleteNote(
               context,
@@ -240,8 +218,10 @@ class PatientNotes extends StatelessWidget {
     );
   }
 
-  void _showAddNoteSheet(BuildContext context) {
-    showModalBottomSheet(
+  void _showAddNoteSheet(
+    BuildContext context,
+  ) {
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -254,7 +234,7 @@ class PatientNotes extends StatelessWidget {
             );
 
             if (success && context.mounted) {
-              Navigator.pop(context);
+              Navigator.of(context).pop();
             }
           },
         );
@@ -266,7 +246,7 @@ class PatientNotes extends StatelessWidget {
     BuildContext context,
     PatientNote note,
   ) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -274,7 +254,9 @@ class PatientNotes extends StatelessWidget {
         return _EditNoteBottomSheet(
           note: note,
           onSave: (content) async {
-            if (note.id == null) return;
+            if (note.id == null) {
+              return;
+            }
 
             final success = await controller.editNote(
               patientId: patientId,
@@ -283,7 +265,7 @@ class PatientNotes extends StatelessWidget {
             );
 
             if (success && context.mounted) {
-              Navigator.pop(context);
+              Navigator.of(context).pop();
             }
           },
         );
@@ -295,15 +277,15 @@ class PatientNotes extends StatelessWidget {
     BuildContext context,
     PatientNote note,
   ) {
-    if (note.id == null) return;
+    if (note.id == null) {
+      return;
+    }
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text(
-            'Delete Note?',
-          ),
+          title: const Text('Delete Note?'),
           content: const Text(
             'Are you sure you want to delete this note? '
             'This action cannot be undone.',
@@ -311,28 +293,23 @@ class PatientNotes extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(dialogContext);
+                Navigator.of(dialogContext).pop();
               },
-              child: const Text(
-                'Cancel',
-              ),
+              child: const Text('Cancel'),
             ),
-
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.danger,
               ),
               onPressed: () async {
-                Navigator.pop(dialogContext);
+                Navigator.of(dialogContext).pop();
 
                 await controller.deleteNote(
                   patientId: patientId,
                   noteId: note.id!,
                 );
               },
-              child: const Text(
-                'Delete',
-              ),
+              child: const Text('Delete'),
             ),
           ],
         );
@@ -340,7 +317,6 @@ class PatientNotes extends StatelessWidget {
     );
   }
 }
-
 
 // ============================================================
 // NOTE DETAILS
@@ -368,7 +344,9 @@ class _NoteDetailsBottomSheet extends StatelessWidget {
         decoration: const BoxDecoration(
           color: AppColors.cream,
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(24),
+            top: Radius.circular(
+              AppSizes.cardRadius,
+            ),
           ),
         ),
         child: SingleChildScrollView(
@@ -382,17 +360,7 @@ class _NoteDetailsBottomSheet extends StatelessWidget {
             crossAxisAlignment:
                 CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.inkMute,
-                    borderRadius:
-                        BorderRadius.circular(10),
-                  ),
-                ),
-              ),
+              const _BottomSheetHandle(),
 
               const SizedBox(
                 height: AppSizes.spacingXl,
@@ -400,22 +368,17 @@ class _NoteDetailsBottomSheet extends StatelessWidget {
 
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Patient Note',
-                      style: TextStyle(
-                        fontSize:
-                            AppSizes.fontSizeXl,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.ink,
-                      ),
+                      style: context.textTheme.headlineLarge,
                     ),
                   ),
-
                   IconButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.of(context).pop();
                     },
+                    tooltip: 'Close',
                     icon: const Icon(
                       Icons.close_rounded,
                     ),
@@ -427,22 +390,10 @@ class _NoteDetailsBottomSheet extends StatelessWidget {
                 height: AppSizes.spacingMd,
               ),
 
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(
-                  AppSizes.spacingLg,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius:
-                      BorderRadius.circular(
-                    AppSizes.cardRadius,
-                  ),
-                ),
+              AppCard(
                 child: Text(
                   note.content?.trim() ?? '',
-                  style: const TextStyle(
-                    fontSize: AppSizes.fontSizeMd,
+                  style: context.textTheme.bodyMedium?.copyWith(
                     height: 1.6,
                     color: AppColors.ink,
                   ),
@@ -453,7 +404,6 @@ class _NoteDetailsBottomSheet extends StatelessWidget {
                 const SizedBox(
                   height: AppSizes.spacingMd,
                 ),
-
                 Row(
                   children: [
                     const Icon(
@@ -461,16 +411,15 @@ class _NoteDetailsBottomSheet extends StatelessWidget {
                       size: 17,
                       color: AppColors.pine,
                     ),
-
                     const SizedBox(
                       width: AppSizes.spacingSm,
                     ),
-
                     Text(
-                      'Added ${_formatDate(note.createdAt!)}',
-                      style: const TextStyle(
-                        fontSize:
-                            AppSizes.fontSizeSm,
+                      'Added ${DateTimeUtils.formatDate(
+                        note.createdAt!,
+                      )}',
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        fontSize: AppSizes.fontSizeSm,
                         color: AppColors.inkMute,
                       ),
                     ),
@@ -491,16 +440,12 @@ class _NoteDetailsBottomSheet extends StatelessWidget {
                         Icons.edit_outlined,
                         size: 18,
                       ),
-                      label: const Text(
-                        'Edit',
-                      ),
+                      label: const Text('Edit'),
                     ),
                   ),
-
                   const SizedBox(
                     width: AppSizes.spacingMd,
                   ),
-
                   Expanded(
                     child: FilledButton.icon(
                       style: FilledButton.styleFrom(
@@ -512,9 +457,7 @@ class _NoteDetailsBottomSheet extends StatelessWidget {
                         Icons.delete_outline_rounded,
                         size: 18,
                       ),
-                      label: const Text(
-                        'Delete',
-                      ),
+                      label: const Text('Delete'),
                     ),
                   ),
                 ],
@@ -525,27 +468,7 @@ class _NoteDetailsBottomSheet extends StatelessWidget {
       ),
     );
   }
-
-  static String _formatDate(DateTime date) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
 }
-
 
 // ============================================================
 // NOTE LIST ITEM
@@ -565,111 +488,86 @@ class _NoteListItem extends StatelessWidget {
     final content =
         note.content?.trim() ?? '';
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(
-        AppSizes.cardRadius,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(
-          AppSizes.spacingLg,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.amberPale,
-                borderRadius:
-                    BorderRadius.circular(12),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(
+            AppSizes.spacingLg,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: AppSizes.minTapTarget,
+                height: AppSizes.minTapTarget,
+                decoration: BoxDecoration(
+                  color: AppColors.amberPale,
+                  borderRadius:
+                      BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.notes_outlined,
+                  color: AppColors.amber,
+                  size: 22,
+                ),
               ),
-              child: const Icon(
-                Icons.notes_outlined,
-                color: AppColors.amber,
-                size: 22,
+
+              const SizedBox(
+                width: AppSizes.spacingMd,
               ),
-            ),
 
-            const SizedBox(
-              width: AppSizes.spacingMd,
-            ),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    content,
-                    maxLines: 2,
-                    overflow:
-                        TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize:
-                          AppSizes.fontSizeMd,
-                      fontWeight:
-                          FontWeight.w600,
-                      color: AppColors.ink,
-                      height: 1.35,
-                    ),
-                  ),
-
-                  if (note.createdAt != null) ...[
-                    const SizedBox(
-                      height: AppSizes.spacingXs,
-                    ),
-
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      _formatDate(
-                        note.createdAt!,
-                      ),
-                      style: const TextStyle(
-                        fontSize:
-                            AppSizes.fontSizeXs,
-                        color:
-                            AppColors.inkMute,
+                      content,
+                      maxLines: 2,
+                      overflow:
+                          TextOverflow.ellipsis,
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.ink,
+                        height: 1.35,
                       ),
                     ),
+
+                    if (note.createdAt != null) ...[
+                      const SizedBox(
+                        height: AppSizes.spacingXs,
+                      ),
+                      Text(
+                        DateTimeUtils.formatDate(
+                          note.createdAt!,
+                        ),
+                        style: context.textTheme.bodyMedium?.copyWith(
+                          fontSize:
+                              AppSizes.fontSizeXs,
+                          color: AppColors.inkMute,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
 
-            const SizedBox(
-              width: AppSizes.spacingSm,
-            ),
+              const SizedBox(
+                width: AppSizes.spacingSm,
+              ),
 
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.inkMute,
-            ),
-          ],
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.inkMute,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-
-  static String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
 }
-
 
 // ============================================================
 // ADD NOTE BOTTOM SHEET
@@ -680,7 +578,9 @@ class _AddNoteBottomSheet extends StatefulWidget {
     required this.onSave,
   });
 
-  final Future<void> Function(String content) onSave;
+  final Future<void> Function(
+    String content,
+  ) onSave;
 
   @override
   State<_AddNoteBottomSheet> createState() =>
@@ -695,7 +595,8 @@ class _AddNoteBottomSheetState
   void initState() {
     super.initState();
 
-    _textController = TextEditingController();
+    _textController =
+        TextEditingController();
   }
 
   @override
@@ -709,21 +610,13 @@ class _AddNoteBottomSheetState
         _textController.text.trim();
 
     if (content.isEmpty) {
-      _showValidationError();
+      AppSnackBar.showError(
+        'Please enter a note.',
+      );
       return;
     }
 
     await widget.onSave(content);
-  }
-
-  void _showValidationError() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Please enter a note.',
-        ),
-      ),
-    );
   }
 
   @override
@@ -742,7 +635,9 @@ class _AddNoteBottomSheetState
         decoration: const BoxDecoration(
           color: AppColors.cream,
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(24),
+            top: Radius.circular(
+              AppSizes.cardRadius,
+            ),
           ),
         ),
         child: Column(
@@ -750,17 +645,7 @@ class _AddNoteBottomSheetState
           crossAxisAlignment:
               CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.inkMute,
-                  borderRadius:
-                      BorderRadius.circular(10),
-                ),
-              ),
-            ),
+            const _BottomSheetHandle(),
 
             const SizedBox(
               height: AppSizes.spacingXl,
@@ -768,23 +653,17 @@ class _AddNoteBottomSheetState
 
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Add Patient Note',
-                    style: TextStyle(
-                      fontSize:
-                          AppSizes.fontSizeXl,
-                      fontWeight:
-                          FontWeight.w700,
-                      color: AppColors.ink,
-                    ),
+                    style: context.textTheme.headlineLarge,
                   ),
                 ),
-
                 IconButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.of(context).pop();
                   },
+                  tooltip: 'Close',
                   icon: const Icon(
                     Icons.close_rounded,
                   ),
@@ -810,7 +689,9 @@ class _AddNoteBottomSheetState
                 fillColor: AppColors.white,
                 border: OutlineInputBorder(
                   borderRadius:
-                      BorderRadius.circular(16),
+                      BorderRadius.circular(
+                    AppSizes.cardRadius,
+                  ),
                   borderSide: BorderSide.none,
                 ),
                 contentPadding:
@@ -826,7 +707,7 @@ class _AddNoteBottomSheetState
 
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: AppSizes.minTapTarget,
               child: FilledButton(
                 onPressed: _save,
                 child: const Text(
@@ -841,7 +722,6 @@ class _AddNoteBottomSheetState
   }
 }
 
-
 // ============================================================
 // EDIT NOTE BOTTOM SHEET
 // ============================================================
@@ -853,7 +733,9 @@ class _EditNoteBottomSheet extends StatefulWidget {
   });
 
   final PatientNote note;
-  final Future<void> Function(String content) onSave;
+  final Future<void> Function(
+    String content,
+  ) onSave;
 
   @override
   State<_EditNoteBottomSheet> createState() =>
@@ -884,12 +766,8 @@ class _EditNoteBottomSheetState
         _textController.text.trim();
 
     if (content.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter a note.',
-          ),
-        ),
+      AppSnackBar.showError(
+        'Please enter a note.',
       );
       return;
     }
@@ -913,7 +791,9 @@ class _EditNoteBottomSheetState
         decoration: const BoxDecoration(
           color: AppColors.cream,
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(24),
+            top: Radius.circular(
+              AppSizes.cardRadius,
+            ),
           ),
         ),
         child: Column(
@@ -921,17 +801,7 @@ class _EditNoteBottomSheetState
           crossAxisAlignment:
               CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.inkMute,
-                  borderRadius:
-                      BorderRadius.circular(10),
-                ),
-              ),
-            ),
+            const _BottomSheetHandle(),
 
             const SizedBox(
               height: AppSizes.spacingXl,
@@ -939,23 +809,17 @@ class _EditNoteBottomSheetState
 
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Edit Patient Note',
-                    style: TextStyle(
-                      fontSize:
-                          AppSizes.fontSizeXl,
-                      fontWeight:
-                          FontWeight.w700,
-                      color: AppColors.ink,
-                    ),
+                    style: context.textTheme.headlineLarge,
                   ),
                 ),
-
                 IconButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.of(context).pop();
                   },
+                  tooltip: 'Close',
                   icon: const Icon(
                     Icons.close_rounded,
                   ),
@@ -981,7 +845,9 @@ class _EditNoteBottomSheetState
                 fillColor: AppColors.white,
                 border: OutlineInputBorder(
                   borderRadius:
-                      BorderRadius.circular(16),
+                      BorderRadius.circular(
+                    AppSizes.cardRadius,
+                  ),
                   borderSide: BorderSide.none,
                 ),
                 contentPadding:
@@ -997,7 +863,7 @@ class _EditNoteBottomSheetState
 
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: AppSizes.minTapTarget,
               child: FilledButton(
                 onPressed: _save,
                 child: const Text(
@@ -1006,6 +872,29 @@ class _EditNoteBottomSheetState
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// BOTTOM SHEET HANDLE
+// ============================================================
+
+class _BottomSheetHandle extends StatelessWidget {
+  const _BottomSheetHandle();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 40,
+        height: 4,
+        decoration: BoxDecoration(
+          color: AppColors.inkMute,
+          borderRadius:
+              BorderRadius.circular(10),
         ),
       ),
     );

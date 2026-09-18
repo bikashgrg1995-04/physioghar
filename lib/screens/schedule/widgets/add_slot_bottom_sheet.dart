@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:physioghar/common_widgets/app_button.dart';
 
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
@@ -144,25 +145,12 @@ class _AddSlotBottomSheetState
               height: AppSizes.spacingLg,
             ),
 
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed:
-                    canAdd ? _addSlot : null,
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child:
-                            CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'Add Slot',
-                      ),
-              ),
-            ),
+            AppButton(
+  width: double.infinity,
+  text: _isSaving ? 'Adding...' : 'Add Slot',
+  onPressed: canAdd ? _addSlot : null,
+),
+          
           ],
         ),
       ),

@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:physioghar/common_widgets/app_card.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
@@ -24,14 +24,7 @@ class DashboardSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      key: Key('summary-card-$title'),
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSizes.spacingMd),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-      ),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -48,16 +41,10 @@ class DashboardSummaryCard extends StatelessWidget {
                   color: iconBackgroundColor,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: 18,
-                ),
+                child: Icon(icon, color: iconColor, size: 18),
               ),
 
-              const SizedBox(
-                width: AppSizes.spacingMd,
-              ),
+              const SizedBox(width: AppSizes.spacingMd),
 
               Expanded(
                 child: Text(
@@ -70,9 +57,7 @@ class DashboardSummaryCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(
-            height: AppSizes.spacingSm,
-          ),
+          const SizedBox(height: AppSizes.spacingSm),
 
           // -----------------------------------------------------------------
           // Title

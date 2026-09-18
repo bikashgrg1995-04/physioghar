@@ -81,9 +81,7 @@ class DateTimeUtils {
       return value;
     }
 
-    return formatTime(
-      DateTime(2000, 1, 1, hour, minute),
-    );
+    return formatTime(DateTime(2000, 1, 1, hour, minute));
   }
 
   static String formatDate(DateTime dateTime) {
@@ -113,4 +111,58 @@ class DateTimeUtils {
         '${formatMonth(dateTime)} '
         '${dateTime.day}';
   }
+
+  static DateTime? combineDateAndTime(DateTime date, String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+
+    final parts = value.split(':');
+
+    if (parts.length < 2) {
+      return null;
+    }
+
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+
+    if (hour == null ||
+        minute == null ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59) {
+      return null;
+    }
+
+    return DateTime(date.year, date.month, date.day, hour, minute);
+  }
+
+  static int timeToMinutes(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 999999;
+    }
+
+    final parts = value.split(':');
+
+    if (parts.length < 2) {
+      return 999999;
+    }
+
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+
+    if (hour == null ||
+        minute == null ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59) {
+      return 999999;
+    }
+
+    return hour * 60 + minute;
+  }
+
+  
 }

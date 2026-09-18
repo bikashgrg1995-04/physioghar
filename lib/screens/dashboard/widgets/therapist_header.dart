@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
@@ -22,7 +21,10 @@ class TherapistHeader extends StatelessWidget {
       builder: (context, therapist, _) {
         final today = DateTime.now();
 
-        final name = therapist?.name ?? 'Therapist';
+        final name = therapist?.name?.trim().isNotEmpty == true
+            ? therapist!.name!.trim()
+            : 'Therapist';
+
         final avatarUrl = therapist?.avatar;
         final isAvailable = therapist?.isAvailable ?? false;
 
@@ -32,11 +34,8 @@ class TherapistHeader extends StatelessWidget {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // -------------------------------------------------------------
-                // Profile Avatar
-                // -------------------------------------------------------------
                 CircleAvatar(
-                  radius: 28,
+                  radius: 35,
                   backgroundColor: AppColors.pinePale,
                   child: avatarUrl == null || avatarUrl.isEmpty
                       ? const Icon(
@@ -47,8 +46,8 @@ class TherapistHeader extends StatelessWidget {
                       : ClipOval(
                           child: Image.network(
                             avatarUrl,
-                            width: 56,
-                            height: 56,
+                            width: 60,
+                            height: 60,
                             fit: BoxFit.cover,
                             errorBuilder: (
                               context,
@@ -65,32 +64,22 @@ class TherapistHeader extends StatelessWidget {
                         ),
                 ),
 
-                const SizedBox(
-                  width: AppSizes.spacingMd,
-                ),
+                const SizedBox(width: AppSizes.spacingMd),
 
-                // -------------------------------------------------------------
-                // Therapist Information
-                // -------------------------------------------------------------
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Greeting
                       Text(
                         DateTimeUtils.getGreeting(),
-                        style:
-                            Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.inkMute,
-                                  fontSize: AppSizes.fontSizeSm,
-                                ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.inkMute,
+                              fontSize: AppSizes.fontSizeSm,
+                            ),
                       ),
 
-                      const SizedBox(
-                        height: AppSizes.spacingTiny,
-                      ),
+                      const SizedBox(height: AppSizes.spacingTiny),
 
-                      // Therapist Name
                       Text(
                         name,
                         key: const Key('therapist-name'),
@@ -99,31 +88,17 @@ class TherapistHeader extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
 
-                      const SizedBox(
-                        height: AppSizes.spacingTiny,
-                      ),
+                      const SizedBox(height: AppSizes.spacingTiny),
 
-                      // Today's Date
                       Text(
                         DateTimeUtils.formatFullDate(today),
-                        style:
-                            Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.inkMute,
-                                  fontSize: AppSizes.fontSizeSm,
-                                ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.inkMute,
+                              fontSize: AppSizes.fontSizeSm,
+                            ),
                       ),
-
-                      const SizedBox(
-                        height: AppSizes.spacingAvailability,
-                      ),
-
-                      // -------------------------------------------------------
-                      // Availability
-                      // -------------------------------------------------------
                       Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Status Indicator
                           Container(
                             width: AppSizes.spacingSm,
                             height: AppSizes.spacingSm,
@@ -139,35 +114,29 @@ class TherapistHeader extends StatelessWidget {
                             width: AppSizes.spacingStatus,
                           ),
 
-                          // Status Text
-                          SizedBox(
-                            width: 70,
-                            child: Text(
-                              isAvailable ? 'Available' : 'Unavailable',
-                              key: const Key('availability-status'),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: isAvailable
-                                        ? AppColors.pine
-                                        : AppColors.inkMute,
-                                    fontSize: AppSizes.fontSizeSm,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
+                          Text(
+                            isAvailable ? 'Available' : 'Unavailable',
+                            key: const Key('availability-status'),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: isAvailable
+                                      ? AppColors.pine
+                                      : AppColors.inkMute,
+                                  fontSize: AppSizes.fontSizeSm,
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
 
                           const SizedBox(
                             width: AppSizes.spacingSm,
                           ),
 
-                          // Availability Toggle
                           SizedBox(
-                            width: 60,
-                            height: 32,
-                            child: FittedBox(
-                              fit: BoxFit.contain,
+                            width: 44,
+                            height: 44,
+                            child: Center(
                               child: Switch.adaptive(
                                 key: const Key('availability-switch'),
                                 value: isAvailable,
@@ -177,9 +146,7 @@ class TherapistHeader extends StatelessWidget {
                                 inactiveTrackColor: AppColors.mist,
                                 onChanged: isUpdating
                                     ? null
-                                    : (value) {
-                                        controller.updateAvailability(value);
-                                      },
+                                    : controller.updateAvailability,
                               ),
                             ),
                           ),

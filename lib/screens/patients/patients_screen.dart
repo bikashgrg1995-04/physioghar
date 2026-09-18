@@ -1,12 +1,11 @@
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/app/router.dart';
-import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/models/patient.dart';
 import 'package:physioghar/screens/patients/patient_controller.dart';
+import 'package:physioghar/screens/patients/widgets/patient_list_shimmer.dart';
 import 'package:physioghar/screens/patients/widgets/patient_card.dart';
 import 'package:physioghar/screens/patients/widgets/patient_empty_state.dart';
 import 'package:physioghar/screens/patients/widgets/patient_search_field.dart';
@@ -25,7 +24,8 @@ class _PatientsScreenState
     extends State<PatientsScreen> {
   late final PatientController _controller;
 
-  final _searchController = TextEditingController();
+  final _searchController =
+      TextEditingController();
 
   String _searchQuery = '';
 
@@ -84,13 +84,7 @@ class _PatientsScreenState
                   key: const Key(
                     'patients-screen-title',
                   ),
-                  style: GoogleFonts.fraunces(
-                    fontSize:
-                        AppSizes.fontSizeDisplay,
-                    fontWeight:
-                        FontWeight.w600,
-                    color: AppColors.ink,
-                  ),
+                  style: context.textTheme.displayLarge,
                 ),
 
                 const SizedBox(
@@ -99,11 +93,7 @@ class _PatientsScreenState
 
                 Text(
                   'Your patient records',
-                  style: GoogleFonts.inter(
-                    fontSize:
-                        AppSizes.fontSizeMd,
-                    color: AppColors.inkMid,
-                  ),
+                  style: context.textTheme.bodyMedium,
                 ),
 
                 const SizedBox(
@@ -134,10 +124,7 @@ class _PatientsScreenState
                     ) {
                       if (isLoading &&
                           patients.isEmpty) {
-                        return const Center(
-                          child:
-                              CircularProgressIndicator(),
-                        );
+                        return const PatientListShimmer();
                       }
 
                       if (filteredPatients.isEmpty) {
@@ -147,8 +134,7 @@ class _PatientsScreenState
                       return RefreshIndicator(
                         onRefresh:
                             _controller.loadPatients,
-                        child:
-                            ListView.separated(
+                        child: ListView.separated(
                           physics:
                               const AlwaysScrollableScrollPhysics(),
                           itemCount:
@@ -162,15 +148,14 @@ class _PatientsScreenState
                           itemBuilder:
                               (context, index) {
                             final patient =
-                                filteredPatients[
-                                    index];
+                                filteredPatients[index];
 
                             return PatientCard(
                               patient: patient,
                               onTap: () {
-                                Navigator
-                                    .of(context)
-                                    .pushNamed(
+                                Navigator.of(
+                                  context,
+                                ).pushNamed(
                                   AppRouter
                                       .patientDetail,
                                   arguments:

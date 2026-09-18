@@ -1,11 +1,10 @@
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/common_widgets/app_text_field.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/models/therapist.dart';
 
 class EditProfileDialog extends StatefulWidget {
@@ -26,12 +25,10 @@ class EditProfileDialog extends StatefulWidget {
   }) onSave;
 
   @override
-  State<EditProfileDialog> createState() =>
-      _EditProfileDialogState();
+  State<EditProfileDialog> createState() => _EditProfileDialogState();
 }
 
-class _EditProfileDialogState
-    extends State<EditProfileDialog> {
+class _EditProfileDialogState extends State<EditProfileDialog> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _phoneController;
@@ -83,6 +80,8 @@ class _EditProfileDialogState
       return;
     }
 
+    FocusScope.of(context).unfocus();
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -95,8 +94,7 @@ class _EditProfileDialogState
       await widget.onSave(
         phone: _phoneController.text.trim(),
         experience: _experienceController.text.trim(),
-        specialization:
-            _specializationController.text.trim(),
+        specialization: _specializationController.text.trim(),
         address: _addressController.text.trim(),
         bio: _bioController.text.trim(),
       );
@@ -124,8 +122,13 @@ class _EditProfileDialogState
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.spacingLg,
+        vertical: AppSizes.spacingXl,
+      ),
       backgroundColor: AppColors.white,
       surfaceTintColor: Colors.transparent,
+      elevation: 8,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(
           AppSizes.cardRadius,
@@ -149,81 +152,132 @@ class _EditProfileDialogState
         AppSizes.spacingLg,
         AppSizes.spacingLg,
       ),
-      title: Text(
-        'Edit Profile',
-        style: GoogleFonts.fraunces(
-          fontSize: AppSizes.fontSizeXl,
-          fontWeight: FontWeight.w600,
-          color: AppColors.ink,
-        ),
+      title: _DialogHeader(
+        isSaving: _isSaving,
+        onClose: _isSaving
+            ? null
+            : () {
+                Navigator.of(context).pop();
+              },
       ),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppTextField(
-                controller: _phoneController,
-                label: 'Phone',
-                hintText: 'Enter phone number',
-                prefixIcon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
-                textInputAction: TextInputAction.next,
-              ),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: 420,
+        ),
+        child: SingleChildScrollView(
+          keyboardDismissBehavior:
+              ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Keep your professional information up to date.',
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.inkMid,
+                    height: 1.45,
+                  ),
+                ),
 
-              const SizedBox(
-                height: AppSizes.spacingMd,
-              ),
+                const SizedBox(
+                  height: AppSizes.spacingLg,
+                ),
 
-              AppTextField(
-                controller: _experienceController,
-                label: 'Experience',
-                hintText: 'e.g. 5 years',
-                prefixIcon: Icons.work_outline,
-                textInputAction: TextInputAction.next,
-              ),
+                const _SectionLabel(
+                  icon: Icons.badge_outlined,
+                  title: 'Professional Information',
+                ),
 
-              const SizedBox(
-                height: AppSizes.spacingMd,
-              ),
+                const SizedBox(
+                  height: AppSizes.spacingMd,
+                ),
 
-              AppTextField(
-                controller: _specializationController,
-                label: 'Specialization',
-                hintText: 'Enter specialization',
-                prefixIcon:
-                    Icons.medical_services_outlined,
-                textInputAction: TextInputAction.next,
-              ),
+                AppTextField(
+                  controller: _specializationController,
+                  label: 'Specialization',
+                  hintText: 'e.g. Physiotherapist',
+                  prefixIcon: Icons.medical_services_outlined,
+                  textInputAction: TextInputAction.next,
+                  validator: _requiredValidator,
+                ),
 
-              const SizedBox(
-                height: AppSizes.spacingMd,
-              ),
+                const SizedBox(
+                  height: AppSizes.spacingMd,
+                ),
 
-              AppTextField(
-                controller: _addressController,
-                label: 'Address',
-                hintText: 'Enter address',
-                prefixIcon:
-                    Icons.location_on_outlined,
-                textInputAction: TextInputAction.next,
-                maxLines: 1,
-              ),
+                AppTextField(
+                  controller: _experienceController,
+                  label: 'Experience',
+                  hintText: 'e.g. 5 years',
+                  prefixIcon: Icons.work_outline,
+                  textInputAction: TextInputAction.next,
+                  validator: _requiredValidator,
+                ),
 
-              const SizedBox(
-                height: AppSizes.spacingMd,
-              ),
+                const SizedBox(
+                  height: AppSizes.spacingLg,
+                ),
 
-              AppTextField(
-                controller: _bioController,
-                label: 'Bio',
-                hintText: 'Tell us about yourself',
-                prefixIcon: Icons.notes_outlined,
-                textInputAction: TextInputAction.done,
-                maxLines: 3,
-              ),
-            ],
+                const _SectionLabel(
+                  icon: Icons.contact_phone_outlined,
+                  title: 'Contact Information',
+                ),
+
+                const SizedBox(
+                  height: AppSizes.spacingMd,
+                ),
+
+                AppTextField(
+                  controller: _phoneController,
+                  label: 'Phone',
+                  hintText: 'Enter phone number',
+                  prefixIcon: Icons.phone_outlined,
+                  keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.next,
+                  validator: _requiredValidator,
+                ),
+
+                const SizedBox(
+                  height: AppSizes.spacingMd,
+                ),
+
+                AppTextField(
+                  controller: _addressController,
+                  label: 'Address',
+                  hintText: 'Enter your address',
+                  prefixIcon: Icons.location_on_outlined,
+                  textInputAction: TextInputAction.next,
+                  maxLines: 1,
+                  validator: _requiredValidator,
+                ),
+
+                const SizedBox(
+                  height: AppSizes.spacingLg,
+                ),
+
+                const _SectionLabel(
+                  icon: Icons.notes_outlined,
+                  title: 'About You',
+                ),
+
+                const SizedBox(
+                  height: AppSizes.spacingMd,
+                ),
+
+                AppTextField(
+                  controller: _bioController,
+                  label: 'Bio',
+                  hintText: 'Tell patients a little about yourself',
+                  prefixIcon: Icons.notes_outlined,
+                  textInputAction: TextInputAction.newline,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: 4,
+                  validator: _requiredValidator,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -239,23 +293,134 @@ class _EditProfileDialogState
               AppSizes.minTapTarget,
               AppSizes.minTapTarget,
             ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.spacingMd,
+            ),
           ),
           child: Text(
             'Cancel',
-            style: GoogleFonts.inter(
-              fontSize: AppSizes.fontSizeMd,
-              fontWeight: FontWeight.w600,
+            style: context.textTheme.labelLarge?.copyWith(
               color: AppColors.inkMid,
             ),
           ),
         ),
 
         AppButton(
-          width: 100,
-          text: _isSaving ? 'Saving...' : 'Save',
-          onPressed: _isSaving
-              ? null
-              : _saveProfile,
+          width: 140,
+          text: _isSaving ? 'Saving...' : 'Save Changes',
+          icon: _isSaving
+              ? const SizedBox(
+                  width: 17,
+                  height: 17,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.white,
+                  ),
+                )
+              : const Icon(
+                  Icons.check_rounded,
+                  size: 18,
+                ),
+          onPressed: _isSaving ? null : _saveProfile,
+        ),
+      ],
+    );
+  }
+
+  String? _requiredValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'This field is required';
+    }
+
+    return null;
+  }
+}
+
+class _DialogHeader extends StatelessWidget {
+  const _DialogHeader({
+    required this.isSaving,
+    required this.onClose,
+  });
+
+  final bool isSaving;
+  final VoidCallback? onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: AppSizes.minTapTarget,
+          height: AppSizes.minTapTarget,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            color: AppColors.pinePale,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.person_outline_rounded,
+            size: 22,
+            color: AppColors.pine,
+          ),
+        ),
+
+        const SizedBox(
+          width: AppSizes.spacingMd,
+        ),
+
+        Expanded(
+          child: Text(
+            'Edit Profile',
+            style: context.textTheme.headlineLarge?.copyWith(
+              fontSize: AppSizes.fontSizeXl,
+            ),
+          ),
+        ),
+
+        IconButton(
+          onPressed: onClose,
+          tooltip: 'Close',
+          constraints: const BoxConstraints(
+            minWidth: AppSizes.minTapTarget,
+            minHeight: AppSizes.minTapTarget,
+          ),
+          icon: const Icon(
+            Icons.close_rounded,
+            size: 21,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({
+    required this.icon,
+    required this.title,
+  });
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 17,
+          color: AppColors.pine,
+        ),
+        const SizedBox(
+          width: AppSizes.spacingSm,
+        ),
+        Text(
+          title,
+          style: context.textTheme.labelLarge?.copyWith(
+            color: AppColors.pine,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ],
     );

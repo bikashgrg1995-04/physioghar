@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/app/router.dart';
 import 'package:physioghar/common_widgets/app_button.dart';
+import 'package:physioghar/common_widgets/app_card.dart';
 import 'package:physioghar/common_widgets/app_confirmation_dialog.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/screens/schedule/schedule_controller.dart';
@@ -28,14 +29,9 @@ class SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return AppCard(
       padding: const EdgeInsets.all(AppSizes.spacingLg),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        border: Border.all(color: AppColors.mist),
-      ),
+      borderColor: AppColors.mist,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -53,6 +49,12 @@ class SessionCard extends StatelessWidget {
     );
   }
 
+  Future<void> _refreshSchedule() async {
+    await scheduleController.loadSchedules(
+      date: scheduleController.selectedDate.value,
+    );
+  }
+
   Widget _buildHeader(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,10 +64,8 @@ class SessionCard extends StatelessWidget {
             session.patientName ?? 'Unknown Patient',
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.fraunces(
-              fontSize: AppSizes.fontSizeLg,
+            style: context.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.ink,
             ),
           ),
         ),
@@ -98,7 +98,7 @@ class SessionCard extends StatelessWidget {
 
         _InfoRow(
           icon: Icons.access_time_outlined,
-          text: _formatTime(session.scheduleTime),
+          text: DateTimeUtils.formatTimeString(session.scheduleTime),
         ),
 
         const SizedBox(height: AppSizes.spacingSm),
@@ -130,7 +130,9 @@ class SessionCard extends StatelessWidget {
     }
   }
 
-  Widget _buildRequestedActions(BuildContext context) {
+  Widget _buildRequestedActions(
+    BuildContext context,
+  ) {
     return Row(
       children: [
         Expanded(
@@ -158,50 +160,95 @@ class SessionCard extends StatelessWidget {
   }
 
   Widget _buildUpcomingActions(BuildContext context) {
-    return Row(
-      children: [
-        Flexible(
-          flex: 3,
-          child: AppButton(
-            text: 'View',
-            variant: AppButtonVariant.secondary,
-            onPressed: () {
-              Navigator.of(context)
-                  .pushNamed(AppRouter.sessionDetail, arguments: session.id);
-            },
-          ),
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 360;
 
-        const SizedBox(width: AppSizes.spacingSm),
+        if (isCompact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppButton(
+                text: 'View',
+                variant: AppButtonVariant.secondary,
+                onPressed: () {
+                  Navigator.of(
+                    context,
+                  ).pushNamed(AppRouter.sessionDetail, arguments: session.id);
+                },
+              ),
+              const SizedBox(height: AppSizes.spacingSm),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton(
+                      text: 'Reschedule',
+                      variant: AppButtonVariant.secondary,
+                      onPressed: () {
+                        showRescheduleBottomSheet(
+                          context,
+                          session: session,
+                          sessionController: controller,
+                          scheduleController: scheduleController,
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: AppSizes.spacingSm),
+                  Expanded(
+                    child: AppButton(
+                      text: 'Complete',
+                      onPressed: () {
+                        _handleComplete(context);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        }
 
-        Flexible(
-          flex: 4,
-          child: AppButton(
-            text: 'Reschedule',
-            variant: AppButtonVariant.secondary,
-            onPressed: () {
-              showRescheduleBottomSheet(
-                context,
-                session: session,
-                sessionController: controller,
-                scheduleController: scheduleController,
-              );
-            },
-          ),
-        ),
-
-        const SizedBox(width: AppSizes.spacingSm),
-
-        Flexible(
-          flex: 4,
-          child: AppButton(
-            text: 'Complete',
-            onPressed: () {
-              _handleComplete(context);
-            },
-          ),
-        ),
-      ],
+        return Row(
+          children: [
+            Expanded(
+              child: AppButton(
+                text: 'View',
+                variant: AppButtonVariant.secondary,
+                onPressed: () {
+                  Navigator.of(
+                    context,
+                  ).pushNamed(AppRouter.sessionDetail, arguments: session.id);
+                },
+              ),
+            ),
+            const SizedBox(width: AppSizes.spacingSm),
+            Expanded(
+              child: AppButton(
+                text: 'Reschedule',
+                variant: AppButtonVariant.secondary,
+                onPressed: () {
+                  showRescheduleBottomSheet(
+                    context,
+                    session: session,
+                    sessionController: controller,
+                    scheduleController: scheduleController,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: AppSizes.spacingSm),
+            Expanded(
+              child: AppButton(
+                text: 'Complete',
+                onPressed: () {
+                  _handleComplete(context);
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -211,8 +258,8 @@ class SessionCard extends StatelessWidget {
       text: 'View Details',
       variant: AppButtonVariant.secondary,
       onPressed: () {
-         Navigator.of(context)
-                  .pushNamed(AppRouter.sessionDetail, arguments: session.id);
+        Navigator.of(context)
+            .pushNamed(AppRouter.sessionDetail, arguments: session.id);
       },
     );
   }
@@ -231,6 +278,7 @@ class SessionCard extends StatelessWidget {
     }
 
     final success = await controller.acceptSession(session.id!);
+    await _refreshSchedule();
 
     if (!context.mounted) {
       return;
@@ -302,6 +350,7 @@ class SessionCard extends StatelessWidget {
 
       if (success) {
         AppSnackBar.showSuccess('Booking request declined.');
+        await _refreshSchedule();
       } else {
         AppSnackBar.showError(
           controller.errorMessage ?? 'Unable to decline booking request.',
@@ -340,6 +389,8 @@ class SessionCard extends StatelessWidget {
           );
         }
 
+        await _refreshSchedule();
+
         if (!context.mounted) {
           return;
         }
@@ -347,41 +398,6 @@ class SessionCard extends StatelessWidget {
         AppSnackBar.showSuccess('Session completed successfully.');
       },
     );
-  }
-
-  String _formatTime(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Time not provided';
-    }
-
-    final parts = value.split(':');
-
-    if (parts.length < 2) {
-      return value;
-    }
-
-    final hour = int.tryParse(parts[0]);
-
-    final minute = int.tryParse(parts[1]);
-
-    if (hour == null ||
-        minute == null ||
-        hour < 0 ||
-        hour > 23 ||
-        minute < 0 ||
-        minute > 59) {
-      return value;
-    }
-
-    final time = TimeOfDay(hour: hour, minute: minute);
-
-    final hourText = time.hourOfPeriod.toString().padLeft(2, '0');
-
-    final minuteText = time.minute.toString().padLeft(2, '0');
-
-    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-
-    return '$hourText:$minuteText $period';
   }
 }
 
@@ -399,15 +415,7 @@ class _InfoRow extends StatelessWidget {
 
         const SizedBox(width: AppSizes.spacingSm),
 
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.inter(
-              fontSize: AppSizes.fontSizeMd,
-              color: AppColors.inkMid,
-            ),
-          ),
-        ),
+        Expanded(child: Text(text, style: context.textTheme.bodyMedium)),
       ],
     );
   }
@@ -432,8 +440,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         currentStatus?.label ?? 'UNKNOWN',
-        style: GoogleFonts.ibmPlexMono(
-          fontSize: AppSizes.fontSizeXs,
+        style: context.textTheme.labelSmall?.copyWith(
           fontWeight: FontWeight.w700,
           color: _foregroundColor(currentStatus),
           letterSpacing: 0.5,

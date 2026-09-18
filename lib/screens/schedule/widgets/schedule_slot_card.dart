@@ -1,16 +1,14 @@
-
 import 'package:flutter/material.dart';
+import 'package:physioghar/common_widgets/app_card.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
+import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/schedule_slot.dart';
 
 class ScheduleSlotCard extends StatelessWidget {
-  const ScheduleSlotCard({
-    super.key,
-    required this.slot,
-    this.onTap,
-  });
+  const ScheduleSlotCard({super.key, required this.slot, this.onTap});
 
   final ScheduleSlot slot;
   final VoidCallback? onTap;
@@ -19,112 +17,50 @@ class ScheduleSlotCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = slot.status?.value ?? 'unknown';
 
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(
-        AppSizes.cardRadius,
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.spacingLg,
+        vertical: AppSizes.spacingMd,
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(
-          AppSizes.cardRadius,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.spacingLg,
+          vertical: AppSizes.spacingMd,
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSizes.spacingLg,
-            vertical: AppSizes.spacingMd,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _formatTime(
-                    slot.time,
-                  ),
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(
-                        fontWeight:
-                            FontWeight.w600,
-                        color: AppColors.ink,
-                      ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                DateTimeUtils.formatTimeString(slot.time),
+                style: context.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.ink,
                 ),
               ),
+            ),
 
-              _StatusBadge(
-                status: status,
-              ),
+            _StatusBadge(status: status),
 
-              const SizedBox(
-                width: AppSizes.spacingSm,
-              ),
+            const SizedBox(width: AppSizes.spacingSm),
 
-              const Icon(
-                Icons.chevron_right,
-                size: 20,
-                color: AppColors.inkMute,
-              ),
-            ],
-          ),
+            const Icon(Icons.chevron_right, size: 20, color: AppColors.inkMute),
+          ],
         ),
       ),
     );
-  }
-
- 
-  String _formatTime(String? value) {
-    if (value == null || value.isEmpty) {
-      return '--';
-    }
-
-    final parts = value.split(':');
-
-    if (parts.length < 2) {
-      return value;
-    }
-
-    final hour = int.tryParse(parts[0]);
-    final minute = int.tryParse(parts[1]);
-
-    if (hour == null || minute == null) {
-      return value;
-    }
-
-    final time = TimeOfDay(
-      hour: hour,
-      minute: minute,
-    );
-
-    final hourText = time.hourOfPeriod
-        .toString()
-        .padLeft(2, '0');
-
-    final minuteText = time.minute
-        .toString()
-        .padLeft(2, '0');
-
-    final period =
-        time.period == DayPeriod.am
-            ? 'AM'
-            : 'PM';
-
-    return '$hourText:$minuteText $period';
   }
 }
 
 class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({
-    required this.status,
-  });
+  const _StatusBadge({required this.status});
 
   final String status;
 
   @override
   Widget build(BuildContext context) {
     final color = _getStatusColor(status);
-    final backgroundColor =
-        _getStatusBackgroundColor(status);
+    final backgroundColor = _getStatusBackgroundColor(status);
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -133,8 +69,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius:
-            BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -142,26 +77,15 @@ class _StatusBadge extends StatelessWidget {
           Container(
             width: 7,
             height: 7,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
 
-          const SizedBox(
-            width: AppSizes.spacingXs,
-          ),
+          const SizedBox(width: AppSizes.spacingXs),
 
           Text(
             _getStatusLabel(status),
-            style: Theme.of(context)
-                .textTheme
-                .labelSmall
-                ?.copyWith(
-                  color: color,
-                  fontWeight:
-                      FontWeight.w600,
-                ),
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: color, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -200,9 +124,7 @@ class _StatusBadge extends StatelessWidget {
     }
   }
 
-  Color _getStatusBackgroundColor(
-    String status,
-  ) {
+  Color _getStatusBackgroundColor(String status) {
     switch (status.toLowerCase()) {
       case 'open':
         return AppColors.pinePale;

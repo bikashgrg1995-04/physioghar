@@ -109,16 +109,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           border: Border.all(
                             color: AppColors.pinePale,
                           ),
-                          boxShadow: const [
+                          boxShadow: [
                             BoxShadow(
-                              color: Color.fromRGBO(
-                                30,
-                                42,
-                                46,
-                                0.05,
-                              ),
+                              color: AppColors.ink.withValues(alpha: 0.05),
                               blurRadius: 30,
-                              offset: Offset(0, 14),
+                              offset: const Offset(0, 14),
                             ),
                           ],
                         ),

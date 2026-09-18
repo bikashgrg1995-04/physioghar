@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:physioghar/app/router.dart';
 import 'package:physioghar/common_widgets/app_button.dart';
+import 'package:physioghar/common_widgets/app_card.dart';
 
 import 'package:physioghar/common_widgets/app_confirmation_dialog.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
@@ -62,16 +63,7 @@ class ScheduleSlotsSection extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.spacingMd,
-        vertical: AppSizes.spacingSm,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-      ),
+    return AppCard(
       child: Row(
         children: [
           const Icon(
@@ -142,49 +134,45 @@ class ScheduleSlotsSection extends StatelessWidget {
 
                 const SizedBox(height: AppSizes.spacingXl),
 
-                SizedBox(
+                AppButton(
                   width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () async {
-                      Navigator.of(sheetContext).pop();
+                  text: isBlocked ? 'Unblock Slot' : 'Block Slot',
+                  onPressed: () async {
+                    Navigator.of(sheetContext).pop();
 
-                      final success = isBlocked
-                          ? await controller.unblockSlot(slot)
-                          : await controller.blockSlot(slot);
+                    final success = isBlocked
+                        ? await controller.unblockSlot(slot)
+                        : await controller.blockSlot(slot);
 
-                      if (!context.mounted) {
-                        return;
-                      }
+                    if (!context.mounted) {
+                      return;
+                    }
 
-                      if (success) {
-                        AppSnackBar.showSuccess(
-                          isBlocked
-                              ? 'Slot unblocked successfully.'
-                              : 'Slot blocked successfully.',
-                        );
-                      } else {
-                        AppSnackBar.showError(
-                          controller.errorMessage ?? 'Unable to update slot.',
-                        );
-                      }
-                    },
-                    child: Text(isBlocked ? 'Unblock Slot' : 'Block Slot'),
-                  ),
+                    if (success) {
+                      AppSnackBar.showSuccess(
+                        isBlocked
+                            ? 'Slot unblocked successfully.'
+                            : 'Slot blocked successfully.',
+                      );
+                    } else {
+                      AppSnackBar.showError(
+                        controller.errorMessage ?? 'Unable to update slot.',
+                      );
+                    }
+                  },
                 ),
-
                 const SizedBox(height: AppSizes.spacingSm),
 
-                SizedBox(
+                AppButton(
                   width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(sheetContext).pop();
+                  text: 'Delete Slot',
+                  icon: const Icon(Icons.delete_outline),
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
 
-                      _confirmDeleteSlot(context, slot);
-                    },
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Delete Slot'),
-                  ),
+                    _confirmDeleteSlot(context, slot);
+                  },
                 ),
               ],
             ),
@@ -217,15 +205,13 @@ class ScheduleSlotsSection extends StatelessWidget {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          success
-              ? 'Slot deleted successfully.'
-              : controller.errorMessage ?? 'Unable to delete slot.',
-        ),
-      ),
-    );
+    if (success) {
+      AppSnackBar.showSuccess('Slot deleted successfully.');
+    } else {
+      AppSnackBar.showError(
+        controller.errorMessage ?? 'Unable to delete slot.',
+      );
+    }
   }
 
   Future<void> _showBookedSlotSheet(
@@ -325,12 +311,16 @@ class ScheduleSlotsSection extends StatelessWidget {
                             const SizedBox(height: AppSizes.spacingXs),
                             Text(
                               'Session details',
-                              style: Theme.of(sheetContext).textTheme.bodyMedium,
+                              style: Theme.of(sheetContext)
+                                  .textTheme
+                                  .bodyMedium,
                             ),
                           ],
                         ),
                       ),
-                      _StatusBadge(status: session.status.toString().split(".").last),
+                      _StatusBadge(
+                        status: session.status.toString().split(".").last,
+                      ),
                     ],
                   ),
                   const SizedBox(height: AppSizes.spacingSm),
@@ -361,7 +351,7 @@ class ScheduleSlotsSection extends StatelessWidget {
     navigator.pushNamed(AppRouter.sessionDetail, arguments: session!.id);
   }
 
-  Widget _buildPatientCard(BuildContext context, dynamic session) {
+  Widget _buildPatientCard(BuildContext context, Session session) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSizes.spacingMd),
@@ -388,7 +378,7 @@ class ScheduleSlotsSection extends StatelessWidget {
           const SizedBox(width: AppSizes.spacingMd),
           Expanded(
             child: Text(
-              session.patientName,
+              session.patientName ?? "Unknown",
               style: Theme.of(context).textTheme.bodyLarge
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
@@ -401,7 +391,7 @@ class ScheduleSlotsSection extends StatelessWidget {
   Widget _buildSessionInfoCard(
     BuildContext context,
     ScheduleSlot slot,
-    dynamic session,
+    Session session,
   ) {
     return Container(
       width: double.infinity,
@@ -412,8 +402,8 @@ class ScheduleSlotsSection extends StatelessWidget {
       ),
       child: Column(
         children: [
-            _SessionInfoRow(
-            icon: Icons.access_time_outlined,
+          _SessionInfoRow(
+            icon: Icons.calendar_today_outlined,
             label: 'Date',
             value: DateTimeUtils.formatDate(slot.dateTime),
           ),
@@ -427,7 +417,7 @@ class ScheduleSlotsSection extends StatelessWidget {
           _SessionInfoRow(
             icon: Icons.location_on_outlined,
             label: 'Location',
-            value: session.location,
+            value: session.location ?? "",
           ),
         ],
       ),
@@ -485,26 +475,24 @@ class _StatusBadge extends StatelessWidget {
   const _StatusBadge({required this.status});
   final String status;
 
-
-  
   @override
   Widget build(BuildContext context) {
     final backgroundColor = status == 'requested'
         ? AppColors.pinePale
         : status == 'upcoming'
-            ? AppColors.amberPale
-            : status == 'completed'
-                ? AppColors.mist
-                : AppColors.dangerPale;
+        ? AppColors.amberPale
+        : status == 'completed'
+        ? AppColors.mist
+        : AppColors.dangerPale;
 
     final textColor = status == 'requested'
         ? AppColors.pine
         : status == 'upcoming'
-            ? AppColors.amber
-            : status == 'completed'
-                ? AppColors.inkMid
-                : AppColors.danger;
-    
+        ? AppColors.amber
+        : status == 'completed'
+        ? AppColors.inkMid
+        : AppColors.danger;
+
     return Container(
       constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
       alignment: Alignment.center,

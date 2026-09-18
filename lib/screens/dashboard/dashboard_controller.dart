@@ -41,11 +41,10 @@ class DashboardController {
   bool get isAvailable => therapist?.isAvailable ?? false;
 
   // ---------------------------------------------------------------------------
-  // Session Data
+  // All Session Data in dashboard
   // ---------------------------------------------------------------------------
 
-  List<Session> get sessions => _sessionController.sessions.value;
-
+  List<Session> get sessions => _sessionController.allSessions.value;
   // ---------------------------------------------------------------------------
   // Dashboard Session Filters
   // ---------------------------------------------------------------------------

@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 
 class AppTextField extends StatelessWidget {
   const AppTextField({
     super.key,
     required this.controller,
     required this.hintText,
-    required this.prefixIcon,
+    this.prefixIcon,
     this.label,
     this.obscureText = false,
     this.keyboardType,
@@ -22,7 +23,7 @@ class AppTextField extends StatelessWidget {
   });
   final TextEditingController controller;
   final String hintText;
-  final IconData prefixIcon;
+  final IconData? prefixIcon;
   final String? label;
   final bool obscureText;
   final TextInputType? keyboardType;
@@ -41,12 +42,7 @@ class AppTextField extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
-            style: GoogleFonts.ibmPlexMono(
-              color: AppColors.inkMute,
-              fontSize: AppSizes.fontSizeXs,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1,
-            ),
+            style: context.textTheme.bodyMedium?.copyWith(color: AppColors.ink),
           ),
           const SizedBox(height: AppSizes.spacingSm),
         ],
@@ -66,11 +62,12 @@ class AppTextField extends StatelessWidget {
           ),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: GoogleFonts.inter(
+            hintStyle: context.textTheme.bodyMedium?.copyWith(
               color: AppColors.inkMute,
-              fontSize: AppSizes.fontSizeMd,
             ),
-            prefixIcon: Icon(prefixIcon, color: AppColors.pineLight, size: 20),
+            prefixIcon: prefixIcon == null
+                ? null
+                : Icon(prefixIcon, color: AppColors.pineLight, size: 20),
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: AppColors.mist,

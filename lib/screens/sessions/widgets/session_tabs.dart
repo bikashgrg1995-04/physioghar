@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/responsive_utils.dart';
 
 class SessionTabs extends StatelessWidget {
@@ -29,12 +29,10 @@ class SessionTabs extends StatelessWidget {
       dividerColor: Colors.transparent,
       labelColor: AppColors.pine,
       unselectedLabelColor: AppColors.inkMute,
-      labelStyle: GoogleFonts.inter(
-        fontSize: AppSizes.fontSizeMd,
+      labelStyle: context.textTheme.labelLarge?.copyWith(
         fontWeight: FontWeight.w600,
       ),
-      unselectedLabelStyle: GoogleFonts.inter(
-        fontSize: AppSizes.fontSizeMd,
+      unselectedLabelStyle: context.textTheme.labelLarge?.copyWith(
         fontWeight: FontWeight.w500,
       ),
       tabs: const [

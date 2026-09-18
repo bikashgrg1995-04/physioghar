@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/common_widgets/app_button.dart';
+import 'package:physioghar/common_widgets/app_card.dart';
 import 'package:physioghar/common_widgets/app_confirmation_dialog.dart';
 import 'package:physioghar/common_widgets/app_date_selector.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/schedule_slot.dart';
 import 'package:physioghar/models/session.dart';
@@ -175,7 +176,10 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
         return false;
       }
 
-      final slotDateTime = _combineDateAndTime(slotDate, slot.time);
+      final slotDateTime = DateTimeUtils.combineDateAndTime(
+        slotDate,
+        slot.time,
+      );
 
       if (slotDateTime == null) {
         return false;
@@ -196,64 +200,12 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
     }).toList();
 
     result.sort(
-      (a, b) => _timeToMinutes(a.time).compareTo(_timeToMinutes(b.time)),
+      (a, b) =>
+          DateTimeUtils.timeToMinutes(a.time)
+              .compareTo(DateTimeUtils.timeToMinutes(b.time)),
     );
 
     return result;
-  }
-
-  DateTime? _combineDateAndTime(DateTime date, String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return null;
-    }
-
-    final parts = value.split(':');
-
-    if (parts.length < 2) {
-      return null;
-    }
-
-    final hour = int.tryParse(parts[0]);
-
-    final minute = int.tryParse(parts[1]);
-
-    if (hour == null ||
-        minute == null ||
-        hour < 0 ||
-        hour > 23 ||
-        minute < 0 ||
-        minute > 59) {
-      return null;
-    }
-
-    return DateTime(date.year, date.month, date.day, hour, minute);
-  }
-
-  int _timeToMinutes(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 999999;
-    }
-
-    final parts = value.split(':');
-
-    if (parts.length < 2) {
-      return 999999;
-    }
-
-    final hour = int.tryParse(parts[0]);
-
-    final minute = int.tryParse(parts[1]);
-
-    if (hour == null ||
-        minute == null ||
-        hour < 0 ||
-        hour > 23 ||
-        minute < 0 ||
-        minute > 59) {
-      return 999999;
-    }
-
-    return hour * 60 + minute;
   }
 
   void _onDateSelected(DateTime date) {
@@ -279,24 +231,16 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
   }
 
   Widget _buildHeader() {
-    return Text(
-      'Reschedule Session',
-      style: GoogleFonts.fraunces(
-        fontSize: AppSizes.fontSizeXl,
-        fontWeight: FontWeight.w600,
-        color: AppColors.ink,
-      ),
-    );
+    return Text('Reschedule Session', style: context.textTheme.headlineLarge);
   }
 
   Widget _buildCurrentSchedule() {
     return Text(
       '${widget.session.patientName ?? 'Unknown Patient'} • '
       '${_currentDateText()} • '
-      '${_formatTime(widget.session.scheduleTime)}',
-      style: GoogleFonts.inter(
+      '${DateTimeUtils.formatTimeString(widget.session.scheduleTime)}',
+      style: context.textTheme.bodyMedium?.copyWith(
         fontSize: AppSizes.fontSizeSm,
-        color: AppColors.inkMid,
       ),
     );
   }
@@ -314,8 +258,7 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
   Widget _buildDateSectionLabel() {
     return Text(
       'SELECT DATE',
-      style: GoogleFonts.ibmPlexMono(
-        fontSize: AppSizes.fontSizeXs,
+      style: context.textTheme.labelSmall?.copyWith(
         fontWeight: FontWeight.w700,
         letterSpacing: 0.7,
         color: AppColors.inkMid,
@@ -326,8 +269,7 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
   Widget _buildSlotSectionLabel() {
     return Text(
       'AVAILABLE SLOTS',
-      style: GoogleFonts.ibmPlexMono(
-        fontSize: AppSizes.fontSizeXs,
+      style: context.textTheme.labelSmall?.copyWith(
         fontWeight: FontWeight.w700,
         letterSpacing: 0.7,
         color: AppColors.inkMid,
@@ -368,23 +310,13 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
               color: AppColors.inkMute,
             ),
             const SizedBox(height: AppSizes.spacingMd),
-            Text(
-              'No available slots',
-              style: GoogleFonts.fraunces(
-                fontSize: AppSizes.fontSizeLg,
-                fontWeight: FontWeight.w600,
-                color: AppColors.ink,
-              ),
-            ),
+            Text('No available slots', style: context.textTheme.headlineLarge),
             const SizedBox(height: AppSizes.spacingXs),
             Text(
               'There are no open slots available '
               'for this date. Please select another date.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: AppSizes.fontSizeMd,
-                color: AppColors.inkMid,
-              ),
+              style: context.textTheme.bodyMedium,
             ),
           ],
         ),
@@ -446,41 +378,6 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
       );
     }
   }
-
-  String _formatTime(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Time not provided';
-    }
-
-    final parts = value.split(':');
-
-    if (parts.length < 2) {
-      return value;
-    }
-
-    final hour = int.tryParse(parts[0]);
-
-    final minute = int.tryParse(parts[1]);
-
-    if (hour == null ||
-        minute == null ||
-        hour < 0 ||
-        hour > 23 ||
-        minute < 0 ||
-        minute > 59) {
-      return value;
-    }
-
-    final time = TimeOfDay(hour: hour, minute: minute);
-
-    final hourText = time.hourOfPeriod.toString().padLeft(2, '0');
-
-    final minuteText = minute.toString().padLeft(2, '0');
-
-    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-
-    return '$hourText:$minuteText $period';
-  }
 }
 
 class _SlotOption extends StatelessWidget {
@@ -496,89 +393,54 @@ class _SlotOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        child: Container(
-          constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
-          padding: const EdgeInsets.all(AppSizes.spacingMd),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-            border: Border.all(
-              color: selected ? AppColors.pine : AppColors.mist,
-              width: selected ? 2 : 1,
-            ),
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(AppSizes.spacingMd),
+     
+      child: Container(
+        constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
+        padding: const EdgeInsets.all(AppSizes.spacingMd),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+          border: Border.all(
+            color: selected ? AppColors.pine : AppColors.mist,
+            width: selected ? 2 : 1,
           ),
-          child: Row(
-            children: [
-              _SelectionIndicator(selected: selected),
+        ),
+        child: Row(
+          children: [
+            _SelectionIndicator(selected: selected),
 
-              const SizedBox(width: AppSizes.spacingMd),
+            const SizedBox(width: AppSizes.spacingMd),
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      slot.date == null
-                          ? 'Date not provided'
-                          : DateTimeUtils.formatFullDate(slot.date!),
-                      style: GoogleFonts.inter(
-                        fontSize: AppSizes.fontSizeMd,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.ink,
-                      ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    slot.date == null
+                        ? 'Date not provided'
+                        : DateTimeUtils.formatFullDate(slot.date!),
+                    style: context.textTheme.bodyMedium?.copyWith(
+                      fontSize: AppSizes.fontSizeSm,
                     ),
-                    const SizedBox(height: AppSizes.spacingXs),
-                    Text(
-                      _formatSlotTime(slot.time),
-                      style: GoogleFonts.ibmPlexMono(
-                        fontSize: AppSizes.fontSizeSm,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.pine,
-                      ),
+                  ),
+                  const SizedBox(height: AppSizes.spacingXs),
+                  Text(
+                    DateTimeUtils.formatTimeString(slot.time),
+                    style: context.textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.7,
+                      color: AppColors.inkMid,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
-  }
-
-  String _formatSlotTime(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Time not provided';
-    }
-
-    final parts = value.split(':');
-
-    if (parts.length < 2) {
-      return value;
-    }
-
-    final hour = int.tryParse(parts[0]);
-
-    final minute = int.tryParse(parts[1]);
-
-    if (hour == null || minute == null) {
-      return value;
-    }
-
-    final time = TimeOfDay(hour: hour, minute: minute);
-
-    final hourText = time.hourOfPeriod.toString().padLeft(2, '0');
-
-    final minuteText = minute.toString().padLeft(2, '0');
-
-    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-
-    return '$hourText:$minuteText $period';
   }
 }
 

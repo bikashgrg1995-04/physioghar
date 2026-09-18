@@ -1,8 +1,9 @@
-
 import 'package:flutter/material.dart';
 
+import 'package:physioghar/common_widgets/app_card.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/models/patient.dart';
 
 class PatientInfoCard extends StatelessWidget {
@@ -44,19 +45,9 @@ class PatientInfoCard extends StatelessWidget {
             ? patient.address!.trim()
             : 'Not provided';
 
-    return Container(
-      width: double.infinity,
+    return AppCard(
       padding: const EdgeInsets.all(
         AppSizes.spacingLg,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(
-          AppSizes.cardRadius,
-        ),
-        border: Border.all(
-          color: AppColors.mist,
-        ),
       ),
       child: Column(
         crossAxisAlignment:
@@ -142,9 +133,9 @@ class _SectionTitle extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium,
+            style: context.textTheme.headlineLarge?.copyWith(
+              fontSize: AppSizes.fontSizeLg,
+            ),
           ),
         ),
       ],
@@ -179,12 +170,10 @@ class _InfoRow extends StatelessWidget {
             width: 80,
             child: Text(
               label,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(
-                    color: AppColors.inkMute,
-                  ),
+              style: context.textTheme.bodyMedium?.copyWith(
+                fontSize: AppSizes.fontSizeSm,
+                color: AppColors.inkMute,
+              ),
             ),
           ),
 
@@ -195,13 +184,11 @@ class _InfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.w500,
-                  ),
+              style: context.textTheme.bodyMedium?.copyWith(
+                fontSize: AppSizes.fontSizeSm,
+                color: AppColors.ink,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

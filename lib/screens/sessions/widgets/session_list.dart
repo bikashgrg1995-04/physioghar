@@ -6,7 +6,6 @@ import 'package:physioghar/models/session.dart';
 import 'package:physioghar/screens/schedule/schedule_controller.dart';
 import 'package:physioghar/screens/sessions/session_controller.dart';
 import 'package:physioghar/screens/sessions/widgets/session_card.dart';
-import 'package:physioghar/screens/sessions/widgets/session_empty_state.dart';
 
 class SessionList extends StatelessWidget {
   const SessionList({
@@ -14,6 +13,7 @@ class SessionList extends StatelessWidget {
     required this.sessions,
     required this.controller,
     required this.scheduleController,
+    
   });
 
   final List<Session> sessions;
@@ -22,10 +22,7 @@ class SessionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (sessions.isEmpty) {
-      return const SessionEmptyState();
-    }
-
+   
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(
         AppSizes.spacingXl,
