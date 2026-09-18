@@ -6,7 +6,10 @@ import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/responsive_utils.dart';
 
 class SessionTabs extends StatelessWidget {
-  const SessionTabs({super.key, required this.controller});
+  const SessionTabs({
+    super.key,
+    required this.controller,
+  });
 
   final TabController controller;
 
@@ -17,12 +20,18 @@ class SessionTabs extends StatelessWidget {
     return TabBar(
       controller: controller,
       isScrollable: isMobile,
-      tabAlignment: isMobile ? TabAlignment.start : TabAlignment.fill,
+      tabAlignment: isMobile
+          ? TabAlignment.start
+          : TabAlignment.fill,
       padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? AppSizes.spacingXl : AppSizes.spacingXxl,
+        horizontal: isMobile
+            ? AppSizes.spacingXl
+            : AppSizes.spacingXxl,
       ),
       labelPadding: EdgeInsets.symmetric(
-        horizontal: isMobile ? AppSizes.spacingMd : AppSizes.spacingLg,
+        horizontal: isMobile
+            ? AppSizes.spacingMd
+            : AppSizes.spacingLg,
       ),
       indicatorColor: AppColors.pine,
       indicatorWeight: 2.5,
@@ -32,7 +41,8 @@ class SessionTabs extends StatelessWidget {
       labelStyle: context.textTheme.labelLarge?.copyWith(
         fontWeight: FontWeight.w600,
       ),
-      unselectedLabelStyle: context.textTheme.labelLarge?.copyWith(
+      unselectedLabelStyle:
+          context.textTheme.labelLarge?.copyWith(
         fontWeight: FontWeight.w500,
       ),
       tabs: const [

@@ -1,34 +1,34 @@
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:physioghar/app/router.dart';
 import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/common_widgets/app_card.dart';
-
 import 'package:physioghar/common_widgets/app_confirmation_dialog.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/core/utils/responsive_utils.dart';
+import 'package:physioghar/data/providers/schedule_provider.dart';
+import 'package:physioghar/data/providers/session_provider.dart';
 import 'package:physioghar/models/schedule_slot.dart';
 import 'package:physioghar/models/session.dart';
-import 'package:physioghar/screens/schedule/schedule_controller.dart';
 import 'package:physioghar/screens/schedule/widgets/schedule_slot_card.dart';
-import 'package:physioghar/screens/sessions/session_controller.dart';
 
-class ScheduleSlotsSection extends StatelessWidget {
+class ScheduleSlotsSection extends ConsumerWidget {
   const ScheduleSlotsSection({
     super.key,
     required this.selectedDate,
     required this.slots,
-    required this.controller,
   });
 
   final DateTime selectedDate;
   final List<ScheduleSlot> slots;
-  final ScheduleController controller;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final selectedDaySlots = slots
         .where(
           (slot) => DateTimeUtils.isSameDay(
@@ -47,7 +47,9 @@ class ScheduleSlotsSection extends StatelessWidget {
       primary: false,
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: selectedDaySlots.length,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSizes.spacingSm),
+      separatorBuilder: (_, _) => const SizedBox(
+        height: AppSizes.spacingSm,
+      ),
       itemBuilder: (context, index) {
         final slot = selectedDaySlots[index];
 
@@ -55,7 +57,11 @@ class ScheduleSlotsSection extends StatelessWidget {
           key: Key('schedule-slot-${slot.id}'),
           slot: slot,
           onTap: () {
-            _showSlotActions(context, slot);
+            _showSlotActions(
+              context,
+              ref,
+              slot,
+            );
           },
         );
       },
@@ -71,14 +77,20 @@ class ScheduleSlotsSection extends StatelessWidget {
             size: 28,
             color: AppColors.pine,
           ),
-          const SizedBox(width: AppSizes.spacingMd),
+          const SizedBox(
+            width: AppSizes.spacingMd,
+          ),
           Expanded(
             child: Text(
               'No time slots available. Add an available slot to start managing your schedule.',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: AppColors.inkMute),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(
+                    color: AppColors.inkMute,
+                  ),
             ),
           ),
         ],
@@ -86,25 +98,46 @@ class ScheduleSlotsSection extends StatelessWidget {
     );
   }
 
-  void _showSlotActions(BuildContext context, ScheduleSlot slot) {
+  void _showSlotActions(
+    BuildContext context,
+    WidgetRef ref,
+    ScheduleSlot slot,
+  ) {
     switch (slot.status) {
       case ScheduleSlotStatus.open:
       case ScheduleSlotStatus.blocked:
-        _showManageSlotSheet(context, slot);
+        _showManageSlotSheet(
+          context,
+          ref,
+          slot,
+        );
         break;
 
       case ScheduleSlotStatus.booked:
-        _showBookedSlotSheet(context, slot);
+        _showBookedSlotSheet(
+          context,
+          ref,
+          slot,
+        );
         break;
 
       case null:
-        _showManageSlotSheet(context, slot);
+        _showManageSlotSheet(
+          context,
+          ref,
+          slot,
+        );
         break;
     }
   }
 
-  void _showManageSlotSheet(BuildContext context, ScheduleSlot slot) {
-    final isBlocked = slot.status == ScheduleSlotStatus.blocked;
+  void _showManageSlotSheet(
+    BuildContext context,
+    WidgetRef ref,
+    ScheduleSlot slot,
+  ) {
+    final isBlocked =
+        slot.status == ScheduleSlotStatus.blocked;
 
     showModalBottomSheet<void>(
       context: context,
@@ -113,36 +146,61 @@ class ScheduleSlotsSection extends StatelessWidget {
       builder: (sheetContext) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(AppSizes.spacingXl),
+            padding: const EdgeInsets.all(
+              AppSizes.spacingXl,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Text(
-                  isBlocked ? 'Unblock Slot' : 'Manage Slot',
-                  style: Theme.of(sheetContext).textTheme.headlineLarge,
+                  isBlocked
+                      ? 'Unblock Slot'
+                      : 'Manage Slot',
+                  style: Theme.of(sheetContext)
+                      .textTheme
+                      .headlineLarge,
                 ),
 
-                const SizedBox(height: AppSizes.spacingSm),
+                const SizedBox(
+                  height: AppSizes.spacingSm,
+                ),
 
                 Text(
                   isBlocked
                       ? 'Make this time slot available again?'
                       : 'Block this available time slot?',
-                  style: Theme.of(sheetContext).textTheme.bodyMedium,
+                  style: Theme.of(sheetContext)
+                      .textTheme
+                      .bodyMedium,
                 ),
 
-                const SizedBox(height: AppSizes.spacingXl),
+                const SizedBox(
+                  height: AppSizes.spacingXl,
+                ),
 
                 AppButton(
                   width: double.infinity,
-                  text: isBlocked ? 'Unblock Slot' : 'Block Slot',
+                  text: isBlocked
+                      ? 'Unblock Slot'
+                      : 'Block Slot',
                   onPressed: () async {
                     Navigator.of(sheetContext).pop();
 
                     final success = isBlocked
-                        ? await controller.unblockSlot(slot)
-                        : await controller.blockSlot(slot);
+                        ? await ref
+                            .read(
+                              scheduleProvider
+                                  .notifier,
+                            )
+                            .unblockSlot(slot)
+                        : await ref
+                            .read(
+                              scheduleProvider
+                                  .notifier,
+                            )
+                            .blockSlot(slot);
 
                     if (!context.mounted) {
                       return;
@@ -155,23 +213,38 @@ class ScheduleSlotsSection extends StatelessWidget {
                             : 'Slot blocked successfully.',
                       );
                     } else {
+                      final errorMessage = ref
+                          .read(scheduleProvider)
+                          .errorMessage;
+
                       AppSnackBar.showError(
-                        controller.errorMessage ?? 'Unable to update slot.',
+                        errorMessage ??
+                            'Unable to update slot.',
                       );
                     }
                   },
                 ),
-                const SizedBox(height: AppSizes.spacingSm),
+
+                const SizedBox(
+                  height: AppSizes.spacingSm,
+                ),
 
                 AppButton(
                   width: double.infinity,
                   text: 'Delete Slot',
-                  icon: const Icon(Icons.delete_outline),
-                  variant: AppButtonVariant.secondary,
+                  icon: const Icon(
+                    Icons.delete_outline,
+                  ),
+                  variant:
+                      AppButtonVariant.secondary,
                   onPressed: () {
                     Navigator.of(sheetContext).pop();
 
-                    _confirmDeleteSlot(context, slot);
+                    _confirmDeleteSlot(
+                      context,
+                      ref,
+                      slot,
+                    );
                   },
                 ),
               ],
@@ -184,38 +257,52 @@ class ScheduleSlotsSection extends StatelessWidget {
 
   Future<void> _confirmDeleteSlot(
     BuildContext context,
+    WidgetRef ref,
     ScheduleSlot slot,
   ) async {
-    final confirmed = await showConfirmationDialog(
+    final confirmed =
+        await showConfirmationDialog(
       context,
       title: 'Delete Slot?',
-      message: 'Are you sure you want to delete this schedule slot?',
+      message:
+          'Are you sure you want to delete this schedule slot?',
       confirmText: 'Delete Slot',
       icon: Icons.delete_outline,
       isDestructive: true,
     );
 
-    if (confirmed != true || !context.mounted) {
+    if (confirmed != true ||
+        !context.mounted) {
       return;
     }
 
-    final success = await controller.deleteSlot(slot);
+    final success = await ref
+        .read(scheduleProvider.notifier)
+        .deleteSlot(slot);
 
     if (!context.mounted) {
       return;
     }
 
     if (success) {
-      AppSnackBar.showSuccess('Slot deleted successfully.');
+      AppSnackBar.showSuccess(
+        'Slot deleted successfully.',
+      );
     } else {
+      final errorMessage = ref
+          .read(scheduleProvider)
+          .errorMessage;
+
       AppSnackBar.showError(
-        controller.errorMessage ?? 'Unable to delete slot.',
+        errorMessage ??
+            'Unable to delete slot.',
       );
     }
   }
 
   Future<void> _showBookedSlotSheet(
     BuildContext context,
+    WidgetRef ref,
     ScheduleSlot slot,
   ) async {
     final navigator = Navigator.of(context);
@@ -223,23 +310,27 @@ class ScheduleSlotsSection extends StatelessWidget {
     Session? session;
 
     if (slot.sessionId != null) {
-      // First check already-loaded sessions.
-      for (final item in sessionController.sessions.value) {
+      final sessions =
+          ref.read(sessionProvider).sessions;
+
+      for (final item in sessions) {
         if (item.id == slot.sessionId) {
           session = item;
           break;
         }
       }
 
-      // If not available locally, fetch the exact session.
-      session ??= await sessionController.getSession(slot.sessionId!);
+      session ??= await ref
+          .read(sessionProvider.notifier)
+          .getSession(slot.sessionId!);
     }
 
     if (!context.mounted) {
       return;
     }
 
-    final shouldOpenDetails = await showModalBottomSheet<bool>(
+    final shouldOpenDetails =
+        await showModalBottomSheet<bool>(
       context: context,
       showDragHandle: true,
       backgroundColor: AppColors.cream,
@@ -247,7 +338,9 @@ class ScheduleSlotsSection extends StatelessWidget {
         if (session == null) {
           return SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(AppSizes.spacingXl),
+              padding: const EdgeInsets.all(
+                AppSizes.spacingXl,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -256,7 +349,8 @@ class ScheduleSlotsSection extends StatelessWidget {
                     height: 56,
                     decoration: BoxDecoration(
                       color: AppColors.dangerPale,
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius:
+                          BorderRadius.circular(18),
                     ),
                     child: const Icon(
                       Icons.error_outline,
@@ -264,7 +358,9 @@ class ScheduleSlotsSection extends StatelessWidget {
                       size: 28,
                     ),
                   ),
-                  const SizedBox(height: AppSizes.spacingLg),
+                  const SizedBox(
+                    height: AppSizes.spacingLg,
+                  ),
                   const Text(
                     'Session not found',
                     style: TextStyle(
@@ -273,13 +369,19 @@ class ScheduleSlotsSection extends StatelessWidget {
                       color: AppColors.ink,
                     ),
                   ),
-                  const SizedBox(height: AppSizes.spacingSm),
+                  const SizedBox(
+                    height: AppSizes.spacingSm,
+                  ),
                   const Text(
                     'Unable to load the session details for this booked slot.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.inkMid),
+                    style: TextStyle(
+                      color: AppColors.inkMid,
+                    ),
                   ),
-                  const SizedBox(height: AppSizes.spacingXl),
+                  const SizedBox(
+                    height: AppSizes.spacingXl,
+                  ),
                 ],
               ),
             ),
@@ -288,30 +390,44 @@ class ScheduleSlotsSection extends StatelessWidget {
 
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingXl),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.spacingXl,
+            ),
             child: SizedBox(
-              height: ResponsiveUtils.heightPercent(context, 0.5),
+              height: ResponsiveUtils.heightPercent(
+                context,
+                0.5,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Booked Session',
-                              style: Theme.of(sheetContext)
+                              style: Theme.of(
+                                sheetContext,
+                              )
                                   .textTheme
                                   .headlineLarge,
                             ),
-                            const SizedBox(height: AppSizes.spacingXs),
+                            const SizedBox(
+                              height: AppSizes.spacingXs,
+                            ),
                             Text(
                               'Session details',
-                              style: Theme.of(sheetContext)
+                              style: Theme.of(
+                                sheetContext,
+                              )
                                   .textTheme
                                   .bodyMedium,
                             ),
@@ -319,21 +435,48 @@ class ScheduleSlotsSection extends StatelessWidget {
                         ),
                       ),
                       _StatusBadge(
-                        status: session.status.toString().split(".").last,
+                        status: session
+                            .status
+                            .toString()
+                            .split('.')
+                            .last,
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSizes.spacingSm),
-                  _buildPatientCard(sheetContext, session),
-                  const SizedBox(height: AppSizes.spacingSm),
-                  _buildSessionInfoCard(sheetContext, slot, session),
-                  const SizedBox(height: AppSizes.spacingXl),
+
+                  const SizedBox(
+                    height: AppSizes.spacingSm,
+                  ),
+
+                  _buildPatientCard(
+                    sheetContext,
+                    session,
+                  ),
+
+                  const SizedBox(
+                    height: AppSizes.spacingSm,
+                  ),
+
+                  _buildSessionInfoCard(
+                    sheetContext,
+                    slot,
+                    session,
+                  ),
+
+                  const SizedBox(
+                    height: AppSizes.spacingXl,
+                  ),
+
                   AppButton(
                     width: double.infinity,
                     text: 'View Session',
-                    icon: const Icon(Icons.arrow_forward),
+                    icon: const Icon(
+                      Icons.arrow_forward,
+                    ),
                     onPressed: () {
-                      Navigator.of(sheetContext).pop(true);
+                      Navigator.of(
+                        sheetContext,
+                      ).pop(true);
                     },
                   ),
                 ],
@@ -344,21 +487,35 @@ class ScheduleSlotsSection extends StatelessWidget {
       },
     );
 
-    if (!context.mounted || shouldOpenDetails != true || session?.id == null) {
+    if (!context.mounted ||
+        shouldOpenDetails != true ||
+        session?.id == null) {
       return;
     }
 
-    navigator.pushNamed(AppRouter.sessionDetail, arguments: session!.id);
+    navigator.pushNamed(
+      AppRouter.sessionDetail,
+      arguments: session!.id,
+    );
   }
 
-  Widget _buildPatientCard(BuildContext context, Session session) {
+  Widget _buildPatientCard(
+    BuildContext context,
+    Session session,
+  ) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSizes.spacingMd),
+      padding: const EdgeInsets.all(
+        AppSizes.spacingMd,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        border: Border.all(color: AppColors.mist),
+        borderRadius: BorderRadius.circular(
+          AppSizes.cardRadius,
+        ),
+        border: Border.all(
+          color: AppColors.mist,
+        ),
       ),
       child: Row(
         children: [
@@ -375,12 +532,18 @@ class ScheduleSlotsSection extends StatelessWidget {
               size: 27,
             ),
           ),
-          const SizedBox(width: AppSizes.spacingMd),
+          const SizedBox(
+            width: AppSizes.spacingMd,
+          ),
           Expanded(
             child: Text(
-              session.patientName ?? "Unknown",
-              style: Theme.of(context).textTheme.bodyLarge
-                  ?.copyWith(fontWeight: FontWeight.w700),
+              session.patientName ?? 'Unknown',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge
+                  ?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
             ),
           ),
         ],
@@ -395,29 +558,41 @@ class ScheduleSlotsSection extends StatelessWidget {
   ) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSizes.spacingLg),
+      padding: const EdgeInsets.all(
+        AppSizes.spacingLg,
+      ),
       decoration: BoxDecoration(
         color: AppColors.mist,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        borderRadius: BorderRadius.circular(
+          AppSizes.cardRadius,
+        ),
       ),
       child: Column(
         children: [
           _SessionInfoRow(
             icon: Icons.calendar_today_outlined,
             label: 'Date',
-            value: DateTimeUtils.formatDate(slot.dateTime),
+            value: DateTimeUtils.formatDate(
+              slot.dateTime,
+            ),
           ),
-          const SizedBox(height: AppSizes.spacingSm),
+          const SizedBox(
+            height: AppSizes.spacingSm,
+          ),
           _SessionInfoRow(
             icon: Icons.access_time_outlined,
             label: 'Time',
-            value: DateTimeUtils.formatTime(slot.dateTime),
+            value: DateTimeUtils.formatTime(
+              slot.dateTime,
+            ),
           ),
-          const SizedBox(height: AppSizes.spacingSm),
+          const SizedBox(
+            height: AppSizes.spacingSm,
+          ),
           _SessionInfoRow(
             icon: Icons.location_on_outlined,
             label: 'Location',
-            value: session.location ?? "",
+            value: session.location ?? '',
           ),
         ],
       ),
@@ -426,15 +601,15 @@ class ScheduleSlotsSection extends StatelessWidget {
 }
 
 class _SessionInfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
   const _SessionInfoRow({
     required this.icon,
     required this.label,
     required this.value,
   });
+
+  final IconData icon;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
@@ -447,21 +622,38 @@ class _SessionInfoRow extends StatelessWidget {
             color: AppColors.pinePale,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, size: 20, color: AppColors.pine),
+          child: Icon(
+            icon,
+            size: 20,
+            color: AppColors.pine,
+          ),
         ),
-        const SizedBox(width: AppSizes.spacingMd),
+        const SizedBox(
+          width: AppSizes.spacingMd,
+        ),
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
-              Text(label, style: Theme.of(context).textTheme.labelSmall),
-              const SizedBox(height: AppSizes.spacingXs),
+              Text(
+                label,
+                style: Theme.of(context)
+                    .textTheme
+                    .labelSmall,
+              ),
+              const SizedBox(
+                height: AppSizes.spacingXs,
+              ),
               Text(
                 value,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
           ),
@@ -472,39 +664,55 @@ class _SessionInfoRow extends StatelessWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status});
+  const _StatusBadge({
+    required this.status,
+  });
+
   final String status;
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = status == 'requested'
-        ? AppColors.pinePale
-        : status == 'upcoming'
-        ? AppColors.amberPale
-        : status == 'completed'
-        ? AppColors.mist
-        : AppColors.dangerPale;
+    final backgroundColor =
+        status == 'requested'
+            ? AppColors.pinePale
+            : status == 'upcoming'
+                ? AppColors.amberPale
+                : status == 'completed'
+                    ? AppColors.mist
+                    : AppColors.dangerPale;
 
-    final textColor = status == 'requested'
-        ? AppColors.pine
-        : status == 'upcoming'
-        ? AppColors.amber
-        : status == 'completed'
-        ? AppColors.inkMid
-        : AppColors.danger;
+    final textColor =
+        status == 'requested'
+            ? AppColors.pine
+            : status == 'upcoming'
+                ? AppColors.amber
+                : status == 'completed'
+                    ? AppColors.inkMid
+                    : AppColors.danger;
 
     return Container(
-      constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
+      constraints: const BoxConstraints(
+        minHeight: AppSizes.minTapTarget,
+      ),
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: AppSizes.spacingMd),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.spacingMd,
+      ),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+        borderRadius: BorderRadius.circular(
+          AppSizes.buttonRadius,
+        ),
       ),
       child: Text(
         status.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall
-            ?.copyWith(color: textColor, fontWeight: FontWeight.w700),
+        style: Theme.of(context)
+            .textTheme
+            .labelSmall
+            ?.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }

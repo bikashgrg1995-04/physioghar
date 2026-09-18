@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:physioghar/app/router.dart';
 import 'package:physioghar/common_widgets/app_button.dart';
@@ -9,26 +10,19 @@ import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
+import 'package:physioghar/data/providers/schedule_provider.dart';
+import 'package:physioghar/data/providers/session_provider.dart';
 import 'package:physioghar/models/session.dart';
-import 'package:physioghar/screens/schedule/schedule_controller.dart';
-import 'package:physioghar/screens/sessions/session_controller.dart';
 import 'package:physioghar/screens/sessions/widgets/complete_session_bottom_sheet.dart';
 import 'package:physioghar/screens/sessions/widgets/reschedule_bottom_sheet.dart';
 
-class SessionCard extends StatelessWidget {
-  const SessionCard({
-    super.key,
-    required this.session,
-    required this.controller,
-    required this.scheduleController,
-  });
+class SessionCard extends ConsumerWidget {
+  const SessionCard({super.key, required this.session});
 
   final Session session;
-  final SessionController controller;
-  final ScheduleController scheduleController;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return AppCard(
       padding: const EdgeInsets.all(AppSizes.spacingLg),
       borderColor: AppColors.mist,
@@ -43,16 +37,16 @@ class SessionCard extends StatelessWidget {
 
           const SizedBox(height: AppSizes.spacingLg),
 
-          _buildActions(context),
+          _buildActions(context, ref),
         ],
       ),
     );
   }
 
-  Future<void> _refreshSchedule() async {
-    await scheduleController.loadSchedules(
-      date: scheduleController.selectedDate.value,
-    );
+  Future<void> _refreshSchedule(WidgetRef ref) async {
+    final selectedDate = ref.read(scheduleProvider).selectedDate;
+
+    await ref.read(scheduleProvider.notifier).loadSchedules(date: selectedDate);
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -111,13 +105,13 @@ class SessionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActions(BuildContext context) {
+  Widget _buildActions(BuildContext context, WidgetRef ref) {
     switch (session.status) {
       case SessionStatus.requested:
-        return _buildRequestedActions(context);
+        return _buildRequestedActions(context, ref);
 
       case SessionStatus.upcoming:
-        return _buildUpcomingActions(context);
+        return _buildUpcomingActions(context, ref);
 
       case SessionStatus.completed:
         return _buildViewDetailsButton(context);
@@ -130,9 +124,7 @@ class SessionCard extends StatelessWidget {
     }
   }
 
-  Widget _buildRequestedActions(
-    BuildContext context,
-  ) {
+  Widget _buildRequestedActions(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
         Expanded(
@@ -140,7 +132,7 @@ class SessionCard extends StatelessWidget {
             text: 'Decline',
             variant: AppButtonVariant.secondary,
             onPressed: () {
-              _handleDecline(context);
+              _handleDecline(context, ref);
             },
           ),
         ),
@@ -151,7 +143,7 @@ class SessionCard extends StatelessWidget {
           child: AppButton(
             text: 'Accept',
             onPressed: () {
-              _handleAccept(context);
+              _handleAccept(context, ref);
             },
           ),
         ),
@@ -159,7 +151,7 @@ class SessionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildUpcomingActions(BuildContext context) {
+  Widget _buildUpcomingActions(BuildContext context, WidgetRef ref) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 360;
@@ -177,7 +169,9 @@ class SessionCard extends StatelessWidget {
                   ).pushNamed(AppRouter.sessionDetail, arguments: session.id);
                 },
               ),
+
               const SizedBox(height: AppSizes.spacingSm),
+
               Row(
                 children: [
                   Expanded(
@@ -185,21 +179,18 @@ class SessionCard extends StatelessWidget {
                       text: 'Reschedule',
                       variant: AppButtonVariant.secondary,
                       onPressed: () {
-                        showRescheduleBottomSheet(
-                          context,
-                          session: session,
-                          sessionController: controller,
-                          scheduleController: scheduleController,
-                        );
+                        _handleReschedule(context, ref);
                       },
                     ),
                   ),
+
                   const SizedBox(width: AppSizes.spacingSm),
+
                   Expanded(
                     child: AppButton(
                       text: 'Complete',
                       onPressed: () {
-                        _handleComplete(context);
+                        _handleComplete(context, ref);
                       },
                     ),
                   ),
@@ -222,27 +213,26 @@ class SessionCard extends StatelessWidget {
                 },
               ),
             ),
+
             const SizedBox(width: AppSizes.spacingSm),
+
             Expanded(
               child: AppButton(
                 text: 'Reschedule',
                 variant: AppButtonVariant.secondary,
                 onPressed: () {
-                  showRescheduleBottomSheet(
-                    context,
-                    session: session,
-                    sessionController: controller,
-                    scheduleController: scheduleController,
-                  );
+                  _handleReschedule(context, ref);
                 },
               ),
             ),
+
             const SizedBox(width: AppSizes.spacingSm),
+
             Expanded(
               child: AppButton(
                 text: 'Complete',
                 onPressed: () {
-                  _handleComplete(context);
+                  _handleComplete(context, ref);
                 },
               ),
             ),
@@ -264,7 +254,7 @@ class SessionCard extends StatelessWidget {
     );
   }
 
-  Future<void> _handleAccept(BuildContext context) async {
+  Future<void> _handleAccept(BuildContext context, WidgetRef ref) async {
     final confirmed = await showConfirmationDialog(
       context,
       title: 'Accept Booking?',
@@ -277,8 +267,11 @@ class SessionCard extends StatelessWidget {
       return;
     }
 
-    final success = await controller.acceptSession(session.id!);
-    await _refreshSchedule();
+    final success = await ref
+        .read(sessionProvider.notifier)
+        .acceptSession(session.id!);
+
+    await _refreshSchedule(ref);
 
     if (!context.mounted) {
       return;
@@ -287,13 +280,15 @@ class SessionCard extends StatelessWidget {
     if (success) {
       AppSnackBar.showSuccess('Booking request accepted.');
     } else {
+      final errorMessage = ref.read(sessionProvider).errorMessage;
+
       AppSnackBar.showError(
-        controller.errorMessage ?? 'Unable to accept booking request.',
+        errorMessage ?? 'Unable to accept booking request.',
       );
     }
   }
 
-  Future<void> _handleDecline(BuildContext context) async {
+  Future<void> _handleDecline(BuildContext context, WidgetRef ref) async {
     final reasonController = TextEditingController();
 
     try {
@@ -339,10 +334,9 @@ class SessionCard extends StatelessWidget {
         return;
       }
 
-      final success = await controller.declineSession(
-        sessionId: session.id!,
-        cancellationReason: reason,
-      );
+      final success = await ref
+          .read(sessionProvider.notifier)
+          .declineSession(sessionId: session.id!, cancellationReason: reason);
 
       if (!context.mounted) {
         return;
@@ -350,10 +344,13 @@ class SessionCard extends StatelessWidget {
 
       if (success) {
         AppSnackBar.showSuccess('Booking request declined.');
-        await _refreshSchedule();
+
+        await _refreshSchedule(ref);
       } else {
+        final errorMessage = ref.read(sessionProvider).errorMessage;
+
         AppSnackBar.showError(
-          controller.errorMessage ?? 'Unable to decline booking request.',
+          errorMessage ?? 'Unable to decline booking request.',
         );
       }
     } finally {
@@ -361,7 +358,7 @@ class SessionCard extends StatelessWidget {
     }
   }
 
-  Future<void> _handleComplete(BuildContext context) async {
+  Future<void> _handleComplete(BuildContext context, WidgetRef ref) async {
     final confirmed = await showConfirmationDialog(
       context,
       title: 'Complete Session?',
@@ -378,18 +375,17 @@ class SessionCard extends StatelessWidget {
       context,
       session: session,
       onComplete: (notes) async {
-        final success = await controller.completeSession(
-          sessionId: session.id!,
-          notes: notes,
-        );
+        final success = await ref
+            .read(sessionProvider.notifier)
+            .completeSession(sessionId: session.id!, notes: notes);
 
         if (!success) {
-          throw StateError(
-            controller.errorMessage ?? 'Unable to complete session.',
-          );
+          final errorMessage = ref.read(sessionProvider).errorMessage;
+
+          throw StateError(errorMessage ?? 'Unable to complete session.');
         }
 
-        await _refreshSchedule();
+        await _refreshSchedule(ref);
 
         if (!context.mounted) {
           return;
@@ -398,6 +394,24 @@ class SessionCard extends StatelessWidget {
         AppSnackBar.showSuccess('Session completed successfully.');
       },
     );
+  }
+
+  Future<void> _handleReschedule(BuildContext context, WidgetRef ref) async {
+    final result = await showRescheduleBottomSheet(context, session: session);
+
+    if (!context.mounted || result != true) {
+      return;
+    }
+
+    // The bottom sheet loads the newly selected date into
+    // scheduleProvider before returning.
+    await _refreshSchedule(ref);
+
+    if (!context.mounted) {
+      return;
+    }
+
+    AppSnackBar.showSuccess('Session rescheduled successfully.');
   }
 }
 

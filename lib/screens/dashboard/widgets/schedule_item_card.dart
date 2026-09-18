@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:physioghar/common_widgets/app_card.dart';
 
+import 'package:physioghar/common_widgets/app_card.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 import 'package:physioghar/models/session.dart';
 
@@ -11,51 +12,60 @@ class ScheduleItemCard extends StatelessWidget {
     super.key,
     required this.session,
     this.onTap,
-    this.cardKey,
   });
 
   final Session session;
   final VoidCallback? onTap;
-  final Key? cardKey;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final textTheme = context.textTheme;
 
-    final patientName = session.patientName?.trim().isNotEmpty == true
-        ? session.patientName!.trim()
-        : 'Unknown patient';
+    final patientName =
+        session.patientName?.trim().isNotEmpty == true
+            ? session.patientName!.trim()
+            : 'Unknown patient';
 
-    final treatment = session.treatment?.trim().isNotEmpty == true
-        ? session.treatment!.trim()
-        : 'Treatment not specified';
+    final treatment =
+        session.treatment?.trim().isNotEmpty == true
+            ? session.treatment!.trim()
+            : 'Treatment not specified';
 
-    final location = session.location?.trim().isNotEmpty == true
-        ? session.location!.trim()
-        : 'Location not specified';
+    final location =
+        session.location?.trim().isNotEmpty == true
+            ? session.location!.trim()
+            : 'Location not specified';
 
     return AppCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(AppSizes.spacingMd),
+      padding: const EdgeInsets.all(
+        AppSizes.spacingMd,
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 64,
             child: Text(
-              DateTimeUtils.formatTimeString(session.scheduleTime),
+              DateTimeUtils.formatTimeString(
+                session.scheduleTime,
+              ),
               style: textTheme.labelLarge?.copyWith(
                 color: AppColors.pine,
                 fontSize: AppSizes.fontSizeSm,
               ),
             ),
           ),
-      
-          const SizedBox(width: AppSizes.spacingMd),
-      
+
+          const SizedBox(
+            width: AppSizes.spacingMd,
+          ),
+
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Text(
                   patientName,
@@ -66,9 +76,11 @@ class ScheduleItemCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-      
-                const SizedBox(height: AppSizes.spacingXs),
-      
+
+                const SizedBox(
+                  height: AppSizes.spacingXs,
+                ),
+
                 Text(
                   treatment,
                   style: textTheme.bodyMedium?.copyWith(
@@ -77,9 +89,11 @@ class ScheduleItemCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-      
-                const SizedBox(height: AppSizes.spacingXs),
-      
+
+                const SizedBox(
+                  height: AppSizes.spacingXs,
+                ),
+
                 Row(
                   children: [
                     const Icon(
@@ -87,7 +101,11 @@ class ScheduleItemCard extends StatelessWidget {
                       size: 16,
                       color: AppColors.inkMute,
                     ),
-                    const SizedBox(width: AppSizes.spacingXs),
+
+                    const SizedBox(
+                      width: AppSizes.spacingXs,
+                    ),
+
                     Expanded(
                       child: Text(
                         location,
@@ -96,7 +114,8 @@ class ScheduleItemCard extends StatelessWidget {
                           fontSize: AppSizes.fontSizeSm,
                         ),
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        overflow:
+                            TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -104,9 +123,11 @@ class ScheduleItemCard extends StatelessWidget {
               ],
             ),
           ),
-      
+
           if (onTap != null) ...[
-            const SizedBox(width: AppSizes.spacingSm),
+            const SizedBox(
+              width: AppSizes.spacingSm,
+            ),
             const Icon(
               Icons.chevron_right,
               size: 20,

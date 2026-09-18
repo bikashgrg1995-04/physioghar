@@ -1,50 +1,53 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:physioghar/data/providers/session_provider.dart';
+import 'package:physioghar/data/providers/therapist_provider.dart';
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/models/therapist.dart';
-import 'package:physioghar/screens/profile/therapist_controller.dart';
-import 'package:physioghar/screens/sessions/session_controller.dart';
 
-class DashboardController {
-  DashboardController({
-    required this._therapistController,
-    required this._sessionController,
-  });
+final dashboardProvider = NotifierProvider<DashboardNotifier, DashboardState>(
+  DashboardNotifier.new,
+);
 
-  // ---------------------------------------------------------------------------
-  // Shared Controllers
-  // ---------------------------------------------------------------------------
+class DashboardState {
+  const DashboardState({this.isLoading = false, this.errorMessage});
 
-  final TherapistController _therapistController;
-  final SessionController _sessionController;
+  final bool isLoading;
+  final String? errorMessage;
 
-  TherapistController get therapistController => _therapistController;
+  DashboardState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    bool clearError = false,
+  }) {
+    return DashboardState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
+    );
+  }
+}
 
-  SessionController get sessionController => _sessionController;
-
-  // ---------------------------------------------------------------------------
-  // Dashboard State
-  // ---------------------------------------------------------------------------
-
-  final isLoading = ValueNotifier<bool>(false);
-
-  String? _errorMessage;
-
-  String? get errorMessage => _errorMessage;
+class DashboardNotifier extends Notifier<DashboardState> {
+  @override
+  DashboardState build() {
+    return const DashboardState();
+  }
 
   // ---------------------------------------------------------------------------
   // Therapist Data
   // ---------------------------------------------------------------------------
 
-  Therapist? get therapist => _therapistController.therapist.value;
+  Therapist? get therapist => ref.read(therapistProvider).therapist;
 
   bool get isAvailable => therapist?.isAvailable ?? false;
 
   // ---------------------------------------------------------------------------
-  // All Session Data in dashboard
+  // Session Data
   // ---------------------------------------------------------------------------
 
-  List<Session> get sessions => _sessionController.allSessions.value;
+  List<Session> get sessions => ref.read(sessionProvider).allSessions;
+
   // ---------------------------------------------------------------------------
   // Dashboard Session Filters
   // ---------------------------------------------------------------------------
@@ -52,14 +55,9 @@ class DashboardController {
   DateTime get today {
     final now = DateTime.now();
 
-    return DateTime(
-      now.year,
-      now.month,
-      now.day,
-    );
+    return DateTime(now.year, now.month, now.day);
   }
 
-  /// Upcoming sessions scheduled for today.
   List<Session> get todaySessions {
     final result = sessions
         .where(
@@ -74,12 +72,9 @@ class DashboardController {
     return result;
   }
 
-  /// Sessions waiting for therapist approval.
   List<Session> get upcomingRequests {
     final result = sessions
-        .where(
-          (session) => session.status == SessionStatus.requested,
-        )
+        .where((session) => session.status == SessionStatus.requested)
         .toList();
 
     result.sort(_compareSessions);
@@ -87,12 +82,9 @@ class DashboardController {
     return result;
   }
 
-  /// Accepted upcoming sessions.
   List<Session> get upcomingSessions {
     final result = sessions
-        .where(
-          (session) => session.status == SessionStatus.upcoming,
-        )
+        .where((session) => session.status == SessionStatus.upcoming)
         .toList();
 
     result.sort(_compareSessions);
@@ -100,12 +92,9 @@ class DashboardController {
     return result;
   }
 
-  /// Completed sessions.
   List<Session> get completedSessions {
     final result = sessions
-        .where(
-          (session) => session.status == SessionStatus.completed,
-        )
+        .where((session) => session.status == SessionStatus.completed)
         .toList();
 
     result.sort(_compareSessions);
@@ -128,12 +117,11 @@ class DashboardController {
   // ---------------------------------------------------------------------------
 
   Future<bool> loadDashboard() async {
-    if (isLoading.value) {
+    if (state.isLoading) {
       return false;
     }
 
-    isLoading.value = true;
-    _errorMessage = null;
+    state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final results = await Future.wait<bool>([
@@ -144,18 +132,26 @@ class DashboardController {
       final success = results.every((result) => result);
 
       if (!success) {
-        _errorMessage = 'Unable to load dashboard data.';
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'Unable to load dashboard data.',
+        );
+
+        return false;
       }
 
-      return success;
+      state = state.copyWith(isLoading: false, clearError: true);
+
+      return true;
     } catch (error) {
       debugPrint('Failed to load dashboard: $error');
 
-      _errorMessage = 'Unable to load dashboard data.';
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Unable to load dashboard data.',
+      );
 
       return false;
-    } finally {
-      isLoading.value = false;
     }
   }
 
@@ -165,7 +161,7 @@ class DashboardController {
 
   Future<bool> _loadTherapist() async {
     try {
-      await _therapistController.loadProfile();
+      await ref.read(therapistProvider.notifier).loadProfile();
 
       return true;
     } catch (error) {
@@ -176,7 +172,7 @@ class DashboardController {
   }
 
   Future<void> updateAvailability(bool value) async {
-    await _therapistController.updateAvailability(value);
+    await ref.read(therapistProvider.notifier).updateAvailability(value);
   }
 
   // ---------------------------------------------------------------------------
@@ -185,7 +181,7 @@ class DashboardController {
 
   Future<bool> _loadSessions() async {
     try {
-      return await _sessionController.loadAllSessions();
+      return await ref.read(sessionProvider.notifier).loadAllSessions();
     } catch (error) {
       debugPrint('Failed to load sessions: $error');
 
@@ -204,51 +200,56 @@ class DashboardController {
   }
 
   Future<Session?> getSession(int sessionId) {
-    return _sessionController.getSession(sessionId);
+    return ref.read(sessionProvider.notifier).getSession(sessionId);
   }
 
   Future<bool> acceptSession(int sessionId) {
-    return _sessionController.acceptSession(sessionId);
+    return ref.read(sessionProvider.notifier).acceptSession(sessionId);
   }
 
   Future<bool> declineSession({
     required int sessionId,
     required String cancellationReason,
   }) {
-    return _sessionController.declineSession(
-      sessionId: sessionId,
-      cancellationReason: cancellationReason,
-    );
+    return ref
+        .read(sessionProvider.notifier)
+        .declineSession(
+          sessionId: sessionId,
+          cancellationReason: cancellationReason,
+        );
   }
 
   Future<bool> rescheduleSession({
     required int sessionId,
     required int scheduleSlotId,
   }) {
-    return _sessionController.rescheduleSession(
-      sessionId: sessionId,
-      scheduleSlotId: scheduleSlotId,
-    );
+    return ref
+        .read(sessionProvider.notifier)
+        .rescheduleSession(
+          sessionId: sessionId,
+          scheduleSlotId: scheduleSlotId,
+        );
   }
 
   Future<bool> completeSession({
     required int sessionId,
     required String notes,
   }) {
-    return _sessionController.completeSession(
-      sessionId: sessionId,
-      notes: notes,
-    );
+    return ref
+        .read(sessionProvider.notifier)
+        .completeSession(sessionId: sessionId, notes: notes);
   }
 
   Future<bool> cancelSession({
     required int sessionId,
     required String cancellationReason,
   }) {
-    return _sessionController.cancelSession(
-      sessionId: sessionId,
-      cancellationReason: cancellationReason,
-    );
+    return ref
+        .read(sessionProvider.notifier)
+        .cancelSession(
+          sessionId: sessionId,
+          cancellationReason: cancellationReason,
+        );
   }
 
   // ---------------------------------------------------------------------------
@@ -281,17 +282,9 @@ class DashboardController {
       return -1;
     }
 
-    final aDay = DateTime(
-      aDate.year,
-      aDate.month,
-      aDate.day,
-    );
+    final aDay = DateTime(aDate.year, aDate.month, aDate.day);
 
-    final bDay = DateTime(
-      bDate.year,
-      bDate.month,
-      bDate.day,
-    );
+    final bDay = DateTime(bDate.year, bDate.month, bDate.day);
 
     final dateComparison = aDay.compareTo(bDay);
 
@@ -299,14 +292,12 @@ class DashboardController {
       return dateComparison;
     }
 
-    return _compareTime(
-      a.scheduleTime,
-      b.scheduleTime,
-    );
+    return _compareTime(a.scheduleTime, b.scheduleTime);
   }
 
   int _compareTime(String? first, String? second) {
     final firstMinutes = _timeToMinutes(first);
+
     final secondMinutes = _timeToMinutes(second);
 
     return firstMinutes.compareTo(secondMinutes);
@@ -343,17 +334,6 @@ class DashboardController {
   // ---------------------------------------------------------------------------
 
   void clearError() {
-    _errorMessage = null;
-  }
-
-  // ---------------------------------------------------------------------------
-  // Dispose
-  // ---------------------------------------------------------------------------
-
-  void dispose() {
-    // Do NOT dispose therapistController or sessionController here.
-    // They are shared/global controllers and are owned elsewhere.
-
-    isLoading.dispose();
+    state = state.copyWith(clearError: true);
   }
 }

@@ -1,42 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:physioghar/data/providers/main_navigation_provider.dart';
 import 'package:physioghar/screens/dashboard/dashboard_screen.dart';
-import 'package:physioghar/screens/profile/profile_screen.dart';
 import 'package:physioghar/screens/patients/patients_screen.dart';
+import 'package:physioghar/screens/profile/profile_screen.dart';
 import 'package:physioghar/screens/schedule/schedule_screen.dart';
 import 'package:physioghar/screens/sessions/sessions_screen.dart';
 
-class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+class MainNavigationScreen extends ConsumerStatefulWidget {
+  const MainNavigationScreen({
+    super.key,
+  });
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  ConsumerState<MainNavigationScreen> createState() =>
+      _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _currentIndex = 0;
+class _MainNavigationScreenState
+    extends ConsumerState<MainNavigationScreen> {
+  @override
+  void initState() {
+    super.initState();
 
-  final List<Widget> _screens = const [
-    DashboardScreen(),
-    ScheduleScreen(),
-    SessionsScreen(),
-    PatientsScreen(),
-    ProfileScreen(),
-  ];
+    Future.microtask(() {
+      if (!mounted) {
+        return;
+      }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
+      ref
+          .read(navigationIndexProvider.notifier)
+          .resetToHome();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _screens),
+    final currentIndex = ref.watch(
+      navigationIndexProvider,
+    );
 
+    const screens = [
+      DashboardScreen(),
+      ScheduleScreen(),
+      SessionsScreen(),
+      PatientsScreen(),
+      ProfileScreen(),
+    ];
+
+    return Scaffold(
+      body: IndexedStack(
+        index: currentIndex,
+        children: screens,
+      ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: _onItemTapped,
+        selectedIndex: currentIndex,
+        onDestinationSelected: (index) {
+          ref
+              .read(navigationIndexProvider.notifier)
+              .setIndex(index);
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),

@@ -15,11 +15,12 @@ class ProfileHeader extends StatelessWidget {
 
   final Therapist therapist;
   final VoidCallback onAvatarTap;
-  final ValueNotifier<bool> isAvatarUpdating;
+  final bool isAvatarUpdating;
 
   @override
   Widget build(BuildContext context) {
-    final isAvailable = therapist.isAvailable ?? false;
+    final isAvailable =
+        therapist.isAvailable ?? false;
 
     return SizedBox(
       height: 140,
@@ -53,17 +54,13 @@ class ProfileHeader extends StatelessWidget {
                 vertical: AppSizes.spacingLg,
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment:
+                    CrossAxisAlignment.center,
                 children: [
-                  ValueListenableBuilder<bool>(
-                    valueListenable: isAvatarUpdating,
-                    builder: (context, isUpdating, _) {
-                      return _ProfileAvatar(
-                        avatarUrl: therapist.avatar,
-                        onTap: onAvatarTap,
-                        isUpdating: isUpdating,
-                      );
-                    },
+                  _ProfileAvatar(
+                    avatarUrl: therapist.avatar,
+                    onTap: onAvatarTap,
+                    isUpdating: isAvatarUpdating,
                   ),
 
                   const SizedBox(
@@ -72,20 +69,32 @@ class ProfileHeader extends StatelessWidget {
 
                   Expanded(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment:
+                          MainAxisAlignment.center,
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
                       children: [
                         Text(
-                          therapist.name?.trim().isNotEmpty == true
+                          therapist.name
+                                      ?.trim()
+                                      .isNotEmpty ==
+                                  true
                               ? therapist.name!.trim()
                               : 'Therapist',
-                          key: const Key('profile-screen-title'),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.textTheme.displayMedium?.copyWith(
-                            fontSize: AppSizes.fontSizeXxl,
-                            height: 1.1,
+                          key: const Key(
+                            'profile-screen-title',
                           ),
+                          maxLines: 2,
+                          overflow:
+                              TextOverflow.ellipsis,
+                          style: context
+                              .textTheme
+                              .displayMedium
+                              ?.copyWith(
+                                fontSize:
+                                    AppSizes.fontSizeXxl,
+                                height: 1.1,
+                              ),
                         ),
 
                         const SizedBox(
@@ -93,19 +102,32 @@ class ProfileHeader extends StatelessWidget {
                         ),
 
                         Text(
-                          therapist.specialization?.trim().isNotEmpty == true
-                              ? therapist.specialization!.trim()
+                          therapist
+                                      .specialization
+                                      ?.trim()
+                                      .isNotEmpty ==
+                                  true
+                              ? therapist
+                                  .specialization!
+                                  .trim()
                               : 'Specialization not provided',
                           maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.textTheme.bodyMedium?.copyWith(
-                            fontSize: AppSizes.fontSizeMd,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          overflow:
+                              TextOverflow.ellipsis,
+                          style: context
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
+                                fontSize:
+                                    AppSizes.fontSizeMd,
+                                fontWeight:
+                                    FontWeight.w500,
+                              ),
                         ),
 
                         _AvailabilityStatus(
-                          isAvailable: isAvailable,
+                          isAvailable:
+                              isAvailable,
                         ),
                       ],
                     ),
@@ -171,14 +193,17 @@ class _ProfileAvatar extends StatelessWidget {
                         child,
                         loadingProgress,
                       ) {
-                        if (loadingProgress == null) {
+                        if (loadingProgress ==
+                            null) {
                           return child;
                         }
 
                         return const Center(
-                          child: CircularProgressIndicator(
+                          child:
+                              CircularProgressIndicator(
                             strokeWidth: 2.5,
-                            color: AppColors.pine,
+                            color:
+                                AppColors.pine,
                           ),
                         );
                       },
@@ -208,9 +233,11 @@ class _ProfileAvatar extends StatelessWidget {
                     alpha: 0.35,
                   ),
                   child: const Center(
-                    child: CircularProgressIndicator(
+                    child:
+                        CircularProgressIndicator(
                       strokeWidth: 2.5,
-                      color: AppColors.white,
+                      color:
+                          AppColors.white,
                     ),
                   ),
                 ),
@@ -244,7 +271,8 @@ class _ProfileAvatar extends StatelessWidget {
   }
 }
 
-class _AvailabilityStatus extends StatelessWidget {
+class _AvailabilityStatus
+    extends StatelessWidget {
   const _AvailabilityStatus({
     required this.isAvailable,
   });
@@ -283,20 +311,30 @@ class _AvailabilityStatus extends StatelessWidget {
         ),
 
         Text(
-          isAvailable ? 'Available' : 'Unavailable',
-          style: context.textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: statusColor,
-          ),
+          isAvailable
+              ? 'Available'
+              : 'Unavailable',
+          style: context
+              .textTheme
+              .bodyLarge
+              ?.copyWith(
+                fontWeight:
+                    FontWeight.w600,
+                color: statusColor,
+              ),
         ),
       ],
     );
   }
 }
 
-class _ProfileHeaderWavePainter extends CustomPainter {
+class _ProfileHeaderWavePainter
+    extends CustomPainter {
   @override
-  void paint(Canvas canvas, Size size) {
+  void paint(
+    Canvas canvas,
+    Size size,
+  ) {
     final backgroundPaint = Paint()
       ..color = AppColors.cream
       ..style = PaintingStyle.fill;
@@ -307,7 +345,8 @@ class _ProfileHeaderWavePainter extends CustomPainter {
     );
 
     final wavePaint = Paint()
-      ..color = AppColors.pinePale.withValues(
+      ..color =
+          AppColors.pinePale.withValues(
         alpha: 0.55,
       )
       ..style = PaintingStyle.fill;
@@ -355,7 +394,8 @@ class _ProfileHeaderWavePainter extends CustomPainter {
     );
 
     final softWavePaint = Paint()
-      ..color = AppColors.white.withValues(
+      ..color =
+          AppColors.white.withValues(
         alpha: 0.72,
       )
       ..style = PaintingStyle.fill;

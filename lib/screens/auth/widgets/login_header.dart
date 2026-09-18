@@ -1,10 +1,9 @@
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/constants/app_strings.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/responsive_utils.dart';
 
 class LoginHeader extends StatelessWidget {
@@ -23,7 +22,7 @@ class LoginHeader extends StatelessWidget {
             children: [
               Text(
                 AppStrings.welcomeBack,
-                style: GoogleFonts.fraunces(
+                style: context.textTheme.displayMedium?.copyWith(
                   fontSize: (
                     ResponsiveUtils.width(context) * 0.072
                   ).clamp(
@@ -31,17 +30,15 @@ class LoginHeader extends StatelessWidget {
                     28.0,
                   ),
                   fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
                 ),
               ),
-
               SizedBox(
-                height: ResponsiveUtils.height(context) * 0.006,
+                height:
+                    ResponsiveUtils.height(context) * 0.006,
               ),
-
               Text(
                 AppStrings.loginSubtitle,
-                style: GoogleFonts.inter(
+                style: context.textTheme.bodyMedium?.copyWith(
                   fontSize: (
                     ResponsiveUtils.width(context) * 0.035
                   ).clamp(
@@ -49,17 +46,15 @@ class LoginHeader extends StatelessWidget {
                     AppSizes.fontSizeMd,
                   ),
                   height: 1.45,
-                  color: AppColors.inkMid,
                 ),
               ),
             ],
           ),
         ),
-
         SizedBox(
-          width: ResponsiveUtils.width(context) * 0.025,
+          width:
+              ResponsiveUtils.width(context) * 0.025,
         ),
-
         Container(
           width: (
             ResponsiveUtils.width(context) * 0.12

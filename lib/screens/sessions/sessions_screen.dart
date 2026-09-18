@@ -1,35 +1,36 @@
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/common_widgets/app_date_selector.dart';
 import 'package:physioghar/common_widgets/app_error_state.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
-
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
+import 'package:physioghar/data/providers/patient_provider.dart';
+import 'package:physioghar/data/providers/schedule_provider.dart';
+import 'package:physioghar/data/providers/session_provider.dart';
 import 'package:physioghar/models/patient.dart';
 import 'package:physioghar/models/schedule_slot.dart';
 import 'package:physioghar/models/session.dart';
-import 'package:physioghar/screens/patients/patient_controller.dart';
-import 'package:physioghar/screens/schedule/schedule_controller.dart';
-import 'package:physioghar/screens/sessions/session_controller.dart';
 import 'package:physioghar/screens/sessions/widgets/session_list.dart';
 import 'package:physioghar/screens/sessions/widgets/session_tabs.dart';
 import 'package:physioghar/screens/sessions/widgets/sessions_header.dart';
 
-class SessionsScreen extends StatefulWidget {
+class SessionsScreen extends ConsumerStatefulWidget {
   const SessionsScreen({super.key});
 
   @override
-  State<SessionsScreen> createState() => _SessionsScreenState();
+  ConsumerState<SessionsScreen> createState() =>
+      _SessionsScreenState();
 }
 
-class _SessionsScreenState extends State<SessionsScreen>
+class _SessionsScreenState extends ConsumerState<SessionsScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  late final ScheduleController _scheduleController;
-  final _controller = sessionController;
 
   final List<SessionStatus> _statuses = [
     SessionStatus.requested,
@@ -53,14 +54,24 @@ class _SessionsScreenState extends State<SessionsScreen>
   void initState() {
     super.initState();
 
-    _scheduleController = ScheduleController();
-
-
-    _tabController = TabController(length: _statuses.length, vsync: this);
+    _tabController = TabController(
+      length: _statuses.length,
+      vsync: this,
+    );
 
     _tabController.addListener(_onTabChanged);
 
-    _controller.loadSessions(status: SessionStatus.requested);
+    Future.microtask(() {
+      if (!mounted) {
+        return;
+      }
+
+      ref
+          .read(sessionProvider.notifier)
+          .loadSessions(
+            status: SessionStatus.requested,
+          );
+    });
   }
 
   void _onTabChanged() {
@@ -68,78 +79,102 @@ class _SessionsScreenState extends State<SessionsScreen>
       return;
     }
 
-    final status = _statuses[_tabController.index];
+    final status =
+        _statuses[_tabController.index];
 
-    _controller.selectStatus(status);
+    ref
+        .read(sessionProvider.notifier)
+        .selectStatus(status);
   }
 
   @override
   void dispose() {
-    _tabController.removeListener(_onTabChanged);
+    _tabController.removeListener(
+      _onTabChanged,
+    );
     _tabController.dispose();
-
-    _scheduleController.dispose();
 
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final sessionState =
+        ref.watch(sessionProvider);
+
+    final sessions =
+        sessionState.sessions;
+
+    final isLoading =
+        sessionState.isLoading;
+
+    final errorMessage =
+        sessionState.errorMessage;
+
+    final selectedStatus =
+        sessionState.selectedStatus;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor:
+          Theme.of(context)
+              .scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
           children: [
-            SessionsHeader(onAdd: _openAddTestSession),
+            SessionsHeader(
+              onAdd: _openAddTestSession,
+            ),
 
-            const SizedBox(height: AppSizes.spacingSm),
+            const SizedBox(
+              height: AppSizes.spacingSm,
+            ),
 
-            SessionTabs(controller: _tabController),
+            SessionTabs(
+              controller: _tabController,
+            ),
 
-            const SizedBox(height: AppSizes.spacingSm),
+            const SizedBox(
+              height: AppSizes.spacingSm,
+            ),
 
             Expanded(
-              child: ValueListenableBuilder<bool>(
-                valueListenable: _controller.isLoading,
-                builder: (context, isLoading, _) {
-                  return ValueListenableBuilder<List<Session>>(
-                    valueListenable: _controller.sessions,
-                    builder: (context, sessions, _) {
-                      final errorMessage = _controller.errorMessage;
+              child: Builder(
+                builder: (context) {
+                  if (isLoading &&
+                      sessions.isEmpty) {
+                    return const _SessionsLoadingState();
+                  }
 
-                      // Initial loading
-                      if (isLoading && sessions.isEmpty) {
-                        return const _SessionsLoadingState();
-                      }
-
-                      // API error
-                      if (errorMessage != null && sessions.isEmpty) {
-                        return AppErrorState(
-                          title: 'Unable to load sessions',
-                          message: errorMessage,
-                          onRetry: () {
-                            _controller.loadSessions(
-                              status: _controller.selectedStatus.value,
+                  if (errorMessage != null &&
+                      sessions.isEmpty) {
+                    return AppErrorState(
+                      title:
+                          'Unable to load sessions',
+                      message: errorMessage,
+                      onRetry: () {
+                        ref
+                            .read(
+                              sessionProvider
+                                  .notifier,
+                            )
+                            .loadSessions(
+                              status:
+                                  selectedStatus,
                             );
-                          },
-                        );
-                      }
+                      },
+                    );
+                  }
 
-                      // Empty state
-                      if (sessions.isEmpty) {
-                        return _EmptySessionsState(
-                          status: _controller.selectedStatus.value,
-                        );
-                      }
+                  if (sessions.isEmpty) {
+                    return _EmptySessionsState(
+                      status: selectedStatus,
+                    );
+                  }
 
-                      // Loaded sessions
-                      return SessionList(
-                        sessions: sessions,
-                        controller: _controller,
-                        scheduleController: _scheduleController,
-                      );
-                    },
+                  return SessionList(
+                    sessions: sessions,
                   );
                 },
               ),
@@ -151,7 +186,8 @@ class _SessionsScreenState extends State<SessionsScreen>
   }
 }
 
-class _SessionsLoadingState extends StatelessWidget {
+class _SessionsLoadingState
+    extends StatelessWidget {
   const _SessionsLoadingState();
 
   @override
@@ -164,7 +200,10 @@ class _SessionsLoadingState extends StatelessWidget {
         AppSizes.spacingXl,
       ),
       itemCount: 4,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSizes.spacingSm),
+      separatorBuilder: (_, _) =>
+          const SizedBox(
+        height: AppSizes.spacingSm,
+      ),
       itemBuilder: (_, _) {
         return const _SessionLoadingCard();
       },
@@ -172,7 +211,8 @@ class _SessionsLoadingState extends StatelessWidget {
   }
 }
 
-class _SessionLoadingCard extends StatelessWidget {
+class _SessionLoadingCard
+    extends StatelessWidget {
   const _SessionLoadingCard();
 
   @override
@@ -181,46 +221,64 @@ class _SessionLoadingCard extends StatelessWidget {
       height: 180,
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        border: Border.all(color: AppColors.mist),
+        borderRadius:
+            BorderRadius.circular(
+          AppSizes.cardRadius,
+        ),
+        border: Border.all(
+          color: AppColors.mist,
+        ),
       ),
-      padding: const EdgeInsets.all(AppSizes.spacingLg),
+      padding: const EdgeInsets.all(
+        AppSizes.spacingLg,
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
           Container(
             width: 150,
             height: 20,
             decoration: BoxDecoration(
               color: AppColors.mist,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius:
+                  BorderRadius.circular(6),
             ),
           ),
-          const SizedBox(height: AppSizes.spacingLg),
+          const SizedBox(
+            height: AppSizes.spacingLg,
+          ),
           Container(
             width: double.infinity,
             height: 14,
             decoration: BoxDecoration(
               color: AppColors.mist,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius:
+                  BorderRadius.circular(6),
             ),
           ),
-          const SizedBox(height: AppSizes.spacingSm),
+          const SizedBox(
+            height: AppSizes.spacingSm,
+          ),
           Container(
             width: 220,
             height: 14,
             decoration: BoxDecoration(
               color: AppColors.mist,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius:
+                  BorderRadius.circular(6),
             ),
           ),
-          const SizedBox(height: AppSizes.spacingSm),
+          const SizedBox(
+            height: AppSizes.spacingSm,
+          ),
           Container(
             width: 180,
             height: 14,
             decoration: BoxDecoration(
               color: AppColors.mist,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius:
+                  BorderRadius.circular(6),
             ),
           ),
         ],
@@ -229,23 +287,28 @@ class _SessionLoadingCard extends StatelessWidget {
   }
 }
 
-class _AddTestSessionSheet extends StatefulWidget {
+class _AddTestSessionSheet
+    extends ConsumerStatefulWidget {
   const _AddTestSessionSheet();
 
   @override
-  State<_AddTestSessionSheet> createState() => _AddTestSessionSheetState();
+  ConsumerState<_AddTestSessionSheet>
+      createState() =>
+          _AddTestSessionSheetState();
 }
 
-class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
-  late final ScheduleController _scheduleController;
-  final _patientController = patientController;
+class _AddTestSessionSheetState
+    extends ConsumerState<_AddTestSessionSheet> {
   late DateTime _selectedDate;
 
   ScheduleSlot? _selectedSlot;
 
-  final List<DateTime> _dates = List.generate(
+  final List<DateTime> _dates =
+      List.generate(
     7,
-    (index) => DateTime.now().add(Duration(days: index)),
+    (index) => DateTime.now().add(
+      Duration(days: index),
+    ),
   );
 
   bool _isCreating = false;
@@ -254,7 +317,6 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
   void initState() {
     super.initState();
 
-    _scheduleController = ScheduleController();
     _selectedDate = _dates.first;
 
     _loadData();
@@ -262,34 +324,38 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
 
   Future<void> _loadData() async {
     await Future.wait([
-      _patientController.loadPatients(),
-      _scheduleController.selectDate(_selectedDate),
+      ref
+          .read(patientProvider.notifier)
+          .loadPatients(),
+      ref
+          .read(scheduleProvider.notifier)
+          .selectDate(_selectedDate),
     ]);
-
-    if (mounted) {
-      setState(() {});
-    }
   }
 
-  @override
-  void dispose() {
-    _scheduleController.dispose();
-    super.dispose();
-  }
-
-  void _onDateSelected(DateTime date) {
+  void _onDateSelected(
+    DateTime date,
+  ) {
     setState(() {
       _selectedDate = date;
       _selectedSlot = null;
     });
 
-    _scheduleController.selectDate(date);
+    ref
+        .read(scheduleProvider.notifier)
+        .selectDate(date);
   }
 
-  List<ScheduleSlot> _getOpenSlots(List<ScheduleSlot> slots) {
-    return slots.where((slot) {
-      return slot.status == ScheduleSlotStatus.open;
-    }).toList();
+  List<ScheduleSlot> _getOpenSlots(
+    List<ScheduleSlot> slots,
+  ) {
+    return slots
+        .where(
+          (slot) =>
+              slot.status ==
+              ScheduleSlotStatus.open,
+        )
+        .toList();
   }
 
   Future<void> _createTestSession() async {
@@ -300,15 +366,19 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
     final slot = _selectedSlot;
 
     if (slot == null || slot.id == null) {
-      AppSnackBar.showError('Please select an available time slot.');
+      AppSnackBar.showError(
+        'Please select an available time slot.',
+      );
       return;
     }
 
-    final patients = _patientController.patients.value;
+    final patients =
+        ref.read(patientProvider).patients;
 
     if (patients.isEmpty) {
-      AppSnackBar.showError('No patient is available for testing.');
-
+      AppSnackBar.showError(
+        'No patient is available for testing.',
+      );
       return;
     }
 
@@ -318,8 +388,9 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
     );
 
     if (patient.id == null) {
-      AppSnackBar.showError('No valid patient is available for testing.');
-
+      AppSnackBar.showError(
+        'No valid patient is available for testing.',
+      );
       return;
     }
 
@@ -328,17 +399,28 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
     });
 
     try {
-      final success = await sessionController.createSession(
-        patientId: patient.id!,
-        scheduleSlotId: slot.id!,
-        treatment: 'Test Session',
-        location: 'Test',
-      );
+      final success = await ref
+          .read(sessionProvider.notifier)
+          .createSession(
+            patientId: patient.id!,
+            scheduleSlotId: slot.id!,
+            treatment: 'Test Session',
+            location: 'Test',
+          );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       if (!success) {
-        AppSnackBar.showError('Unable to create test session.');
+        final errorMessage = ref
+            .read(sessionProvider)
+            .errorMessage;
+
+        AppSnackBar.showError(
+          errorMessage ??
+              'Unable to create test session.',
+        );
 
         return;
       }
@@ -361,205 +443,324 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final scheduleState =
+        ref.watch(scheduleProvider);
+
+    final scheduleSlots =
+        scheduleState.slots;
+
+    final isScheduleLoading =
+        scheduleState.isLoading;
+
+    final scheduleError =
+        scheduleState.errorMessage;
+
+    final openSlots =
+        _getOpenSlots(scheduleSlots);
+
     return SafeArea(
       child: Container(
         padding: EdgeInsets.only(
           left: AppSizes.spacingXl,
           right: AppSizes.spacingXl,
           top: AppSizes.spacingXl,
-          bottom: MediaQuery.of(context).viewInsets.bottom + AppSizes.spacingXl,
+          bottom:
+              MediaQuery.of(context)
+                      .viewInsets
+                      .bottom +
+                  AppSizes.spacingXl,
         ),
-        decoration: const BoxDecoration(
+        decoration:
+            const BoxDecoration(
           color: AppColors.cream,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppSizes.cardRadius),
+          borderRadius:
+              BorderRadius.vertical(
+            top: Radius.circular(
+              AppSizes.cardRadius,
+            ),
           ),
         ),
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            mainAxisSize:
+                MainAxisSize.min,
             children: [
               Row(
                 children: [
                   Expanded(
                     child: Text(
                       'Add Test Session',
-                      style: context.textTheme.headlineLarge,
+                      style: context
+                          .textTheme
+                          .headlineLarge,
                     ),
                   ),
                   IconButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(
+                        context,
+                      ).pop();
                     },
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(
+                      Icons.close,
+                    ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: AppSizes.spacingXs),
+              const SizedBox(
+                height: AppSizes.spacingXs,
+              ),
 
               Text(
                 'Testing purpose only',
-                style: context.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.amber,
-                ),
+                style: context
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(
+                      color:
+                          AppColors.amber,
+                    ),
               ),
 
-              const SizedBox(height: AppSizes.spacingXl),
+              const SizedBox(
+                height: AppSizes.spacingXl,
+              ),
 
               Text(
                 'Select Date',
-                style: context.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: context
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(
+                      fontWeight:
+                          FontWeight.w600,
+                    ),
               ),
 
-              const SizedBox(height: AppSizes.spacingSm),
+              const SizedBox(
+                height: AppSizes.spacingSm,
+              ),
 
               AppDateSelector(
                 dates: _dates,
-                selectedDate: _selectedDate,
-                onDateSelected: _onDateSelected,
+                selectedDate:
+                    _selectedDate,
+                onDateSelected:
+                    _onDateSelected,
               ),
 
-              const SizedBox(height: AppSizes.spacingXl),
+              const SizedBox(
+                height: AppSizes.spacingXl,
+              ),
 
               Text(
                 'Available Time',
-                style: context.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: context
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(
+                      fontWeight:
+                          FontWeight.w600,
+                    ),
               ),
 
-              const SizedBox(height: AppSizes.spacingSm),
+              const SizedBox(
+                height: AppSizes.spacingSm,
+              ),
 
-              ValueListenableBuilder<bool>(
-                valueListenable: _scheduleController.isLoading,
-                builder: (context, isLoading, _) {
-                  if (isLoading) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: AppSizes.spacingXl,
+              if (isScheduleLoading)
+                const Padding(
+                  padding:
+                      EdgeInsets.symmetric(
+                    vertical:
+                        AppSizes.spacingXl,
+                  ),
+                  child: Center(
+                    child:
+                        CircularProgressIndicator(),
+                  ),
+                )
+              else if (scheduleError !=
+                  null)
+                Container(
+                  width:
+                      double.infinity,
+                  padding:
+                      const EdgeInsets.all(
+                    AppSizes.spacingLg,
+                  ),
+                  decoration:
+                      BoxDecoration(
+                    color:
+                        AppColors.dangerPale,
+                    borderRadius:
+                        BorderRadius.circular(
+                      AppSizes.cardRadius,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color:
+                            AppColors.danger,
                       ),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-
-                  final errorMessage = _scheduleController.errorMessage;
-
-                  if (errorMessage != null) {
-                    return Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(AppSizes.spacingLg),
-                      decoration: BoxDecoration(
-                        color: AppColors.dangerPale,
-                        borderRadius: BorderRadius.circular(
-                          AppSizes.cardRadius,
+                      const SizedBox(
+                        height:
+                            AppSizes.spacingSm,
+                      ),
+                      Text(
+                        scheduleError,
+                        textAlign:
+                            TextAlign.center,
+                        style: context
+                            .textTheme
+                            .bodyMedium,
+                      ),
+                      const SizedBox(
+                        height:
+                            AppSizes.spacingSm,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          ref
+                              .read(
+                                scheduleProvider
+                                    .notifier,
+                              )
+                              .selectDate(
+                                _selectedDate,
+                              );
+                        },
+                        child:
+                            const Text(
+                          'Retry',
                         ),
                       ),
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            color: AppColors.danger,
-                          ),
-                          const SizedBox(height: AppSizes.spacingSm),
-                          Text(
-                            errorMessage,
-                            textAlign: TextAlign.center,
-                            style: context.textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: AppSizes.spacingSm),
-                          TextButton(
-                            onPressed: () {
-                              _scheduleController.selectDate(_selectedDate);
-                            },
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return ValueListenableBuilder<List<ScheduleSlot>>(
-                    valueListenable: _scheduleController.slots,
-                    builder: (context, slots, _) {
-                      final openSlots = _getOpenSlots(slots);
+                    ],
+                  ),
+                )
+              else if (openSlots.isEmpty)
+                Container(
+                  width:
+                      double.infinity,
+                  padding:
+                      const EdgeInsets.all(
+                    AppSizes.spacingLg,
+                  ),
+                  decoration:
+                      BoxDecoration(
+                    color:
+                        AppColors.mist,
+                    borderRadius:
+                        BorderRadius.circular(
+                      AppSizes.cardRadius,
+                    ),
+                  ),
+                  child: Text(
+                    'No open schedule slots available '
+                    'for this date.',
+                    textAlign:
+                        TextAlign.center,
+                    style: context
+                        .textTheme
+                        .bodyMedium,
+                  ),
+                )
+              else
+                Wrap(
+                  spacing:
+                      AppSizes.spacingSm,
+                  runSpacing:
+                      AppSizes.spacingSm,
+                  children:
+                      openSlots.map(
+                    (slot) {
+                      final isSelected =
+                          _selectedSlot
+                                  ?.id ==
+                              slot.id;
 
-                      if (openSlots.isEmpty) {
-                        return Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(AppSizes.spacingLg),
-                          decoration: BoxDecoration(
-                            color: AppColors.mist,
-                            borderRadius: BorderRadius.circular(
-                              AppSizes.cardRadius,
-                            ),
+                      return ChoiceChip(
+                        label: Text(
+                          DateTimeUtils
+                              .formatTimeString(
+                            slot.time,
                           ),
-                          child: Text(
-                            'No open schedule slots available '
-                            'for this date.',
-                            textAlign: TextAlign.center,
-                            style: context.textTheme.bodyMedium,
+                          style: context
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
+                            color: isSelected
+                                ? AppColors
+                                    .mist
+                                : AppColors
+                                    .pine,
                           ),
-                        );
-                      }
-
-                      return Wrap(
-                        spacing: AppSizes.spacingSm,
-                        runSpacing: AppSizes.spacingSm,
-                        children: openSlots.map((slot) {
-                          final isSelected = _selectedSlot?.id == slot.id;
-
-                          return ChoiceChip(
-                            label: Text(
-                              DateTimeUtils.formatTimeString(slot.time),
-                              style: context.textTheme.bodyMedium?.copyWith(
-                                color: isSelected
-                                    ? AppColors.mist
-                                    : AppColors.pine,
-                              ),
-                            ),
-                            selected: isSelected,
-                            onSelected: (_) {
-                              setState(() {
-                                _selectedSlot = slot;
-                              });
-                            },
-                            selectedColor: AppColors.pine,
-                            backgroundColor: AppColors.white,
-                            side: BorderSide(
-                              color: isSelected
-                                  ? AppColors.pine
-                                  : AppColors.mist,
-                            ),
-                            labelStyle: context.textTheme.bodyMedium,
-                          );
-                        }).toList(),
+                        ),
+                        selected:
+                            isSelected,
+                        onSelected:
+                            (_) {
+                          setState(() {
+                            _selectedSlot =
+                                slot;
+                          });
+                        },
+                        selectedColor:
+                            AppColors.pine,
+                        backgroundColor:
+                            AppColors.white,
+                        side:
+                            BorderSide(
+                          color: isSelected
+                              ? AppColors
+                                  .pine
+                              : AppColors
+                                  .mist,
+                        ),
+                        labelStyle:
+                            context
+                                .textTheme
+                                .bodyMedium,
                       );
                     },
-                  );
-                },
+                  ).toList(),
+                ),
+
+              const SizedBox(
+                height: AppSizes.spacingXl,
               ),
 
-              const SizedBox(height: AppSizes.spacingXl),
-
               AppButton(
-                width: double.infinity,
-                text: _isCreating ? 'Creating...' : 'Create Test Session',
+                width:
+                    double.infinity,
+                text: _isCreating
+                    ? 'Creating...'
+                    : 'Create Test Session',
                 icon: _isCreating
                     ? const SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(
+                        child:
+                            CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: AppColors.white,
+                          color:
+                              AppColors.white,
                         ),
                       )
-                    : const Icon(Icons.add),
-                onPressed: _isCreating || _selectedSlot == null
-                    ? null
-                    : _createTestSession,
+                    : const Icon(
+                        Icons.add,
+                      ),
+                onPressed:
+                    _isCreating ||
+                            _selectedSlot ==
+                                null
+                        ? null
+                        : _createTestSession,
               ),
             ],
           ),
@@ -569,27 +770,38 @@ class _AddTestSessionSheetState extends State<_AddTestSessionSheet> {
   }
 }
 
-class _EmptySessionsState extends StatelessWidget {
-  const _EmptySessionsState({required this.status});
+class _EmptySessionsState
+    extends StatelessWidget {
+  const _EmptySessionsState({
+    required this.status,
+  });
 
   final SessionStatus status;
 
   @override
   Widget build(BuildContext context) {
     final message = switch (status) {
-      SessionStatus.requested => 'No session requests yet.',
-      SessionStatus.upcoming => 'No upcoming sessions.',
-      SessionStatus.completed => 'No completed sessions.',
-      SessionStatus.cancelled => 'No cancelled sessions.',
+      SessionStatus.requested =>
+        'No session requests yet.',
+      SessionStatus.upcoming =>
+        'No upcoming sessions.',
+      SessionStatus.completed =>
+        'No completed sessions.',
+      SessionStatus.cancelled =>
+        'No cancelled sessions.',
     };
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSizes.spacingXl),
+        padding: const EdgeInsets.all(
+          AppSizes.spacingXl,
+        ),
         child: Text(
           message,
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium,
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium,
         ),
       ),
     );

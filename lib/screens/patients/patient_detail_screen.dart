@@ -1,99 +1,101 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:physioghar/common_widgets/app_empty_state.dart';
 import 'package:physioghar/common_widgets/app_loading.dart';
-
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
-import 'package:physioghar/screens/patients/patient_controller.dart';
+import 'package:physioghar/data/providers/patient_provider.dart';
 import 'package:physioghar/screens/patients/widgets/patient_condition_card.dart';
 import 'package:physioghar/screens/patients/widgets/patient_header.dart';
 import 'package:physioghar/screens/patients/widgets/patient_info_card.dart';
 import 'package:physioghar/screens/patients/widgets/patient_notes.dart';
 import 'package:physioghar/screens/patients/widgets/patient_treatment_history.dart';
 
-class PatientDetailScreen extends StatefulWidget {
+class PatientDetailScreen extends ConsumerStatefulWidget {
   const PatientDetailScreen({super.key, required this.patientId});
 
   final int patientId;
 
   @override
-  State<PatientDetailScreen> createState() => _PatientDetailScreenState();
+  ConsumerState<PatientDetailScreen> createState() =>
+      _PatientDetailScreenState();
 }
 
-class _PatientDetailScreenState extends State<PatientDetailScreen> {
-  late final PatientController _controller;
-
+class _PatientDetailScreenState extends ConsumerState<PatientDetailScreen> {
   @override
   void initState() {
     super.initState();
 
-    _controller = PatientController();
+    Future.microtask(() {
+      if (!mounted) {
+        return;
+      }
 
-    _controller.loadPatient(widget.patientId);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+      ref.read(patientProvider.notifier).loadPatient(widget.patientId);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final patientState = ref.watch(patientProvider);
+
+    final isLoading = patientState.isLoading;
+
+    final patient = patientState.selectedPatient;
+
+    if (isLoading) {
+      return Scaffold(
+        backgroundColor: AppColors.cream,
+        appBar: AppBar(title: const Text('Patient Details')),
+        body: const SafeArea(child: AppLoading()),
+      );
+    }
+
+    if (patient == null) {
+      return Scaffold(
+        backgroundColor: AppColors.cream,
+        appBar: AppBar(title: const Text('Patient Details')),
+        body: const SafeArea(
+          child: AppEmptyState(
+            icon: Icons.person_off_outlined,
+            title: 'Patient not found',
+            message: 'The patient record could not be found.',
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.cream,
       appBar: AppBar(title: const Text('Patient Details')),
       body: SafeArea(
-        child: ValueListenableBuilder<bool>(
-          valueListenable: _controller.isLoading,
-          builder: (context, isLoading, _) {
-            if (isLoading) {
-              return const AppLoading();
-            }
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.spacingXl,
+            vertical: AppSizes.spacingSm,
+          ),
+          child: Column(
+            children: [
+              PatientHeader(patient: patient),
 
-            return ValueListenableBuilder(
-              valueListenable: _controller.selectedPatient,
-              builder: (context, patient, _) {
-                if (patient == null) {
-                  return const AppEmptyState(
-                    icon: Icons.person_off_outlined,
-                    title: 'Patient not found',
-                    message: 'The patient record could not be found.',
-                  );
-                }
+              const SizedBox(height: AppSizes.spacingMd),
 
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.spacingXl,
-                    vertical: AppSizes.spacingSm,
-                  ),
-                  child: Column(
-                    children: [
-                      PatientHeader(patient: patient),
+              PatientInfoCard(patient: patient),
 
-                      const SizedBox(height: AppSizes.spacingMd),
+              const SizedBox(height: AppSizes.spacingMd),
 
-                      PatientInfoCard(patient: patient),
+              PatientConditionCard(patient: patient),
 
-                      const SizedBox(height: AppSizes.spacingMd),
+              const SizedBox(height: AppSizes.spacingMd),
 
-                      PatientConditionCard(patient: patient),
+              PatientTreatmentHistory(patientId: patient.id!),
 
-                      const SizedBox(height: AppSizes.spacingMd),
+              const SizedBox(height: AppSizes.spacingMd),
 
-                      PatientTreatmentHistory(patientId: patient.id!),
-
-                      const SizedBox(height: AppSizes.spacingMd),
-                      PatientNotes(
-                        patientId: patient.id!,
-                        controller: _controller,
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
+              PatientNotes(patientId: patient.id!),
+            ],
+          ),
         ),
       ),
     );

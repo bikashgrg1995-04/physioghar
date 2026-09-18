@@ -26,27 +26,25 @@ class SessionsHeader extends StatelessWidget {
         children: [
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Sessions',
                   key: const Key(
                     'sessions-screen-title',
                   ),
-                 style: context.textTheme.displayMedium,
+                  style: context.textTheme.displayMedium,
                 ),
                 const SizedBox(
                   height: AppSizes.spacingXs,
                 ),
                 Text(
                   'Manage your bookings & appointments',
-                 style: context.textTheme.bodyMedium,
+                  style: context.textTheme.bodyMedium,
                 ),
               ],
             ),
           ),
-
           if (onAdd != null) ...[
             const SizedBox(
               width: AppSizes.spacingMd,

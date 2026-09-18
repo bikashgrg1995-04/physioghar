@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 
 Future<bool?> showConfirmationDialog(
   BuildContext context, {
@@ -41,11 +42,7 @@ Future<bool?> showConfirmationDialog(
             Text(
               title,
               textAlign: TextAlign.center,
-              style: GoogleFonts.fraunces(
-                fontSize: AppSizes.fontSizeXl,
-                fontWeight: FontWeight.w600,
-                color: AppColors.ink,
-              ),
+              style: context.textTheme.headlineLarge,
             ),
 
             const SizedBox(
@@ -55,9 +52,7 @@ Future<bool?> showConfirmationDialog(
             Text(
               message,
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: AppSizes.fontSizeMd,
-                color: AppColors.inkMid,
+              style: context.textTheme.bodyMedium?.copyWith(
                 height: 1.4,
               ),
             ),
@@ -88,9 +83,8 @@ Future<bool?> showConfirmationDialog(
                       ),
                       child: Text(
                         cancelText,
-                        style: GoogleFonts.inter(
+                        style: context.textTheme.labelLarge?.copyWith(
                           fontSize: AppSizes.fontSizeMd,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

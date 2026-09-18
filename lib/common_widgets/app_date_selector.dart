@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
 
 class AppDateSelector extends StatelessWidget {
@@ -56,6 +57,14 @@ class _DateItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = isSelected
+        ? AppColors.white
+        : AppColors.ink;
+
+    final weekdayColor = isSelected
+        ? AppColors.white
+        : AppColors.inkMute;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -71,7 +80,7 @@ class _DateItem extends StatelessWidget {
           decoration: BoxDecoration(
             color: isSelected
                 ? AppColors.pine
-                : Colors.white,
+                : AppColors.white,
             borderRadius: BorderRadius.circular(
               AppSizes.cardRadius,
             ),
@@ -85,13 +94,10 @@ class _DateItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                _weekdayLabel(date),
-                style: GoogleFonts.ibmPlexMono(
-                  fontSize: AppSizes.fontSizeXs,
+                DateTimeUtils.formatWeekdayShort(date).toUpperCase(),
+                style: context.textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: isSelected
-                      ? Colors.white
-                      : AppColors.inkMute,
+                  color: weekdayColor,
                 ),
               ),
               const SizedBox(
@@ -99,12 +105,14 @@ class _DateItem extends StatelessWidget {
               ),
               Text(
                 '${date.day}',
-                style: GoogleFonts.fraunces(
+                style: context.textTheme.bodyLarge?.copyWith(
+                  fontFamily: context
+                      .textTheme
+                      .headlineLarge
+                      ?.fontFamily,
                   fontSize: AppSizes.fontSizeLg,
                   fontWeight: FontWeight.w600,
-                  color: isSelected
-                      ? Colors.white
-                      : AppColors.ink,
+                  color: textColor,
                 ),
               ),
             ],
@@ -112,19 +120,5 @@ class _DateItem extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _weekdayLabel(DateTime date) {
-    const weekdays = [
-      'MON',
-      'TUE',
-      'WED',
-      'THU',
-      'FRI',
-      'SAT',
-      'SUN',
-    ];
-
-    return weekdays[date.weekday - 1];
   }
 }

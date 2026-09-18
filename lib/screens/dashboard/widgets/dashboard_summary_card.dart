@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:physioghar/common_widgets/app_card.dart';
 
+import 'package:physioghar/common_widgets/app_card.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 
 class DashboardSummaryCard extends StatelessWidget {
   const DashboardSummaryCard({
@@ -22,46 +23,52 @@ class DashboardSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final textTheme = context.textTheme;
 
     return AppCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
-          // -----------------------------------------------------------------
-          // Icon + Value
-          // -----------------------------------------------------------------
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment:
+                CrossAxisAlignment.center,
             children: [
               Container(
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
                   color: iconBackgroundColor,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius:
+                      BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: iconColor, size: 18),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 18,
+                ),
               ),
 
-              const SizedBox(width: AppSizes.spacingMd),
+              const SizedBox(
+                width: AppSizes.spacingMd,
+              ),
 
               Expanded(
                 child: Text(
                   value,
                   style: textTheme.headlineLarge,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow:
+                      TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: AppSizes.spacingSm),
+          const SizedBox(
+            height: AppSizes.spacingSm,
+          ),
 
-          // -----------------------------------------------------------------
-          // Title
-          // -----------------------------------------------------------------
           Text(
             title,
             style: textTheme.bodyMedium?.copyWith(

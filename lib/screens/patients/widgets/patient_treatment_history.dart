@@ -1,15 +1,17 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:physioghar/common_widgets/app_card.dart';
 import 'package:physioghar/common_widgets/app_loading.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/extensions/context_extensions.dart';
+import 'package:physioghar/data/providers/session_provider.dart';
 import 'package:physioghar/models/session.dart';
-import 'package:physioghar/screens/sessions/session_controller.dart';
 
-class PatientTreatmentHistory extends StatefulWidget {
+class PatientTreatmentHistory
+    extends ConsumerStatefulWidget {
   const PatientTreatmentHistory({
     super.key,
     required this.patientId,
@@ -18,154 +20,140 @@ class PatientTreatmentHistory extends StatefulWidget {
   final int patientId;
 
   @override
-  State<PatientTreatmentHistory> createState() =>
-      _PatientTreatmentHistoryState();
+  ConsumerState<PatientTreatmentHistory>
+      createState() =>
+          _PatientTreatmentHistoryState();
 }
 
 class _PatientTreatmentHistoryState
-    extends State<PatientTreatmentHistory> {
-  late final SessionController _controller;
-
+    extends ConsumerState<PatientTreatmentHistory> {
   @override
   void initState() {
     super.initState();
 
-    _controller = SessionController();
+    Future.microtask(() {
+      if (!mounted) {
+        return;
+      }
 
-    _controller.loadSessions(
-      status: SessionStatus.completed,
-      patientId: widget.patientId,
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+      ref
+          .read(sessionProvider.notifier)
+          .loadSessions(
+            status: SessionStatus.completed,
+            patientId: widget.patientId,
+          );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: _controller.isLoading,
-      builder: (
-        context,
-        isLoading,
-        _,
-      ) {
-        if (isLoading) {
-          return const AppLoading();
+    final sessionState =
+        ref.watch(sessionProvider);
+
+    if (sessionState.isLoading) {
+      return const AppLoading();
+    }
+
+    final completedSessions = sessionState.sessions
+        .where(
+          (session) =>
+              session.status ==
+              SessionStatus.completed,
+        )
+        .toList();
+
+    completedSessions.sort(
+      (a, b) {
+        final aDate = a.scheduleDate;
+        final bDate = b.scheduleDate;
+
+        if (aDate == null) {
+          return 1;
         }
 
-        return ValueListenableBuilder<List<Session>>(
-          valueListenable: _controller.sessions,
-          builder: (
-            context,
-            sessions,
-            _,
-          ) {
-            if (sessions.isEmpty) {
-              return _TreatmentHistoryEmptyState();
-            }
+        if (bDate == null) {
+          return -1;
+        }
 
-            final completedSessions = sessions
-                .where(
-                  (session) =>
-                      session.status ==
-                      SessionStatus.completed,
-                )
-                .toList();
-
-            completedSessions.sort(
-              (a, b) {
-                final aDate = a.scheduleDate;
-                final bDate = b.scheduleDate;
-
-                if (aDate == null) return 1;
-                if (bDate == null) return -1;
-
-                return bDate.compareTo(aDate);
-              },
-            );
-
-            if (completedSessions.isEmpty) {
-              return _TreatmentHistoryEmptyState();
-            }
-
-            return Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Treatment History',
-                        style: context.textTheme.headlineLarge
-                            ?.copyWith(
-                          fontSize:
-                              AppSizes.fontSizeLg,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: AppSizes.spacingSm,
-                    ),
-                    Text(
-                      '${completedSessions.length} sessions',
-                      style: context.textTheme.bodyMedium
-                          ?.copyWith(
-                        fontSize:
-                            AppSizes.fontSizeSm,
-                        color: AppColors.inkMute,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: AppSizes.spacingSm,
-                ),
-                AppCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      for (
-                        int i = 0;
-                        i < completedSessions.length;
-                        i++
-                      ) ...[
-                        _TreatmentHistoryListItem(
-                          session:
-                              completedSessions[i],
-                          onTap: () {
-                            _showSessionDetails(
-                              context,
-                              completedSessions[i],
-                            );
-                          },
-                        ),
-                        if (
-                          i !=
-                              completedSessions.length -
-                                  1
-                        )
-                          const Divider(
-                            height: 1,
-                            indent:
-                                AppSizes.spacingLg,
-                            endIndent:
-                                AppSizes.spacingLg,
-                            color: AppColors.mist,
-                          ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
-        );
+        return bDate.compareTo(aDate);
       },
+    );
+
+    if (completedSessions.isEmpty) {
+      return const _TreatmentHistoryEmptyState();
+    }
+
+    return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Treatment History',
+                style: context.textTheme.headlineLarge
+                    ?.copyWith(
+                  fontSize:
+                      AppSizes.fontSizeLg,
+                ),
+              ),
+            ),
+            const SizedBox(
+              width: AppSizes.spacingSm,
+            ),
+            Text(
+              '${completedSessions.length} sessions',
+              style: context.textTheme.bodyMedium
+                  ?.copyWith(
+                fontSize:
+                    AppSizes.fontSizeSm,
+                color: AppColors.inkMute,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(
+          height: AppSizes.spacingSm,
+        ),
+
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              for (
+                int i = 0;
+                i < completedSessions.length;
+                i++
+              ) ...[
+                _TreatmentHistoryListItem(
+                  session:
+                      completedSessions[i],
+                  onTap: () {
+                    _showSessionDetails(
+                      context,
+                      completedSessions[i],
+                    );
+                  },
+                ),
+                if (
+                  i !=
+                      completedSessions.length - 1
+                )
+                  const Divider(
+                    height: 1,
+                    indent:
+                        AppSizes.spacingLg,
+                    endIndent:
+                        AppSizes.spacingLg,
+                    color: AppColors.mist,
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -317,11 +305,14 @@ class _SessionDetailsBottomSheet
                     Container(
                       padding:
                           const EdgeInsets.symmetric(
-                        horizontal: AppSizes.spacingMd,
-                        vertical: AppSizes.spacingXs,
+                        horizontal:
+                            AppSizes.spacingMd,
+                        vertical:
+                            AppSizes.spacingXs,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.pinePale,
+                        color:
+                            AppColors.pinePale,
                         borderRadius:
                             BorderRadius.circular(
                           AppSizes.buttonRadius,
@@ -339,7 +330,8 @@ class _SessionDetailsBottomSheet
                                 AppColors.pine,
                           ),
                           const SizedBox(
-                            width: AppSizes.spacingXs,
+                            width:
+                                AppSizes.spacingXs,
                           ),
                           Text(
                             'COMPLETED',
@@ -506,7 +498,8 @@ class _DetailRow extends StatelessWidget {
                   value,
                   style: context.textTheme.bodyMedium
                       ?.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight:
+                        FontWeight.w600,
                     color: AppColors.ink,
                   ),
                 ),

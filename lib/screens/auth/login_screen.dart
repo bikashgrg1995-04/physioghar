@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:physioghar/common_widgets/decorative_wave.dart';
@@ -6,7 +5,6 @@ import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/constants/app_strings.dart';
 import 'package:physioghar/core/utils/responsive_utils.dart';
-import 'package:physioghar/screens/auth/auth_controller.dart';
 import 'package:physioghar/screens/auth/widgets/login_brand.dart';
 import 'package:physioghar/screens/auth/widgets/login_form.dart';
 import 'package:physioghar/screens/auth/widgets/login_header.dart';
@@ -21,18 +19,15 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  late final AuthController _controller;
+  final _formKey = GlobalKey<FormState>();
 
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AuthController();
-  }
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    _controller.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
 
     super.dispose();
   }
@@ -54,7 +49,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 opacity: 0.45,
               ),
             ),
-
             Positioned(
               bottom: 0,
               left: 0,
@@ -66,13 +60,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 color: AppColors.pineLight,
               ),
             ),
-
             SingleChildScrollView(
               padding: EdgeInsets.symmetric(
-                horizontal:
-                    ResponsiveUtils.width(context) * 0.06,
-                vertical:
-                    ResponsiveUtils.height(context) * 0.025,
+                horizontal: ResponsiveUtils.width(context) * 0.06,
+                vertical: ResponsiveUtils.height(context) * 0.025,
               ),
               child: Center(
                 child: ConstrainedBox(
@@ -85,14 +76,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         height:
                             ResponsiveUtils.height(context) * 0.025,
                       ),
-
                       const LoginBrand(),
-
                       SizedBox(
                         height:
                             ResponsiveUtils.height(context) * 0.02,
                       ),
-
                       Container(
                         width: double.infinity,
                         padding: EdgeInsets.fromLTRB(
@@ -111,7 +99,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.ink.withValues(alpha: 0.05),
+                              color: AppColors.ink.withValues(
+                                alpha: 0.05,
+                              ),
                               blurRadius: 30,
                               offset: const Offset(0, 14),
                             ),
@@ -122,25 +112,24 @@ class _LoginScreenState extends State<LoginScreen> {
                               CrossAxisAlignment.start,
                           children: [
                             const LoginHeader(),
-
                             SizedBox(
                               height:
                                   ResponsiveUtils.height(context) *
                                       0.015,
                             ),
-
                             LoginForm(
-                              controller: _controller,
+                              formKey: _formKey,
+                              emailController: _emailController,
+                              passwordController:
+                                  _passwordController,
                             ),
                           ],
                         ),
                       ),
-
                       SizedBox(
                         height:
                             ResponsiveUtils.height(context) * 0.018,
                       ),
-
                       Text(
                         AppStrings.secureAccess,
                         textAlign: TextAlign.center,
@@ -153,7 +142,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                       ),
-
                       SizedBox(
                         height:
                             ResponsiveUtils.height(context) * 0.12,

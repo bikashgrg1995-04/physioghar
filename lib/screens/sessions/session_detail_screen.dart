@@ -1,4 +1,6 @@
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/common_widgets/app_card.dart';
@@ -9,34 +11,39 @@ import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
+import 'package:physioghar/data/providers/session_provider.dart';
 import 'package:physioghar/models/session.dart';
-import 'package:physioghar/screens/schedule/schedule_controller.dart';
-import 'package:physioghar/screens/sessions/session_controller.dart';
 import 'package:physioghar/screens/sessions/widgets/complete_session_bottom_sheet.dart';
 import 'package:physioghar/screens/sessions/widgets/reschedule_bottom_sheet.dart';
 
-class SessionDetailScreen extends StatefulWidget {
-  const SessionDetailScreen({super.key, required this.sessionId});
+class SessionDetailScreen extends ConsumerStatefulWidget {
+  const SessionDetailScreen({
+    super.key,
+    required this.sessionId,
+  });
 
   final int sessionId;
 
   @override
-  State<SessionDetailScreen> createState() => _SessionDetailScreenState();
+  ConsumerState<SessionDetailScreen> createState() =>
+      _SessionDetailScreenState();
 }
 
-class _SessionDetailScreenState extends State<SessionDetailScreen> {
-  final SessionController _controller = sessionController;
-  late final ScheduleController _scheduleController;
-
+class _SessionDetailScreenState
+    extends ConsumerState<SessionDetailScreen> {
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
 
-    _scheduleController = ScheduleController();
+    Future.microtask(() {
+      if (!mounted) {
+        return;
+      }
 
-    _loadSession();
+      _loadSession();
+    });
   }
 
   Future<void> _loadSession() async {
@@ -46,7 +53,9 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
       });
     }
 
-    await _controller.getSession(widget.sessionId);
+    await ref
+        .read(sessionProvider.notifier)
+        .getSession(widget.sessionId);
 
     if (!mounted) {
       return;
@@ -59,6 +68,10 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final sessionState = ref.watch(sessionProvider);
+
+    final session = sessionState.selectedSession;
+
     return Scaffold(
       backgroundColor: AppColors.cream,
       appBar: AppBar(
@@ -72,78 +85,102 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
           ),
         ),
       ),
-      body: ValueListenableBuilder<Session?>(
-        valueListenable: _controller.selectedSession,
-        builder: (context, session, _) {
-          if (_isLoading) {
-            return const AppLoading();
-          }
-
-          if (session == null) {
-            return _buildNotFoundState();
-          }
-
-          return _buildSessionBody(session);
-        },
-      ),
+      body: _isLoading
+          ? const AppLoading()
+          : session == null
+              ? _buildNotFoundState(
+                  sessionState.errorMessage,
+                )
+              : _buildSessionBody(session),
     );
   }
 
   Widget _buildSessionBody(Session session) {
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSizes.spacingXl),
+        padding: const EdgeInsets.all(
+          AppSizes.spacingXl,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _PatientCard(session: session),
+            _PatientCard(
+              session: session,
+            ),
 
-            const SizedBox(height: AppSizes.spacingXl),
+            const SizedBox(
+              height: AppSizes.spacingXl,
+            ),
 
-            const _SectionLabel(text: 'SESSION INFORMATION'),
+            const _SectionLabel(
+              text: 'SESSION INFORMATION',
+            ),
 
-            const SizedBox(height: AppSizes.spacingSm),
+            const SizedBox(
+              height: AppSizes.spacingSm,
+            ),
 
-            _InfoCard(session: session),
+            _InfoCard(
+              session: session,
+            ),
 
-            const SizedBox(height: AppSizes.spacingXl),
+            const SizedBox(
+              height: AppSizes.spacingXl,
+            ),
 
-            const _SectionLabel(text: 'STATUS'),
+            const _SectionLabel(
+              text: 'STATUS',
+            ),
 
-            const SizedBox(height: AppSizes.spacingSm),
+            const SizedBox(
+              height: AppSizes.spacingSm,
+            ),
 
-            _StatusCard(status: session.status),
+            _StatusCard(
+              status: session.status,
+            ),
 
-            if (session.status == SessionStatus.completed) ...[
-              const SizedBox(height: AppSizes.spacingXl),
-
-              const _SectionLabel(text: 'THERAPIST NOTES'),
-
-              const SizedBox(height: AppSizes.spacingSm),
-
-              _NotesCard(notes: session.notes),
-            ],
-
-            if (session.status == SessionStatus.cancelled) ...[
-              const SizedBox(height: AppSizes.spacingXl),
-
-              const _SectionLabel(text: 'CANCELLATION REASON'),
-
-              const SizedBox(height: AppSizes.spacingSm),
-
+            if (session.status ==
+                SessionStatus.completed) ...[
+              const SizedBox(
+                height: AppSizes.spacingXl,
+              ),
+              const _SectionLabel(
+                text: 'THERAPIST NOTES',
+              ),
+              const SizedBox(
+                height: AppSizes.spacingSm,
+              ),
               _NotesCard(
-                notes: session.cancellationReason,
-                emptyText: 'No cancellation reason provided.',
+                notes: session.notes,
               ),
             ],
 
-            if (session.status == SessionStatus.upcoming) ...[
-              const SizedBox(height: AppSizes.spacingXl),
+            if (session.status ==
+                SessionStatus.cancelled) ...[
+              const SizedBox(
+                height: AppSizes.spacingXl,
+              ),
+              const _SectionLabel(
+                text: 'CANCELLATION REASON',
+              ),
+              const SizedBox(
+                height: AppSizes.spacingSm,
+              ),
+              _NotesCard(
+                notes: session.cancellationReason,
+                emptyText:
+                    'No cancellation reason provided.',
+              ),
+            ],
 
+            if (session.status ==
+                SessionStatus.upcoming) ...[
+              const SizedBox(
+                height: AppSizes.spacingXl,
+              ),
               _SessionActions(
                 session: session,
-                controller: _controller,
-                scheduleController: _scheduleController,
                 onUpdated: _loadSession,
               ),
             ],
@@ -153,10 +190,14 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
     );
   }
 
-  Widget _buildNotFoundState() {
+  Widget _buildNotFoundState(
+    String? errorMessage,
+  ) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSizes.spacingXl),
+        padding: const EdgeInsets.all(
+          AppSizes.spacingXl,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -166,14 +207,22 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
               color: AppColors.inkMute,
             ),
 
-            const SizedBox(height: AppSizes.spacingMd),
-
-            Text('Session not found', style: context.textTheme.headlineLarge),
-
-            const SizedBox(height: AppSizes.spacingSm),
+            const SizedBox(
+              height: AppSizes.spacingMd,
+            ),
 
             Text(
-              _controller.errorMessage ?? 'Unable to load session details.',
+              'Session not found',
+              style: context.textTheme.headlineLarge,
+            ),
+
+            const SizedBox(
+              height: AppSizes.spacingSm,
+            ),
+
+            Text(
+              errorMessage ??
+                  'Unable to load session details.',
               textAlign: TextAlign.center,
               style: context.textTheme.bodyLarge,
             ),
@@ -184,25 +233,23 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
   }
 }
 
-class _SessionActions extends StatelessWidget {
+class _SessionActions extends ConsumerWidget {
   const _SessionActions({
     required this.session,
-    required this.controller,
-    required this.scheduleController,
     required this.onUpdated,
   });
 
   final Session session;
-  final SessionController controller;
-  final ScheduleController scheduleController;
   final Future<void> Function() onUpdated;
 
-  Future<void> _reschedule(BuildContext context) async {
-    final updated = await showRescheduleBottomSheet(
+  Future<void> _reschedule(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final updated =
+        await showRescheduleBottomSheet(
       context,
       session: session,
-      sessionController: controller,
-      scheduleController: scheduleController,
     );
 
     if (!updated || !context.mounted) {
@@ -212,11 +259,16 @@ class _SessionActions extends StatelessWidget {
     await onUpdated();
   }
 
-  Future<void> _complete(BuildContext context) async {
-    final confirmed = await showConfirmationDialog(
+  Future<void> _complete(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final confirmed =
+        await showConfirmationDialog(
       context,
       title: 'Complete Session?',
-      message: 'You need to add session notes before completing this session.',
+      message:
+          'You need to add session notes before completing this session.',
       confirmText: 'Continue',
       icon: Icons.check_circle_outline,
     );
@@ -229,15 +281,22 @@ class _SessionActions extends StatelessWidget {
       context,
       session: session,
       onComplete: (notes) async {
-        final success = await controller.completeSession(
-          sessionId: session.id!,
-          notes: notes,
-        );
+        final success = await ref
+            .read(sessionProvider.notifier)
+            .completeSession(
+              sessionId: session.id!,
+              notes: notes,
+            );
 
         if (!success) {
+          final errorMessage =
+              ref.read(sessionProvider).errorMessage;
+
           AppSnackBar.showError(
-            controller.errorMessage ?? 'Unable to complete session.',
+            errorMessage ??
+                'Unable to complete session.',
           );
+
           return;
         }
 
@@ -245,65 +304,94 @@ class _SessionActions extends StatelessWidget {
           return;
         }
 
-        AppSnackBar.showSuccess('Session completed successfully.');
+        AppSnackBar.showSuccess(
+          'Session completed successfully.',
+        );
+
+        await onUpdated();
       },
     );
   }
 
-  Future<void> _cancel(BuildContext context) async {
-    final reasonController = TextEditingController();
+  Future<void> _cancel(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final reasonController =
+        TextEditingController();
 
     try {
-      final reason = await showDialog<String>(
+      final reason =
+          await showDialog<String>(
         context: context,
         builder: (dialogContext) {
           return AlertDialog(
-            title: const Text('Cancel Session?'),
+            title: const Text(
+              'Cancel Session?',
+            ),
             content: TextField(
               controller: reasonController,
               autofocus: true,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Cancellation reason',
-                hintText: 'Why are you cancelling this session?',
+              decoration:
+                  const InputDecoration(
+                labelText:
+                    'Cancellation reason',
+                hintText:
+                    'Why are you cancelling this session?',
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(dialogContext).pop();
+                  Navigator.of(
+                    dialogContext,
+                  ).pop();
                 },
                 child: const Text('Back'),
               ),
               FilledButton(
                 onPressed: () {
-                  final reason = reasonController.text.trim();
+                  final reason =
+                      reasonController.text.trim();
 
                   if (reason.isEmpty) {
                     return;
                   }
 
-                  Navigator.of(dialogContext).pop(reason);
+                  Navigator.of(
+                    dialogContext,
+                  ).pop(reason);
                 },
-                child: const Text('Cancel Session'),
+                child: const Text(
+                  'Cancel Session',
+                ),
               ),
             ],
           );
         },
       );
 
-      if (reason == null || reason.isEmpty || !context.mounted) {
+      if (reason == null ||
+          reason.isEmpty ||
+          !context.mounted) {
         return;
       }
 
-      final success = await controller.cancelSession(
-        sessionId: session.id!,
-        cancellationReason: reason,
-      );
+      final success = await ref
+          .read(sessionProvider.notifier)
+          .cancelSession(
+            sessionId: session.id!,
+            cancellationReason: reason,
+          );
 
       if (!success) {
+        final errorMessage =
+            ref.read(sessionProvider).errorMessage;
+
         AppSnackBar.showError(
-          controller.errorMessage ?? 'Unable to cancel session.',
+          errorMessage ??
+              'Unable to cancel session.',
         );
 
         return;
@@ -313,7 +401,9 @@ class _SessionActions extends StatelessWidget {
         return;
       }
 
-      AppSnackBar.showSuccess('Session cancelled successfully.');
+      AppSnackBar.showSuccess(
+        'Session cancelled successfully.',
+      );
 
       Navigator.of(context).pop();
     } finally {
@@ -322,36 +412,66 @@ class _SessionActions extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final isUpdating =
+        ref.watch(sessionProvider).isUpdating;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment:
+          CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
             Expanded(
               child: AppButton(
                 text: 'Reschedule',
-                variant: AppButtonVariant.secondary,
-                onPressed: () => _reschedule(context),
+                variant:
+                    AppButtonVariant.secondary,
+                onPressed: isUpdating
+                    ? null
+                    : () => _reschedule(
+                          context,
+                          ref,
+                        ),
               ),
             ),
 
-            const SizedBox(width: AppSizes.spacingSm),
+            const SizedBox(
+              width: AppSizes.spacingSm,
+            ),
 
             Expanded(
               child: AppButton(
                 text: 'Complete',
-                onPressed: () => _complete(context),
+                onPressed: isUpdating
+                    ? null
+                    : () => _complete(
+                          context,
+                          ref,
+                        ),
               ),
             ),
           ],
         ),
 
-        const SizedBox(height: AppSizes.spacingSm),
+        const SizedBox(
+          height: AppSizes.spacingSm,
+        ),
 
         TextButton(
-          onPressed: () => _cancel(context),
-          child: Text('Cancel Session', style: context.textTheme.bodyMedium),
+          onPressed: isUpdating
+              ? null
+              : () => _cancel(
+                    context,
+                    ref,
+                  ),
+          child: Text(
+            'Cancel Session',
+            style: context.textTheme.bodyMedium,
+          ),
         ),
       ],
     );
@@ -359,15 +479,18 @@ class _SessionActions extends StatelessWidget {
 }
 
 class _PatientCard extends StatelessWidget {
-  const _PatientCard({required this.session});
+  const _PatientCard({
+    required this.session,
+  });
 
   final Session session;
 
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      padding: const EdgeInsets.all(AppSizes.spacingXl),
-
+      padding: const EdgeInsets.all(
+        AppSizes.spacingXl,
+      ),
       child: Row(
         children: [
           Container(
@@ -384,24 +507,32 @@ class _PatientCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(width: AppSizes.spacingMd),
+          const SizedBox(
+            width: AppSizes.spacingMd,
+          ),
 
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Text(
-                  session.patientName ?? 'Unknown Patient',
-                  style: context.textTheme.headlineLarge,
+                  session.patientName ??
+                      'Unknown Patient',
+                  style:
+                      context.textTheme.headlineLarge,
                 ),
 
-                const SizedBox(height: AppSizes.spacingXs),
+                const SizedBox(
+                  height: AppSizes.spacingXs,
+                ),
 
                 Text(
                   session.patientId == null
                       ? 'Patient ID not available'
                       : 'Patient ID: ${session.patientId}',
-                  style: context.textTheme.bodyMedium,
+                  style:
+                      context.textTheme.bodyMedium,
                 ),
               ],
             ),
@@ -413,51 +544,73 @@ class _PatientCard extends StatelessWidget {
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.session});
+  const _InfoCard({
+    required this.session,
+  });
 
   final Session session;
 
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      padding: const EdgeInsets.all(AppSizes.spacingLg),
-
+      padding: const EdgeInsets.all(
+        AppSizes.spacingLg,
+      ),
       child: Column(
         children: [
           _InfoRow(
-            icon: Icons.medical_services_outlined,
+            icon:
+                Icons.medical_services_outlined,
             label: 'Treatment',
-            value: session.treatment ?? 'Not provided',
+            value:
+                session.treatment ??
+                    'Not provided',
           ),
 
-          const Divider(height: AppSizes.spacingXxl),
+          const Divider(
+            height: AppSizes.spacingXxl,
+          ),
 
           _InfoRow(
-            icon: Icons.calendar_today_outlined,
+            icon:
+                Icons.calendar_today_outlined,
             label: 'Date',
             value: session.scheduleDate == null
                 ? 'Not provided'
-                : DateTimeUtils.formatFullDate(session.scheduleDate!),
+                : DateTimeUtils.formatFullDate(
+                    session.scheduleDate!,
+                  ),
           ),
 
-          const Divider(height: AppSizes.spacingXxl),
+          const Divider(
+            height: AppSizes.spacingXxl,
+          ),
 
           _InfoRow(
-            icon: Icons.access_time_outlined,
+            icon:
+                Icons.access_time_outlined,
             label: 'Time',
-            value:
-                session.scheduleTime == null ||
-                    session.scheduleTime!.trim().isEmpty
+            value: session.scheduleTime == null ||
+                    session.scheduleTime!
+                        .trim()
+                        .isEmpty
                 ? 'Not provided'
-                : DateTimeUtils.formatTimeString(session.scheduleTime),
+                : DateTimeUtils.formatTimeString(
+                    session.scheduleTime,
+                  ),
           ),
 
-          const Divider(height: AppSizes.spacingXxl),
+          const Divider(
+            height: AppSizes.spacingXxl,
+          ),
 
           _InfoRow(
-            icon: Icons.location_on_outlined,
+            icon:
+                Icons.location_on_outlined,
             label: 'Location',
-            value: session.location ?? 'Not provided',
+            value:
+                session.location ??
+                    'Not provided',
           ),
         ],
       ),
@@ -466,7 +619,9 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _StatusCard extends StatelessWidget {
-  const _StatusCard({required this.status});
+  const _StatusCard({
+    required this.status,
+  });
 
   final SessionStatus? status;
 
@@ -475,17 +630,25 @@ class _StatusCard extends StatelessWidget {
     final config = _statusConfig(status);
 
     return AppCard(
-      padding: const EdgeInsets.all(AppSizes.spacingLg),
-
+      padding: const EdgeInsets.all(
+        AppSizes.spacingLg,
+      ),
       child: Row(
         children: [
-          Icon(config.$2, color: config.$3, size: 22),
+          Icon(
+            config.$2,
+            color: config.$3,
+            size: 22,
+          ),
 
-          const SizedBox(width: AppSizes.spacingMd),
+          const SizedBox(
+            width: AppSizes.spacingMd,
+          ),
 
           Text(
             config.$4,
-            style: context.textTheme.labelSmall?.copyWith(
+            style: context.textTheme.labelSmall
+                ?.copyWith(
               fontSize: AppSizes.fontSizeSm,
               fontWeight: FontWeight.w600,
               color: config.$3,
@@ -497,7 +660,10 @@ class _StatusCard extends StatelessWidget {
     );
   }
 
-  (Color, IconData, Color, String) _statusConfig(SessionStatus? status) {
+  (Color, IconData, Color, String)
+      _statusConfig(
+    SessionStatus? status,
+  ) {
     switch (status) {
       case SessionStatus.requested:
         return (
@@ -545,7 +711,8 @@ class _StatusCard extends StatelessWidget {
 class _NotesCard extends StatelessWidget {
   const _NotesCard({
     required this.notes,
-    this.emptyText = 'No therapist notes added yet.',
+    this.emptyText =
+        'No therapist notes added yet.',
   });
 
   final String? notes;
@@ -553,16 +720,25 @@ class _NotesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasNotes = notes != null && notes!.trim().isNotEmpty;
+    final hasNotes =
+        notes != null &&
+        notes!.trim().isNotEmpty;
 
     return AppCard(
-      padding: const EdgeInsets.all(AppSizes.spacingLg),
+      padding: const EdgeInsets.all(
+        AppSizes.spacingLg,
+      ),
       borderColor: AppColors.mist,
       child: Text(
-        hasNotes ? notes!.trim() : emptyText,
-        style: context.textTheme.bodyMedium?.copyWith(
+        hasNotes
+            ? notes!.trim()
+            : emptyText,
+        style: context.textTheme.bodyMedium
+            ?.copyWith(
           height: 1.5,
-          color: hasNotes ? AppColors.inkMid : AppColors.inkMute,
+          color: hasNotes
+              ? AppColors.inkMid
+              : AppColors.inkMute,
         ),
       ),
     );
@@ -583,30 +759,42 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: AppColors.pine),
+        Icon(
+          icon,
+          size: 20,
+          color: AppColors.pine,
+        ),
 
-        const SizedBox(width: AppSizes.spacingMd),
+        const SizedBox(
+          width: AppSizes.spacingMd,
+        ),
 
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
               Text(
                 label.toUpperCase(),
-                style: context.textTheme.labelSmall?.copyWith(
+                style: context.textTheme.labelSmall
+                    ?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.inkMute,
                   letterSpacing: 0.5,
                 ),
               ),
 
-              const SizedBox(height: AppSizes.spacingXs),
+              const SizedBox(
+                height: AppSizes.spacingXs,
+              ),
 
               Text(
                 value,
-                style: context.textTheme.bodyMedium?.copyWith(
+                style: context.textTheme.bodyMedium
+                    ?.copyWith(
                   fontWeight: FontWeight.w500,
                   color: AppColors.ink,
                 ),
@@ -620,7 +808,9 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.text});
+  const _SectionLabel({
+    required this.text,
+  });
 
   final String text;
 
@@ -628,7 +818,8 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: context.textTheme.labelSmall?.copyWith(
+      style: context.textTheme.labelSmall
+          ?.copyWith(
         fontWeight: FontWeight.w600,
         color: AppColors.inkMute,
         letterSpacing: 0.8,

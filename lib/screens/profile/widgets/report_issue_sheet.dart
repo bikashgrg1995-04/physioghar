@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
@@ -6,10 +7,10 @@ import 'package:physioghar/common_widgets/app_text_field.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/extensions/context_extensions.dart';
+import 'package:physioghar/data/providers/complaint_provider.dart';
 import 'package:physioghar/models/complaint.dart';
-import 'package:physioghar/screens/profile/complaint_controller.dart';
 
-class ReportIssueSheet extends StatefulWidget {
+class ReportIssueSheet extends ConsumerStatefulWidget {
   const ReportIssueSheet({
     super.key,
     this.complaint,
@@ -20,10 +21,12 @@ class ReportIssueSheet extends StatefulWidget {
   bool get isEditing => complaint != null;
 
   @override
-  State<ReportIssueSheet> createState() => _ReportIssueSheetState();
+  ConsumerState<ReportIssueSheet> createState() =>
+      _ReportIssueSheetState();
 }
 
-class _ReportIssueSheetState extends State<ReportIssueSheet> {
+class _ReportIssueSheetState
+    extends ConsumerState<ReportIssueSheet> {
   final _formKey = GlobalKey<FormState>();
 
   final _subjectController = TextEditingController();
@@ -52,7 +55,8 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
               : 'other';
 
       _subjectController.text = complaint.subject ?? '';
-      _descriptionController.text = complaint.description ?? '';
+      _descriptionController.text =
+          complaint.description ?? '';
     }
   }
 
@@ -72,13 +76,15 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
     final description = _descriptionController.text.trim();
     final complaint = widget.complaint;
 
+    final notifier = ref.read(complaintProvider.notifier);
+
     final result = complaint == null
-        ? await complaintController.createComplaint(
+        ? await notifier.createComplaint(
             category: _selectedCategory,
             subject: subject,
             description: description,
           )
-        : await complaintController.updateComplaint(
+        : await notifier.updateComplaint(
             id: complaint.id!,
             category: _selectedCategory,
             subject: subject,
@@ -90,12 +96,16 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
     }
 
     if (result == null) {
+      final errorMessage =
+          ref.read(complaintProvider).errorMessage;
+
       AppSnackBar.showError(
-        complaintController.errorMessage ??
+        errorMessage ??
             (widget.isEditing
                 ? 'Failed to update complaint.'
                 : 'Failed to submit complaint.'),
       );
+
       return;
     }
 
@@ -111,6 +121,9 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.isEditing;
+
+    final isSubmitting =
+        ref.watch(complaintProvider).isSubmitting;
 
     return SafeArea(
       child: Padding(
@@ -135,7 +148,9 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                 ),
 
                 Text(
-                  isEditing ? 'Edit Report' : 'Report an Issue',
+                  isEditing
+                      ? 'Edit Report'
+                      : 'Report an Issue',
                   style: context.textTheme.headlineLarge,
                 ),
 
@@ -170,21 +185,24 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                       value: entry.key,
                       child: Text(
                         entry.value,
-                        style: context.textTheme.bodyMedium?.copyWith(
+                        style:
+                            context.textTheme.bodyMedium?.copyWith(
                           color: AppColors.ink,
                         ),
                       ),
                     );
                   }).toList(),
-                  onChanged: (value) {
-                    if (value == null) {
-                      return;
-                    }
+                  onChanged: isSubmitting
+                      ? null
+                      : (value) {
+                          if (value == null) {
+                            return;
+                          }
 
-                    setState(() {
-                      _selectedCategory = value;
-                    });
-                  },
+                          setState(() {
+                            _selectedCategory = value;
+                          });
+                        },
                 ),
 
                 const SizedBox(
@@ -231,38 +249,32 @@ class _ReportIssueSheetState extends State<ReportIssueSheet> {
                   height: AppSizes.spacingLg,
                 ),
 
-                ValueListenableBuilder<bool>(
-                  valueListenable: complaintController.isSubmitting,
-                  builder: (context, isSubmitting, _) {
-                    return AppButton(
-                      width: double.infinity,
-                      text: isSubmitting
-                          ? isEditing
-                              ? 'Updating...'
-                              : 'Submitting...'
-                          : isEditing
-                              ? 'Update Complaint'
-                              : 'Submit Complaint',
-                      icon: isSubmitting
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.white,
-                              ),
-                            )
-                          : Icon(
-                              isEditing
-                                  ? Icons.save_outlined
-                                  : Icons.send_outlined,
-                              size: 18,
-                            ),
-                      onPressed: isSubmitting
-                          ? null
-                          : _submitComplaint,
-                    );
-                  },
+                AppButton(
+                  width: double.infinity,
+                  text: isSubmitting
+                      ? isEditing
+                          ? 'Updating...'
+                          : 'Submitting...'
+                      : isEditing
+                          ? 'Update Complaint'
+                          : 'Submit Complaint',
+                  icon: isSubmitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.white,
+                          ),
+                        )
+                      : Icon(
+                          isEditing
+                              ? Icons.save_outlined
+                              : Icons.send_outlined,
+                          size: 18,
+                        ),
+                  onPressed:
+                      isSubmitting ? null : _submitComplaint,
                 ),
               ],
             ),

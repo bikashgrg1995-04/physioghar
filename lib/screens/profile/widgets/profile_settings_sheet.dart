@@ -1,112 +1,118 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/extensions/context_extensions.dart';
-import 'package:physioghar/screens/profile/language_controller.dart';
-import 'package:physioghar/screens/profile/therapist_controller.dart';
+import 'package:physioghar/data/providers/language_provider.dart';
+import 'package:physioghar/data/providers/therapist_provider.dart';
 
-class ProfileSettingsSheet extends StatelessWidget {
+class ProfileSettingsSheet extends ConsumerWidget {
   const ProfileSettingsSheet({
     super.key,
-    required this.therapistController,
-    required this.languageController,
   });
 
-  final TherapistController therapistController;
-  final LanguageController languageController;
-
   @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: therapistController.therapist,
-      builder: (context, therapist, _) {
-        final isAvailable = therapist?.isAvailable ?? false;
+  Widget build(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final therapistState = ref.watch(therapistProvider);
 
-        return ValueListenableBuilder<AppLanguage>(
-          valueListenable: languageController.selectedLanguage,
-          builder: (context, language, _) {
-            final isEnglish = language == AppLanguage.english;
+    final therapist = therapistState.therapist;
 
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSizes.spacingLg,
-                  AppSizes.spacingSm,
-                  AppSizes.spacingLg,
-                  AppSizes.spacingLg,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const _BottomSheetHandle(),
+    final isAvailable = therapist?.isAvailable ?? false;
 
-                    const SizedBox(
-                      height: AppSizes.spacingLg,
-                    ),
+    final language = ref.watch(languageProvider);
 
-                    Text(
-                      isEnglish ? 'Settings' : 'सेटिङ्स',
-                      style: context.textTheme.headlineLarge,
-                    ),
+    final isEnglish = language == AppLanguage.english;
 
-                    const SizedBox(
-                      height: AppSizes.spacingLg,
-                    ),
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSizes.spacingLg,
+          AppSizes.spacingSm,
+          AppSizes.spacingLg,
+          AppSizes.spacingLg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _BottomSheetHandle(),
 
-                    _SettingsTile(
-                      icon: Icons.circle_outlined,
-                      title: isEnglish
-                          ? 'Availability'
-                          : 'उपलब्धता',
-                      subtitle: isAvailable
-                          ? isEnglish
-                              ? 'You are currently available'
-                              : 'तपाईं अहिले उपलब्ध हुनुहुन्छ'
-                          : isEnglish
-                              ? 'You are currently unavailable'
-                              : 'तपाईं अहिले उपलब्ध हुनुहुन्न',
-                      iconColor: isAvailable
-                          ? AppColors.pine
-                          : AppColors.inkMute,
-                      iconBackgroundColor: isAvailable
-                          ? AppColors.pinePale
-                          : AppColors.mist,
-                      trailing: Switch(
-                        value: isAvailable,
-                        activeThumbColor: AppColors.pine,
-                        onChanged: therapistController
-                            .updateAvailability,
-                      ),
-                    ),
+            const SizedBox(
+              height: AppSizes.spacingLg,
+            ),
 
-                    const SizedBox(
-                      height: AppSizes.spacingSm,
-                    ),
+            Text(
+              isEnglish ? 'Settings' : 'सेटिङ्स',
+              style: context.textTheme.headlineLarge,
+            ),
 
-                    _SettingsTile(
-                      icon: Icons.language_outlined,
-                      iconColor: AppColors.pine,
-                      iconBackgroundColor: AppColors.pinePale,
-                      title: isEnglish ? 'Language' : 'भाषा',
-                      subtitle: isEnglish ? 'English' : 'नेपाली',
-                      trailing: _LanguageToggle(
-                        selectedLanguage: language,
-                        onChanged: languageController.setLanguage,
-                      ),
-                    ),
+            const SizedBox(
+              height: AppSizes.spacingLg,
+            ),
 
-                    const SizedBox(
-                      height: AppSizes.spacingLg,
-                    ),
-                  ],
-                ),
+            _SettingsTile(
+              icon: Icons.circle_outlined,
+              title: isEnglish
+                  ? 'Availability'
+                  : 'उपलब्धता',
+              subtitle: isAvailable
+                  ? isEnglish
+                      ? 'You are currently available'
+                      : 'तपाईं अहिले उपलब्ध हुनुहुन्छ'
+                  : isEnglish
+                      ? 'You are currently unavailable'
+                      : 'तपाईं अहिले उपलब्ध हुनुहुन्न',
+              iconColor: isAvailable
+                  ? AppColors.pine
+                  : AppColors.inkMute,
+              iconBackgroundColor: isAvailable
+                  ? AppColors.pinePale
+                  : AppColors.mist,
+              trailing: Switch(
+                value: isAvailable,
+                activeThumbColor: AppColors.pine,
+                onChanged: therapistState.isUpdating
+                    ? null
+                    : (value) {
+                        ref
+                            .read(
+                              therapistProvider.notifier,
+                            )
+                            .updateAvailability(value);
+                      },
               ),
-            );
-          },
-        );
-      },
+            ),
+
+            const SizedBox(
+              height: AppSizes.spacingSm,
+            ),
+
+            _SettingsTile(
+              icon: Icons.language_outlined,
+              iconColor: AppColors.pine,
+              iconBackgroundColor: AppColors.pinePale,
+              title: isEnglish ? 'Language' : 'भाषा',
+              subtitle: isEnglish ? 'English' : 'नेपाली',
+              trailing: _LanguageToggle(
+                selectedLanguage: language,
+                onChanged: (value) {
+                  ref
+                      .read(languageProvider.notifier)
+                      .setLanguage(value);
+                },
+              ),
+            ),
+
+            const SizedBox(
+              height: AppSizes.spacingLg,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -121,7 +127,9 @@ class _BottomSheetHandle extends StatelessWidget {
         width: 42,
         height: 4,
         decoration: BoxDecoration(
-          color: AppColors.inkMute.withValues(alpha: 0.35),
+          color: AppColors.inkMute.withValues(
+            alpha: 0.35,
+          ),
           borderRadius: BorderRadius.circular(10),
         ),
       ),
@@ -186,23 +194,28 @@ class _SettingsTile extends StatelessWidget {
 
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: context.textTheme.bodyMedium?.copyWith(
+                  style: context.textTheme.bodyMedium
+                      ?.copyWith(
                     color: AppColors.ink,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+
                 const SizedBox(
                   height: AppSizes.spacingXs,
                 ),
+
                 Text(
                   subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: context.textTheme.bodyMedium?.copyWith(
+                  style: context.textTheme.bodyMedium
+                      ?.copyWith(
                     fontSize: AppSizes.fontSizeSm,
                     color: AppColors.inkMid,
                   ),
@@ -233,7 +246,8 @@ class _LanguageToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isEnglish = selectedLanguage == AppLanguage.english;
+    final isEnglish =
+        selectedLanguage == AppLanguage.english;
 
     return Container(
       height: 40,
@@ -251,14 +265,19 @@ class _LanguageToggle extends StatelessWidget {
             label: 'ENG',
             isSelected: isEnglish,
             onTap: () {
-              onChanged(AppLanguage.english);
+              onChanged(
+                AppLanguage.english,
+              );
             },
           ),
+
           _LanguageOption(
             label: 'NP',
             isSelected: !isEnglish,
             onTap: () {
-              onChanged(AppLanguage.nepali);
+              onChanged(
+                AppLanguage.nepali,
+              );
             },
           ),
         ],
@@ -303,7 +322,8 @@ class _LanguageOption extends StatelessWidget {
           ),
           child: Text(
             label,
-            style: context.textTheme.labelSmall?.copyWith(
+            style: context.textTheme.labelSmall
+                ?.copyWith(
               fontSize: AppSizes.fontSizeXs,
               fontWeight: FontWeight.w700,
               color: isSelected

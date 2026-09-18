@@ -1,4 +1,6 @@
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/common_widgets/app_card.dart';
@@ -9,16 +11,14 @@ import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
+import 'package:physioghar/data/providers/schedule_provider.dart';
+import 'package:physioghar/data/providers/session_provider.dart';
 import 'package:physioghar/models/schedule_slot.dart';
 import 'package:physioghar/models/session.dart';
-import 'package:physioghar/screens/schedule/schedule_controller.dart';
-import 'package:physioghar/screens/sessions/session_controller.dart';
 
 Future<bool> showRescheduleBottomSheet(
   BuildContext context, {
   required Session session,
-  required SessionController sessionController,
-  required ScheduleController scheduleController,
 }) async {
   final result = await showModalBottomSheet<bool>(
     context: context,
@@ -27,8 +27,6 @@ Future<bool> showRescheduleBottomSheet(
     builder: (_) {
       return _RescheduleBottomSheet(
         session: session,
-        sessionController: sessionController,
-        scheduleController: scheduleController,
       );
     },
   );
@@ -36,22 +34,21 @@ Future<bool> showRescheduleBottomSheet(
   return result ?? false;
 }
 
-class _RescheduleBottomSheet extends StatefulWidget {
+class _RescheduleBottomSheet
+    extends ConsumerStatefulWidget {
   const _RescheduleBottomSheet({
     required this.session,
-    required this.sessionController,
-    required this.scheduleController,
   });
 
   final Session session;
-  final SessionController sessionController;
-  final ScheduleController scheduleController;
 
   @override
-  State<_RescheduleBottomSheet> createState() => _RescheduleBottomSheetState();
+  ConsumerState<_RescheduleBottomSheet> createState() =>
+      _RescheduleBottomSheetState();
 }
 
-class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
+class _RescheduleBottomSheetState
+    extends ConsumerState<_RescheduleBottomSheet> {
   late DateTime _selectedDate;
 
   ScheduleSlot? _selectedSlot;
@@ -60,30 +57,58 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
   void initState() {
     super.initState();
 
-    final sessionDate = widget.session.scheduleDate;
+    final sessionDate =
+        widget.session.scheduleDate;
 
     final today = DateTime.now();
 
-    final startDate = DateTime(today.year, today.month, today.day);
+    final startDate = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    );
 
     _selectedDate = sessionDate == null
         ? startDate
-        : DateTime(sessionDate.year, sessionDate.month, sessionDate.day);
+        : DateTime(
+            sessionDate.year,
+            sessionDate.month,
+            sessionDate.day,
+          );
 
     if (_selectedDate.isBefore(startDate)) {
       _selectedDate = startDate;
     }
 
-    widget.scheduleController.loadSchedules(date: _selectedDate);
+    Future.microtask(() {
+      if (!mounted) {
+        return;
+      }
+
+      ref
+          .read(scheduleProvider.notifier)
+          .loadSchedules(
+            date: _selectedDate,
+          );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final sessionState =
+        ref.watch(sessionProvider);
+
+    final scheduleState =
+        ref.watch(scheduleProvider);
+
+    final slots = scheduleState.slots;
+
     return SafeArea(
       child: Container(
         width: double.infinity,
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+          maxHeight:
+              MediaQuery.sizeOf(context).height * 0.85,
         ),
         padding: const EdgeInsets.fromLTRB(
           AppSizes.spacingLg,
@@ -94,28 +119,39 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
         decoration: const BoxDecoration(
           color: AppColors.cream,
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppSizes.cardRadius),
+            top: Radius.circular(
+              AppSizes.cardRadius,
+            ),
           ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
           children: [
             _buildHandle(),
 
-            const SizedBox(height: AppSizes.spacingLg),
+            const SizedBox(
+              height: AppSizes.spacingLg,
+            ),
 
             _buildHeader(),
 
-            const SizedBox(height: AppSizes.spacingXs),
+            const SizedBox(
+              height: AppSizes.spacingXs,
+            ),
 
             _buildCurrentSchedule(),
 
-            const SizedBox(height: AppSizes.spacingXl),
+            const SizedBox(
+              height: AppSizes.spacingXl,
+            ),
 
             _buildDateSectionLabel(),
 
-            const SizedBox(height: AppSizes.spacingMd),
+            const SizedBox(
+              height: AppSizes.spacingMd,
+            ),
 
             AppDateSelector(
               dates: _buildDates(),
@@ -123,30 +159,122 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
               onDateSelected: _onDateSelected,
             ),
 
-            const SizedBox(height: AppSizes.spacingXl),
+            const SizedBox(
+              height: AppSizes.spacingXl,
+            ),
 
             _buildSlotSectionLabel(),
 
-            const SizedBox(height: AppSizes.spacingMd),
+            const SizedBox(
+              height: AppSizes.spacingMd,
+            ),
 
             Expanded(
-              child: ValueListenableBuilder<List<ScheduleSlot>>(
-                valueListenable: widget.scheduleController.slots,
-                builder: (context, slots, _) {
-                  final openSlots = _getOpenSlots(slots);
-
-                  if (openSlots.isEmpty) {
-                    return _buildEmptyState();
-                  }
-
-                  return _buildSlotList(openSlots);
-                },
+              child: _buildSlotContent(
+                slots: slots,
+                isLoading:
+                    scheduleState.isLoading,
+                errorMessage:
+                    scheduleState.errorMessage,
               ),
             ),
 
-            const SizedBox(height: AppSizes.spacingLg),
+            const SizedBox(
+              height: AppSizes.spacingLg,
+            ),
 
-            _buildConfirmButton(),
+            _buildConfirmButton(
+              isUpdating:
+                  sessionState.isUpdating,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSlotContent({
+    required List<ScheduleSlot> slots,
+    required bool isLoading,
+    required String? errorMessage,
+  }) {
+    if (isLoading && slots.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (errorMessage != null &&
+        slots.isEmpty) {
+      return _buildScheduleError(
+        errorMessage,
+      );
+    }
+
+    final openSlots =
+        _getOpenSlots(slots);
+
+    if (openSlots.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return _buildSlotList(openSlots);
+  }
+
+  Widget _buildScheduleError(
+    String errorMessage,
+  ) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(
+          AppSizes.spacingXl,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 40,
+              color: AppColors.danger,
+            ),
+
+            const SizedBox(
+              height: AppSizes.spacingMd,
+            ),
+
+            Text(
+              'Unable to load slots',
+              style:
+                  context.textTheme.headlineLarge,
+            ),
+
+            const SizedBox(
+              height: AppSizes.spacingXs,
+            ),
+
+            Text(
+              errorMessage,
+              textAlign: TextAlign.center,
+              style:
+                  context.textTheme.bodyMedium,
+            ),
+
+            const SizedBox(
+              height: AppSizes.spacingLg,
+            ),
+
+            AppButton(
+              text: 'Retry',
+              onPressed: () {
+                ref
+                    .read(
+                      scheduleProvider.notifier,
+                    )
+                    .loadSchedules(
+                      date: _selectedDate,
+                    );
+              },
+            ),
           ],
         ),
       ),
@@ -156,27 +284,43 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
   List<DateTime> _buildDates() {
     final today = DateTime.now();
 
-    final startDate = DateTime(today.year, today.month, today.day);
+    final startDate = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    );
 
-    return List.generate(7, (index) => startDate.add(Duration(days: index)));
+    return List.generate(
+      7,
+      (index) => startDate.add(
+        Duration(days: index),
+      ),
+    );
   }
 
-  List<ScheduleSlot> _getOpenSlots(List<ScheduleSlot> slots) {
+  List<ScheduleSlot> _getOpenSlots(
+    List<ScheduleSlot> slots,
+  ) {
     final now = DateTime.now();
 
     final result = slots.where((slot) {
-      if (slot.status != ScheduleSlotStatus.open) {
+      if (slot.status !=
+          ScheduleSlotStatus.open) {
         return false;
       }
 
       final slotDate = slot.date;
 
       if (slotDate == null ||
-          !DateTimeUtils.isSameDay(slotDate, _selectedDate)) {
+          !DateTimeUtils.isSameDay(
+            slotDate,
+            _selectedDate,
+          )) {
         return false;
       }
 
-      final slotDateTime = DateTimeUtils.combineDateAndTime(
+      final slotDateTime =
+          DateTimeUtils.combineDateAndTime(
         slotDate,
         slot.time,
       );
@@ -185,14 +329,12 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
         return false;
       }
 
-      // Do not show past times.
       if (!slotDateTime.isAfter(now)) {
         return false;
       }
 
-      // Do not show the current session's
-      // existing slot as a new option.
-      if (slot.id == widget.session.scheduleSlotId) {
+      if (slot.id ==
+          widget.session.scheduleSlotId) {
         return false;
       }
 
@@ -201,8 +343,13 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
 
     result.sort(
       (a, b) =>
-          DateTimeUtils.timeToMinutes(a.time)
-              .compareTo(DateTimeUtils.timeToMinutes(b.time)),
+          DateTimeUtils.timeToMinutes(
+            a.time,
+          ).compareTo(
+            DateTimeUtils.timeToMinutes(
+              b.time,
+            ),
+          ),
     );
 
     return result;
@@ -214,7 +361,11 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
       _selectedSlot = null;
     });
 
-    widget.scheduleController.loadSchedules(date: date);
+    ref
+        .read(scheduleProvider.notifier)
+        .loadSchedules(
+          date: date,
+        );
   }
 
   Widget _buildHandle() {
@@ -224,21 +375,28 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
         height: 4,
         decoration: BoxDecoration(
           color: AppColors.inkMute,
-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+          borderRadius: BorderRadius.circular(
+            AppSizes.buttonRadius,
+          ),
         ),
       ),
     );
   }
 
   Widget _buildHeader() {
-    return Text('Reschedule Session', style: context.textTheme.headlineLarge);
+    return Text(
+      'Reschedule Session',
+      style: context.textTheme.headlineLarge,
+    );
   }
 
   Widget _buildCurrentSchedule() {
     return Text(
       '${widget.session.patientName ?? 'Unknown Patient'} • '
       '${_currentDateText()} • '
-      '${DateTimeUtils.formatTimeString(widget.session.scheduleTime)}',
+      '${DateTimeUtils.formatTimeString(
+        widget.session.scheduleTime,
+      )}',
       style: context.textTheme.bodyMedium?.copyWith(
         fontSize: AppSizes.fontSizeSm,
       ),
@@ -246,7 +404,8 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
   }
 
   String _currentDateText() {
-    final date = widget.session.scheduleDate;
+    final date =
+        widget.session.scheduleDate;
 
     if (date == null) {
       return 'Date not provided';
@@ -277,16 +436,22 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
     );
   }
 
-  Widget _buildSlotList(List<ScheduleSlot> openSlots) {
+  Widget _buildSlotList(
+    List<ScheduleSlot> openSlots,
+  ) {
     return ListView.separated(
       itemCount: openSlots.length,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSizes.spacingSm),
+      separatorBuilder: (_, _) =>
+          const SizedBox(
+        height: AppSizes.spacingSm,
+      ),
       itemBuilder: (context, index) {
         final slot = openSlots[index];
 
         return _SlotOption(
           slot: slot,
-          selected: _selectedSlot?.id == slot.id,
+          selected:
+              _selectedSlot?.id == slot.id,
           onTap: () {
             setState(() {
               _selectedSlot = slot;
@@ -300,7 +465,9 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSizes.spacingXl),
+        padding: const EdgeInsets.all(
+          AppSizes.spacingXl,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -309,14 +476,27 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
               size: 40,
               color: AppColors.inkMute,
             ),
-            const SizedBox(height: AppSizes.spacingMd),
-            Text('No available slots', style: context.textTheme.headlineLarge),
-            const SizedBox(height: AppSizes.spacingXs),
+
+            const SizedBox(
+              height: AppSizes.spacingMd,
+            ),
+
+            Text(
+              'No available slots',
+              style:
+                  context.textTheme.headlineLarge,
+            ),
+
+            const SizedBox(
+              height: AppSizes.spacingXs,
+            ),
+
             Text(
               'There are no open slots available '
               'for this date. Please select another date.',
               textAlign: TextAlign.center,
-              style: context.textTheme.bodyMedium,
+              style:
+                  context.textTheme.bodyMedium,
             ),
           ],
         ),
@@ -324,32 +504,35 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
     );
   }
 
-  Widget _buildConfirmButton() {
-    return ValueListenableBuilder<bool>(
-      valueListenable: widget.sessionController.isUpdating,
-      builder: (context, isUpdating, _) {
-        return AppButton(
-          width: double.infinity,
-          text: isUpdating ? 'Rescheduling...' : 'Confirm Reschedule',
-          onPressed: _selectedSlot == null || isUpdating
+  Widget _buildConfirmButton({
+    required bool isUpdating,
+  }) {
+    return AppButton(
+      width: double.infinity,
+      text: isUpdating
+          ? 'Rescheduling...'
+          : 'Confirm Reschedule',
+      onPressed:
+          _selectedSlot == null || isUpdating
               ? null
               : _confirmReschedule,
-        );
-      },
     );
   }
 
   Future<void> _confirmReschedule() async {
     final newSlot = _selectedSlot;
 
-    if (newSlot == null || newSlot.id == null) {
+    if (newSlot == null ||
+        newSlot.id == null) {
       return;
     }
 
-    final confirmed = await showConfirmationDialog(
+    final confirmed =
+        await showConfirmationDialog(
       context,
       title: 'Reschedule Session?',
-      message: 'Are you sure you want to reschedule this session to the selected time?',
+      message:
+          'Are you sure you want to reschedule this session to the selected time?',
       confirmText: 'Reschedule',
       icon: Icons.event_repeat_outlined,
     );
@@ -358,22 +541,25 @@ class _RescheduleBottomSheetState extends State<_RescheduleBottomSheet> {
       return;
     }
 
-    final success = await widget.sessionController.rescheduleSession(
-      sessionId: widget.session.id!,
-      scheduleSlotId: newSlot.id!,
-    );
+    final success = await ref
+        .read(sessionProvider.notifier)
+        .rescheduleSession(
+          sessionId: widget.session.id!,
+          scheduleSlotId: newSlot.id!,
+        );
 
     if (!mounted) {
       return;
     }
 
     if (success) {
-      Navigator.of(context).pop(true);
-
-      AppSnackBar.showSuccess('Session rescheduled successfully.');
+     Navigator.of(context).pop(true);
     } else {
+      final errorMessage =
+          ref.read(sessionProvider).errorMessage;
+
       AppSnackBar.showError(
-        widget.sessionController.errorMessage ??
+        errorMessage ??
             'Unable to reschedule session.',
       );
     }
@@ -395,43 +581,76 @@ class _SlotOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(AppSizes.spacingMd),
-     
+      padding: const EdgeInsets.all(
+        AppSizes.spacingMd,
+      ),
       child: Container(
-        constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
-        padding: const EdgeInsets.all(AppSizes.spacingMd),
+        constraints: const BoxConstraints(
+          minHeight: AppSizes.minTapTarget,
+        ),
+        padding: const EdgeInsets.all(
+          AppSizes.spacingMd,
+        ),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+          borderRadius: BorderRadius.circular(
+            AppSizes.cardRadius,
+          ),
           border: Border.all(
-            color: selected ? AppColors.pine : AppColors.mist,
+            color: selected
+                ? AppColors.pine
+                : AppColors.mist,
             width: selected ? 2 : 1,
           ),
         ),
         child: Row(
           children: [
-            _SelectionIndicator(selected: selected),
+            _SelectionIndicator(
+              selected: selected,
+            ),
 
-            const SizedBox(width: AppSizes.spacingMd),
+            const SizedBox(
+              width: AppSizes.spacingMd,
+            ),
 
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
                 children: [
                   Text(
                     slot.date == null
                         ? 'Date not provided'
-                        : DateTimeUtils.formatFullDate(slot.date!),
-                    style: context.textTheme.bodyMedium?.copyWith(
-                      fontSize: AppSizes.fontSizeSm,
+                        : DateTimeUtils
+                            .formatFullDate(
+                            slot.date!,
+                          ),
+                    style: context
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(
+                      fontSize:
+                          AppSizes.fontSizeSm,
                     ),
                   ),
-                  const SizedBox(height: AppSizes.spacingXs),
+
+                  const SizedBox(
+                    height: AppSizes.spacingXs,
+                  ),
+
                   Text(
-                    DateTimeUtils.formatTimeString(slot.time),
-                    style: context.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                    DateTimeUtils
+                        .formatTimeString(
+                      slot.time,
+                    ),
+                    style: context
+                        .textTheme
+                        .labelSmall
+                        ?.copyWith(
+                      fontWeight:
+                          FontWeight.w700,
                       letterSpacing: 0.7,
-                      color: AppColors.inkMid,
+                      color:
+                          AppColors.inkMid,
                     ),
                   ),
                 ],
@@ -444,8 +663,11 @@ class _SlotOption extends StatelessWidget {
   }
 }
 
-class _SelectionIndicator extends StatelessWidget {
-  const _SelectionIndicator({required this.selected});
+class _SelectionIndicator
+    extends StatelessWidget {
+  const _SelectionIndicator({
+    required this.selected,
+  });
 
   final bool selected;
 
@@ -457,7 +679,9 @@ class _SelectionIndicator extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: selected ? AppColors.pine : AppColors.inkMute,
+          color: selected
+              ? AppColors.pine
+              : AppColors.inkMute,
           width: 2,
         ),
       ),
@@ -466,7 +690,8 @@ class _SelectionIndicator extends StatelessWidget {
               child: Container(
                 width: 10,
                 height: 10,
-                decoration: const BoxDecoration(
+                decoration:
+                    const BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.pine,
                 ),

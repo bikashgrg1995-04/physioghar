@@ -1,3 +1,299 @@
+// import 'dart:io';
+
+// import 'package:flutter/material.dart';
+// import 'package:image_picker/image_picker.dart';
+
+// import 'package:physioghar/common_widgets/app_snackbar.dart';
+// import 'package:physioghar/core/constants/app_sizes.dart';
+// import 'package:physioghar/data/repositories/therapist_repository.dart';
+// import 'package:physioghar/models/therapist.dart';
+// import 'package:physioghar/screens/auth/auth_controller.dart';
+// import 'package:physioghar/screens/profile/language_controller.dart';
+// import 'package:physioghar/screens/profile/widgets/edit_profile_dialog.dart';
+// import 'package:physioghar/screens/profile/widgets/profile_settings_sheet.dart';
+// import 'package:physioghar/screens/profile/widgets/report_issue_sheet.dart';
+
+// class TherapistController {
+//   TherapistController({
+//     TherapistRepository? therapistRepository,
+//     AuthController? authController,
+//   }) : _therapistRepository = therapistRepository ?? TherapistRepository(),
+//        _authController = authController ?? AuthController();
+//   final TherapistRepository _therapistRepository;
+//   final AuthController _authController;
+
+//   final isLoading = ValueNotifier<bool>(false);
+//   final isUpdating = ValueNotifier<bool>(false);
+
+//   final therapist = ValueNotifier<Therapist?>(null);
+
+//   final isAvatarUpdating = ValueNotifier<bool>(false);
+
+//   Future<void> loadProfile() async {
+//     if (isLoading.value) {
+//       return;
+//     }
+
+//     isLoading.value = true;
+
+//     try {
+//       final result = await _therapistRepository.getProfile();
+
+//       therapist.value = result;
+//       try {
+//         final avatar = await _therapistRepository.getAvatar();
+//         therapist.value = result.copyWith(avatar: avatar);
+//       } catch (error) {
+//         debugPrint('Failed to load therapist avatar: $error');
+//       }
+//     } catch (error) {
+//       debugPrint('Failed to load therapist profile: $error');
+
+//       AppSnackBar.showError('Unable to load profile.');
+//     } finally {
+//       isLoading.value = false;
+//     }
+//   }
+
+//   Future<void> updateProfile({
+//     required String phone,
+//     required String specialization,
+//     required String experience,
+//     required String address,
+//     required String bio,
+//   }) async {
+//     final currentTherapist = therapist.value;
+
+//     if (currentTherapist == null || isUpdating.value) {
+//       return;
+//     }
+
+//     isUpdating.value = true;
+
+//     try {
+//       final result = await _therapistRepository.updateProfile(
+//         phone: phone,
+//         specialization: specialization,
+//         experience: experience,
+//         address: address,
+//         bio: bio,
+//         isAvailable: currentTherapist.isAvailable ?? true,
+//       );
+
+//       therapist.value = result;
+
+//       AppSnackBar.showSuccess('Profile updated successfully.');
+//     } catch (error) {
+//       debugPrint('Failed to update profile: $error');
+
+//       AppSnackBar.showError('Unable to update profile.');
+//     } finally {
+//       isUpdating.value = false;
+//     }
+//   }
+
+//   Future<void> changeAvatar(BuildContext context) async {
+//     if (isAvatarUpdating.value) {
+//   return;
+// }
+//     final source = await showModalBottomSheet<ImageSource>(
+//       context: context,
+//       builder: (context) {
+//         return SafeArea(
+//           child: Wrap(
+//             children: [
+//               ListTile(
+//                 leading: const Icon(Icons.photo_library_outlined),
+//                 title: const Text('Choose from gallery'),
+//                 onTap: () {
+//                   Navigator.pop(context, ImageSource.gallery);
+//                 },
+//               ),
+//               ListTile(
+//                 leading: const Icon(Icons.camera_alt_outlined),
+//                 title: const Text('Take a photo'),
+//                 onTap: () {
+//                   Navigator.pop(context, ImageSource.camera);
+//                 },
+//               ),
+//             ],
+//           ),
+//         );
+//       },
+//     );
+
+//     if (source == null) {
+//       return;
+//     }
+
+//     try {
+//       final picker = ImagePicker();
+
+//       final image = await picker.pickImage(source: source, imageQuality: 85);
+
+//       if (image == null) {
+//         return;
+//       }
+//       isAvatarUpdating.value = true;
+
+//       final file = File(image.path);
+
+//       final avatar = await _therapistRepository.updateAvatar(file);
+
+//       final currentTherapist = therapist.value;
+
+//       if (currentTherapist == null) {
+//         return;
+//       }
+
+//       therapist.value = currentTherapist.copyWith(avatar: avatar);
+
+//       AppSnackBar.showSuccess('Profile photo updated successfully.');
+//     } catch (error) {
+//       debugPrint('Failed to update avatar: $error');
+
+//       AppSnackBar.showError('Unable to update profile photo.');
+//     } finally {
+//       isAvatarUpdating.value = false;
+//     }
+//   }
+
+//   Future<void> updateAvailability(bool isAvailable) async {
+//     final currentTherapist = therapist.value;
+
+//     if (currentTherapist == null || isUpdating.value) {
+//       return;
+//     }
+
+//     final previousValue = currentTherapist.isAvailable ?? false;
+
+//     // Optimistic UI update.
+//     therapist.value = currentTherapist.copyWith(isAvailable: isAvailable);
+
+//     isUpdating.value = true;
+
+//     try {
+//       final savedValue = await _therapistRepository.updateAvailability(
+//         isAvailable,
+//       );
+
+//       final latestTherapist = therapist.value;
+
+//       if (latestTherapist == null) {
+//         return;
+//       }
+
+//       // Update only availability.
+//       therapist.value = latestTherapist.copyWith(isAvailable: savedValue);
+
+//       debugPrint('Availability updated: $savedValue');
+//     } catch (error) {
+//       final latestTherapist = therapist.value;
+
+//       if (latestTherapist != null) {
+//         // Roll back only availability.
+//         therapist.value = latestTherapist.copyWith(isAvailable: previousValue);
+//       }
+
+//       debugPrint('Failed to update availability: $error');
+
+//       AppSnackBar.showError('Unable to update availability.');
+//     } finally {
+//       isUpdating.value = false;
+//     }
+//   }
+
+//   Future<void> openEditProfile(BuildContext context) async {
+//     final currentTherapist = therapist.value;
+
+//     if (currentTherapist == null) {
+//       return;
+//     }
+
+//     await showDialog<void>(
+//       context: context,
+//       builder: (_) {
+//         return EditProfileDialog(
+//           therapist: currentTherapist,
+//           onSave:
+//               ({
+//                 required String phone,
+//                 required String experience,
+//                 required String specialization,
+//                 required String address,
+//                 required String bio,
+//               }) async {
+//                 await updateProfile(
+//                   phone: phone,
+//                   experience: experience,
+//                   specialization: specialization,
+//                   address: address,
+//                   bio: bio,
+//                 );
+//               },
+//         );
+//       },
+//     );
+//   }
+
+//   Future<void> openSettings(
+//     BuildContext context,
+//     LanguageController languageController,
+//   ) async {
+//     await showModalBottomSheet<void>(
+//       context: context,
+//       backgroundColor: Colors.white,
+//       isScrollControlled: true,
+//       shape: const RoundedRectangleBorder(
+//         borderRadius: BorderRadius.vertical(
+//           top: Radius.circular(AppSizes.cardRadius),
+//         ),
+//       ),
+//       builder: (_) {
+//         return ProfileSettingsSheet(
+//           therapistController: this,
+//           languageController: languageController,
+//         );
+//       },
+//     );
+//   }
+
+//   Future<void> openReportIssue(BuildContext context) async {
+//     await showModalBottomSheet<void>(
+//       context: context,
+//       backgroundColor: Colors.white,
+//       isScrollControlled: true,
+//       shape: const RoundedRectangleBorder(
+//         borderRadius: BorderRadius.vertical(
+//           top: Radius.circular(AppSizes.cardRadius),
+//         ),
+//       ),
+//       builder: (_) {
+//         return const ReportIssueSheet();
+//       },
+//     );
+//   }
+
+//   Future<void> logout(BuildContext context) async {
+//     await _authController.logout(context);
+//   }
+
+//   void dispose() {
+//     isLoading.dispose();
+//     isUpdating.dispose();
+//     therapist.dispose();
+
+//     isAvatarUpdating.dispose();
+
+//     _authController.dispose();
+//   }
+
+  
+// }
+// // Shared therapist controller used across profile, 
+//   // schedule, dashboard, and other therapist-related screens. 
+//   final therapistController = TherapistController();
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,20 +303,16 @@ import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/data/repositories/therapist_repository.dart';
 import 'package:physioghar/models/therapist.dart';
-import 'package:physioghar/screens/auth/auth_controller.dart';
-import 'package:physioghar/screens/profile/language_controller.dart';
 import 'package:physioghar/screens/profile/widgets/edit_profile_dialog.dart';
-import 'package:physioghar/screens/profile/widgets/profile_settings_sheet.dart';
 import 'package:physioghar/screens/profile/widgets/report_issue_sheet.dart';
 
 class TherapistController {
   TherapistController({
     TherapistRepository? therapistRepository,
-    AuthController? authController,
-  }) : _therapistRepository = therapistRepository ?? TherapistRepository(),
-       _authController = authController ?? AuthController();
+  }) : _therapistRepository =
+           therapistRepository ?? TherapistRepository();
+
   final TherapistRepository _therapistRepository;
-  final AuthController _authController;
 
   final isLoading = ValueNotifier<bool>(false);
   final isUpdating = ValueNotifier<bool>(false);
@@ -40,16 +332,26 @@ class TherapistController {
       final result = await _therapistRepository.getProfile();
 
       therapist.value = result;
+
       try {
         final avatar = await _therapistRepository.getAvatar();
-        therapist.value = result.copyWith(avatar: avatar);
+
+        therapist.value = result.copyWith(
+          avatar: avatar,
+        );
       } catch (error) {
-        debugPrint('Failed to load therapist avatar: $error');
+        debugPrint(
+          'Failed to load therapist avatar: $error',
+        );
       }
     } catch (error) {
-      debugPrint('Failed to load therapist profile: $error');
+      debugPrint(
+        'Failed to load therapist profile: $error',
+      );
 
-      AppSnackBar.showError('Unable to load profile.');
+      AppSnackBar.showError(
+        'Unable to load profile.',
+      );
     } finally {
       isLoading.value = false;
     }
@@ -71,49 +373,75 @@ class TherapistController {
     isUpdating.value = true;
 
     try {
-      final result = await _therapistRepository.updateProfile(
+      final result =
+          await _therapistRepository.updateProfile(
         phone: phone,
         specialization: specialization,
         experience: experience,
         address: address,
         bio: bio,
-        isAvailable: currentTherapist.isAvailable ?? true,
+        isAvailable:
+            currentTherapist.isAvailable ?? true,
       );
 
       therapist.value = result;
 
-      AppSnackBar.showSuccess('Profile updated successfully.');
+      AppSnackBar.showSuccess(
+        'Profile updated successfully.',
+      );
     } catch (error) {
-      debugPrint('Failed to update profile: $error');
+      debugPrint(
+        'Failed to update profile: $error',
+      );
 
-      AppSnackBar.showError('Unable to update profile.');
+      AppSnackBar.showError(
+        'Unable to update profile.',
+      );
     } finally {
       isUpdating.value = false;
     }
   }
 
-  Future<void> changeAvatar(BuildContext context) async {
+  Future<void> changeAvatar(
+    BuildContext context,
+  ) async {
     if (isAvatarUpdating.value) {
-  return;
-}
-    final source = await showModalBottomSheet<ImageSource>(
+      return;
+    }
+
+    final source =
+        await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) {
         return SafeArea(
           child: Wrap(
             children: [
               ListTile(
-                leading: const Icon(Icons.photo_library_outlined),
-                title: const Text('Choose from gallery'),
+                leading: const Icon(
+                  Icons.photo_library_outlined,
+                ),
+                title: const Text(
+                  'Choose from gallery',
+                ),
                 onTap: () {
-                  Navigator.pop(context, ImageSource.gallery);
+                  Navigator.pop(
+                    context,
+                    ImageSource.gallery,
+                  );
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.camera_alt_outlined),
-                title: const Text('Take a photo'),
+                leading: const Icon(
+                  Icons.camera_alt_outlined,
+                ),
+                title: const Text(
+                  'Take a photo',
+                ),
                 onTap: () {
-                  Navigator.pop(context, ImageSource.camera);
+                  Navigator.pop(
+                    context,
+                    ImageSource.camera,
+                  );
                 },
               ),
             ],
@@ -129,16 +457,21 @@ class TherapistController {
     try {
       final picker = ImagePicker();
 
-      final image = await picker.pickImage(source: source, imageQuality: 85);
+      final image = await picker.pickImage(
+        source: source,
+        imageQuality: 85,
+      );
 
       if (image == null) {
         return;
       }
+
       isAvatarUpdating.value = true;
 
       final file = File(image.path);
 
-      final avatar = await _therapistRepository.updateAvatar(file);
+      final avatar =
+          await _therapistRepository.updateAvatar(file);
 
       final currentTherapist = therapist.value;
 
@@ -146,34 +479,50 @@ class TherapistController {
         return;
       }
 
-      therapist.value = currentTherapist.copyWith(avatar: avatar);
+      therapist.value =
+          currentTherapist.copyWith(
+        avatar: avatar,
+      );
 
-      AppSnackBar.showSuccess('Profile photo updated successfully.');
+      AppSnackBar.showSuccess(
+        'Profile photo updated successfully.',
+      );
     } catch (error) {
-      debugPrint('Failed to update avatar: $error');
+      debugPrint(
+        'Failed to update avatar: $error',
+      );
 
-      AppSnackBar.showError('Unable to update profile photo.');
+      AppSnackBar.showError(
+        'Unable to update profile photo.',
+      );
     } finally {
       isAvatarUpdating.value = false;
     }
   }
 
-  Future<void> updateAvailability(bool isAvailable) async {
+  Future<void> updateAvailability(
+    bool isAvailable,
+  ) async {
     final currentTherapist = therapist.value;
 
-    if (currentTherapist == null || isUpdating.value) {
+    if (currentTherapist == null ||
+        isUpdating.value) {
       return;
     }
 
-    final previousValue = currentTherapist.isAvailable ?? false;
+    final previousValue =
+        currentTherapist.isAvailable ?? false;
 
-    // Optimistic UI update.
-    therapist.value = currentTherapist.copyWith(isAvailable: isAvailable);
+    therapist.value =
+        currentTherapist.copyWith(
+      isAvailable: isAvailable,
+    );
 
     isUpdating.value = true;
 
     try {
-      final savedValue = await _therapistRepository.updateAvailability(
+      final savedValue =
+          await _therapistRepository.updateAvailability(
         isAvailable,
       );
 
@@ -183,27 +532,39 @@ class TherapistController {
         return;
       }
 
-      // Update only availability.
-      therapist.value = latestTherapist.copyWith(isAvailable: savedValue);
+      therapist.value =
+          latestTherapist.copyWith(
+        isAvailable: savedValue,
+      );
 
-      debugPrint('Availability updated: $savedValue');
+      debugPrint(
+        'Availability updated: $savedValue',
+      );
     } catch (error) {
       final latestTherapist = therapist.value;
 
       if (latestTherapist != null) {
-        // Roll back only availability.
-        therapist.value = latestTherapist.copyWith(isAvailable: previousValue);
+        therapist.value =
+            latestTherapist.copyWith(
+          isAvailable: previousValue,
+        );
       }
 
-      debugPrint('Failed to update availability: $error');
+      debugPrint(
+        'Failed to update availability: $error',
+      );
 
-      AppSnackBar.showError('Unable to update availability.');
+      AppSnackBar.showError(
+        'Unable to update availability.',
+      );
     } finally {
       isUpdating.value = false;
     }
   }
 
-  Future<void> openEditProfile(BuildContext context) async {
+  Future<void> openEditProfile(
+    BuildContext context,
+  ) async {
     final currentTherapist = therapist.value;
 
     if (currentTherapist == null) {
@@ -215,22 +576,21 @@ class TherapistController {
       builder: (_) {
         return EditProfileDialog(
           therapist: currentTherapist,
-          onSave:
-              ({
-                required String phone,
-                required String experience,
-                required String specialization,
-                required String address,
-                required String bio,
-              }) async {
-                await updateProfile(
-                  phone: phone,
-                  experience: experience,
-                  specialization: specialization,
-                  address: address,
-                  bio: bio,
-                );
-              },
+          onSave: ({
+            required String phone,
+            required String experience,
+            required String specialization,
+            required String address,
+            required String bio,
+          }) async {
+            await updateProfile(
+              phone: phone,
+              experience: experience,
+              specialization: specialization,
+              address: address,
+              bio: bio,
+            );
+          },
         );
       },
     );
@@ -238,7 +598,6 @@ class TherapistController {
 
   Future<void> openSettings(
     BuildContext context,
-    LanguageController languageController,
   ) async {
     await showModalBottomSheet<void>(
       context: context,
@@ -246,26 +605,34 @@ class TherapistController {
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSizes.cardRadius),
+          top: Radius.circular(
+            AppSizes.cardRadius,
+          ),
         ),
       ),
       builder: (_) {
-        return ProfileSettingsSheet(
-          therapistController: this,
-          languageController: languageController,
-        );
+        return SizedBox();
+        
+        // ProfileSettingsSheet(
+        //   therapistController: this,
+        //   languageController: languageController,
+        // );
       },
     );
   }
 
-  Future<void> openReportIssue(BuildContext context) async {
+  Future<void> openReportIssue(
+    BuildContext context,
+  ) async {
     await showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSizes.cardRadius),
+          top: Radius.circular(
+            AppSizes.cardRadius,
+          ),
         ),
       ),
       builder: (_) {
@@ -274,22 +641,14 @@ class TherapistController {
     );
   }
 
-  Future<void> logout(BuildContext context) async {
-    await _authController.logout(context);
-  }
-
   void dispose() {
     isLoading.dispose();
     isUpdating.dispose();
     therapist.dispose();
-
     isAvatarUpdating.dispose();
-
-    _authController.dispose();
   }
-
-  
 }
-// Shared therapist controller used across profile, 
-  // schedule, dashboard, and other therapist-related screens. 
-  final therapistController = TherapistController();
+
+// Shared therapist controller used across profile,
+// schedule, dashboard, and other therapist-related screens.
+final therapistController = TherapistController();

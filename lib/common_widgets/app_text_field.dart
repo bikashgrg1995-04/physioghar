@@ -1,5 +1,6 @@
+
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/extensions/context_extensions.dart';
@@ -21,6 +22,7 @@ class AppTextField extends StatelessWidget {
     this.enabled = true,
     this.maxLines = 1,
   });
+
   final TextEditingController controller;
   final String hintText;
   final IconData? prefixIcon;
@@ -34,17 +36,26 @@ class AppTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final bool enabled;
   final int maxLines;
+
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(
+      AppSizes.cardRadius,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null) ...[
           Text(
             label!,
-            style: context.textTheme.bodyMedium?.copyWith(color: AppColors.ink),
+            style: context.textTheme.bodyMedium?.copyWith(
+              color: AppColors.ink,
+            ),
           ),
-          const SizedBox(height: AppSizes.spacingSm),
+          const SizedBox(
+            height: AppSizes.spacingSm,
+          ),
         ],
         TextFormField(
           controller: controller,
@@ -56,8 +67,7 @@ class AppTextField extends StatelessWidget {
           onChanged: onChanged,
           onFieldSubmitted: onSubmitted,
           validator: validator,
-          style: GoogleFonts.inter(
-            fontSize: AppSizes.fontSizeMd,
+          style: context.textTheme.bodyMedium?.copyWith(
             color: AppColors.ink,
           ),
           decoration: InputDecoration(
@@ -67,7 +77,11 @@ class AppTextField extends StatelessWidget {
             ),
             prefixIcon: prefixIcon == null
                 ? null
-                : Icon(prefixIcon, color: AppColors.pineLight, size: 20),
+                : Icon(
+                    prefixIcon,
+                    color: AppColors.pineLight,
+                    size: 20,
+                  ),
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: AppColors.mist,
@@ -76,27 +90,32 @@ class AppTextField extends StatelessWidget {
               vertical: AppSizes.spacingLg,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: radius,
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: radius,
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: radius,
               borderSide: const BorderSide(
                 color: AppColors.pineLight,
                 width: 1.2,
               ),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.danger),
+              borderRadius: radius,
+              borderSide: const BorderSide(
+                color: AppColors.danger,
+              ),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.danger, width: 1.2),
+              borderRadius: radius,
+              borderSide: const BorderSide(
+                color: AppColors.danger,
+                width: 1.2,
+              ),
             ),
           ),
         ),

@@ -1,29 +1,27 @@
-
 import 'package:flutter/material.dart';
-import 'package:physioghar/common_widgets/app_button.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:physioghar/common_widgets/app_button.dart';
 import 'package:physioghar/common_widgets/app_snackbar.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 import 'package:physioghar/core/utils/date_time_utils.dart';
-import 'package:physioghar/screens/schedule/schedule_controller.dart';
+import 'package:physioghar/data/providers/schedule_provider.dart';
 
-class AddSlotBottomSheet extends StatefulWidget {
+class AddSlotBottomSheet extends ConsumerStatefulWidget {
   const AddSlotBottomSheet({
     super.key,
     required this.selectedDate,
-    required this.controller,
   });
 
   final DateTime selectedDate;
-  final ScheduleController controller;
 
   @override
-  State<AddSlotBottomSheet> createState() =>
+  ConsumerState<AddSlotBottomSheet> createState() =>
       _AddSlotBottomSheetState();
 }
 
 class _AddSlotBottomSheetState
-    extends State<AddSlotBottomSheet> {
+    extends ConsumerState<AddSlotBottomSheet> {
   TimeOfDay? _time;
   bool _isSaving = false;
 
@@ -43,11 +41,8 @@ class _AddSlotBottomSheetState
   }
 
   String _formatTime(TimeOfDay time) {
-    final hour =
-        time.hour.toString().padLeft(2, '0');
-
-    final minute =
-        time.minute.toString().padLeft(2, '0');
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
 
     return '$hour:$minute:00';
   }
@@ -62,11 +57,12 @@ class _AddSlotBottomSheetState
     });
 
     try {
-      final added =
-          await widget.controller.addSlot(
-        date: widget.selectedDate,
-        time: _formatTime(_time!),
-      );
+      final added = await ref
+          .read(scheduleProvider.notifier)
+          .addSlot(
+            date: widget.selectedDate,
+            time: _formatTime(_time!),
+          );
 
       if (!mounted) {
         return;
@@ -82,9 +78,11 @@ class _AddSlotBottomSheetState
         return;
       }
 
+      final errorMessage =
+          ref.read(scheduleProvider).errorMessage;
+
       AppSnackBar.showError(
-        widget.controller.errorMessage ??
-            'Unable to add schedule slot.',
+        errorMessage ?? 'Unable to add schedule slot.',
       );
     } finally {
       if (mounted) {
@@ -97,8 +95,7 @@ class _AddSlotBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final canAdd =
-        _time != null && !_isSaving;
+    final canAdd = _time != null && !_isSaving;
 
     return SafeArea(
       child: Padding(
@@ -146,11 +143,10 @@ class _AddSlotBottomSheetState
             ),
 
             AppButton(
-  width: double.infinity,
-  text: _isSaving ? 'Adding...' : 'Add Slot',
-  onPressed: canAdd ? _addSlot : null,
-),
-          
+              width: double.infinity,
+              text: _isSaving ? 'Adding...' : 'Add Slot',
+              onPressed: canAdd ? _addSlot : null,
+            ),
           ],
         ),
       ),

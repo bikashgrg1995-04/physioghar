@@ -5,6 +5,7 @@ import 'package:physioghar/common_widgets/app_card.dart';
 import 'package:physioghar/common_widgets/app_empty_state.dart';
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 import 'package:physioghar/models/session.dart';
 import 'package:physioghar/screens/dashboard/widgets/schedule_item_card.dart';
 
@@ -29,7 +30,8 @@ class DashboardSessionSection extends StatefulWidget {
 
 class _DashboardSessionSectionState
     extends State<DashboardSessionSection> {
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController =
+      ScrollController();
 
   @override
   void dispose() {
@@ -39,57 +41,75 @@ class _DashboardSessionSectionState
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = context.textTheme;
+
     return AppCard(
-      padding: const EdgeInsets.all(AppSizes.spacingMd),
+      padding: const EdgeInsets.all(
+        AppSizes.spacingMd,
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
           Text(
             widget.title,
-            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  fontSize: AppSizes.fontSizeLg,
-                  color: AppColors.ink,
-                ),
+            style: textTheme.headlineLarge?.copyWith(
+              fontSize: AppSizes.fontSizeLg,
+              color: AppColors.ink,
+            ),
           ),
 
-          const SizedBox(height: AppSizes.spacingMd),
+          const SizedBox(
+            height: AppSizes.spacingMd,
+          ),
 
           SizedBox(
             height: widget.listHeight,
             child: widget.sessions.isEmpty
-                ? 
- const AppEmptyState(
-                  title: 'No sessions',
-                  message: 'There are no sessions to show here.',
-                  icon: Icons.event_note_outlined,
-                )
+                ? const AppEmptyState(
+                    title: 'No sessions',
+                    message:
+                        'There are no sessions to show here.',
+                    icon: Icons.event_note_outlined,
+                  )
                 : Scrollbar(
                     controller: _scrollController,
                     thumbVisibility: true,
                     child: ListView.separated(
-                      key: Key('${widget.cardKeyPrefix}-list'),
+                      key: Key(
+                        '${widget.cardKeyPrefix}-list',
+                      ),
                       controller: _scrollController,
                       padding: const EdgeInsets.only(
                         right: AppSizes.spacingSm,
                       ),
-                      itemCount: widget.sessions.length,
-                      separatorBuilder: (_, _) => const SizedBox(
+                      itemCount:
+                          widget.sessions.length,
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(
                         height: AppSizes.spacingSm,
                       ),
-                      itemBuilder: (context, index) {
-                        final session = widget.sessions[index];
+                      itemBuilder: (
+                        context,
+                        index,
+                      ) {
+                        final session =
+                            widget.sessions[index];
 
                         return ScheduleItemCard(
-                          cardKey: Key(
+                          key: Key(
                             '${widget.cardKeyPrefix}-session-card-${session.id ?? index}',
                           ),
                           session: session,
                           onTap: session.id == null
                               ? null
                               : () {
-                                  Navigator.of(context).pushNamed(
+                                  Navigator.of(
+                                    context,
+                                  ).pushNamed(
                                     AppRouter.sessionDetail,
-                                    arguments: session.id,
+                                    arguments:
+                                        session.id,
                                   );
                                 },
                         );

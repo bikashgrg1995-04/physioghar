@@ -1,16 +1,11 @@
-
 import 'package:flutter/material.dart';
-
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
 
 class AppSnackBar {
   AppSnackBar._();
-
-  static final GlobalKey<ScaffoldMessengerState>
-      scaffoldMessengerKey =
+  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
       GlobalKey<ScaffoldMessengerState>();
-
   static void showSuccess(String message) {
     _show(
       message: message,
@@ -41,51 +36,33 @@ class AppSnackBar {
     required IconData icon,
   }) {
     final messenger = scaffoldMessengerKey.currentState;
-
     if (messenger == null) {
-      debugPrint(
-        'AppSnackBar: ScaffoldMessengerState is not available.',
-      );
+      debugPrint('AppSnackBar: ScaffoldMessengerState is not available.');
       return;
     }
-
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              Icon(
-                icon,
-                color: AppColors.white,
-                size: 20,
-              ),
-              const SizedBox(
-                width: AppSizes.spacingSm,
-              ),
+              Icon(icon, color: AppColors.white, size: 20),
+              const SizedBox(width: AppSizes.spacingSm),
               Expanded(
                 child: Text(
                   message,
-                  style: const TextStyle(
-                    color: AppColors.white,
-                  ),
+                  style: const TextStyle(color: AppColors.white),
                 ),
               ),
             ],
           ),
           backgroundColor: backgroundColor,
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(
-            AppSizes.spacingLg,
-          ),
+          margin: const EdgeInsets.all(AppSizes.spacingLg),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              AppSizes.cardRadius,
-            ),
+            borderRadius: BorderRadius.circular(AppSizes.cardRadius),
           ),
-          duration: const Duration(
-            seconds: 3,
-          ),
+          duration: const Duration(seconds: 3),
         ),
       );
   }

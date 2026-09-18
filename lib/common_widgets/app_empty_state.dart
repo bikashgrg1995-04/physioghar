@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:physioghar/core/constants/app_colors.dart';
 import 'package:physioghar/core/constants/app_sizes.dart';
+import 'package:physioghar/core/extensions/context_extensions.dart';
 
 class AppEmptyState extends StatelessWidget {
   const AppEmptyState({
@@ -29,7 +29,7 @@ class AppEmptyState extends StatelessWidget {
             Container(
               width: 64,
               height: 64,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.mist,
                 shape: BoxShape.circle,
               ),
@@ -39,29 +39,30 @@ class AppEmptyState extends StatelessWidget {
                 color: AppColors.inkMute,
               ),
             ),
-            const SizedBox(height: AppSizes.spacingMd),
+            const SizedBox(
+              height: AppSizes.spacingMd,
+            ),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: AppSizes.fontSizeLg,
+              style: context.textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.ink,
               ),
             ),
             if (message != null) ...[
-              const SizedBox(height: AppSizes.spacingXs),
+              const SizedBox(
+                height: AppSizes.spacingXs,
+              ),
               Text(
                 message!,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: AppSizes.fontSizeMd,
-                  color: AppColors.inkMid,
-                ),
+                style: context.textTheme.bodyMedium,
               ),
             ],
             if (action != null) ...[
-              const SizedBox(height: AppSizes.spacingLg),
+              const SizedBox(
+                height: AppSizes.spacingLg,
+              ),
               action!,
             ],
           ],

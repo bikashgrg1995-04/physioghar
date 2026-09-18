@@ -59,7 +59,8 @@ class _CompleteSessionBottomSheetState
   }
 
   bool get _canSubmit {
-    return _notesController.text.trim().isNotEmpty && !_isSubmitting;
+    return _notesController.text.trim().isNotEmpty &&
+        !_isSubmitting;
   }
 
   Future<void> _submit() async {
@@ -94,7 +95,8 @@ class _CompleteSessionBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final bottomInset =
+        MediaQuery.viewInsetsOf(context).bottom;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -114,68 +116,95 @@ class _CompleteSessionBottomSheetState
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
               _buildHandle(),
 
-              const SizedBox(height: AppSizes.spacingLg),
-
-              Text('Complete Session', style: context.textTheme.headlineLarge),
-
-              const SizedBox(height: AppSizes.spacingXs),
+              const SizedBox(
+                height: AppSizes.spacingLg,
+              ),
 
               Text(
-                widget.session.patientName ?? 'Unknown Patient',
+                'Complete Session',
+                style: context.textTheme.headlineLarge,
+              ),
+
+              const SizedBox(
+                height: AppSizes.spacingXs,
+              ),
+
+              Text(
+                widget.session.patientName ??
+                    'Unknown Patient',
                 style: context.textTheme.bodyMedium,
               ),
 
-              const SizedBox(height: AppSizes.spacingLg),
+              const SizedBox(
+                height: AppSizes.spacingLg,
+              ),
 
               Text(
                 'THERAPIST REMARKS',
-                style: context.textTheme.labelSmall?.copyWith(
+                style:
+                    context.textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.6,
                   color: AppColors.inkMid,
                 ),
               ),
 
-              const SizedBox(height: AppSizes.spacingSm),
+              const SizedBox(
+                height: AppSizes.spacingSm,
+              ),
 
               AppTextField(
                 controller: _notesController,
-                hintText: 'Write session remarks or notes...',
+                hintText:
+                    'Write session remarks or notes...',
                 prefixIcon: null,
-                keyboardType: TextInputType.multiline,
-                textInputAction: TextInputAction.newline,
+                keyboardType:
+                    TextInputType.multiline,
+                textInputAction:
+                    TextInputAction.newline,
                 maxLines: 6,
                 enabled: !_isSubmitting,
                 onChanged: (_) {
                   setState(() {});
                 },
               ),
-              const SizedBox(height: AppSizes.spacingLg),
+
+              const SizedBox(
+                height: AppSizes.spacingLg,
+              ),
 
               Row(
                 children: [
                   Expanded(
                     child: AppButton(
                       text: 'Cancel',
-                      variant: AppButtonVariant.secondary,
+                      variant:
+                          AppButtonVariant.secondary,
                       onPressed: _isSubmitting
                           ? null
                           : () {
-                              Navigator.of(context).pop();
+                              Navigator.of(context)
+                                  .pop();
                             },
                     ),
                   ),
 
-                  const SizedBox(width: AppSizes.spacingMd),
+                  const SizedBox(
+                    width: AppSizes.spacingMd,
+                  ),
 
                   Expanded(
                     child: AppButton(
-                      text: _isSubmitting ? 'Submitting...' : 'Submit',
-                      onPressed: _canSubmit ? _submit : null,
+                      text: _isSubmitting
+                          ? 'Submitting...'
+                          : 'Submit',
+                      onPressed:
+                          _canSubmit ? _submit : null,
                     ),
                   ),
                 ],
@@ -194,7 +223,9 @@ class _CompleteSessionBottomSheetState
         height: 4,
         decoration: BoxDecoration(
           color: AppColors.mist,
-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+          borderRadius: BorderRadius.circular(
+            AppSizes.buttonRadius,
+          ),
         ),
       ),
     );
