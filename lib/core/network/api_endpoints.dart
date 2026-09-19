@@ -1,8 +1,19 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  // Base URL
-  static const String baseUrl = 'http://192.168.1.69:8000/api/v1';
+  // dynaamiic  basse url
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://127.0.0.1:8000/api/v1',
+  );
+
+  // netwwork based  Base URL
+  //static const String baseUrl = 'http://192.168.1.69:8000/api/v1';
+
+
+  // production based Base URL
+  // static const String baseUrl =
+  //   'https://api.physioghar.com/api/v1';
 
   // Authentication
   static const String login = '/auth/token/';

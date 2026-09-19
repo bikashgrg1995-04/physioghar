@@ -6,7 +6,7 @@ The application uses a REST API for authentication, therapist management, schedu
 
 ---
 
-## Features
+# Features
 
 ### Dashboard
 
@@ -216,6 +216,7 @@ jwt_decoder
 
 ```text
 lib/
+
 ├── app/
 │   └── app.dart
 │
@@ -295,11 +296,29 @@ Run static analysis:
 flutter analyze
 ```
 
-Run the application:
+### Run on Local Development Environment
+
+When the Flutter application and Django API are running on the same computer:
 
 ```bash
-flutter run
+flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8000/api/v1
 ```
+
+### Run on a Physical Android Device
+
+When running the application on a physical Android device, use the computer's local IPv4 address:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://YOUR_LOCAL_IP:8000/api/v1
+```
+
+Example:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://192.168.1.100:8000/api/v1
+```
+
+Replace `192.168.1.100` with the current IPv4 address of the computer running the Django API.
 
 ---
 
@@ -307,23 +326,62 @@ flutter run
 
 The application requires a running REST API.
 
-The API base URL is configured in the Flutter project and should point to the environment where the API is running.
+The API base URL is configured using Flutter's `--dart-define` option through the `API_BASE_URL` environment variable.
 
-For local development:
+This allows the API endpoint to be changed at runtime without modifying the Flutter source code.
+
+## Local Development
+
+When running the Flutter application on the same computer as the Django backend:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8000/api/v1
+```
+
+The application falls back to the following URL when `API_BASE_URL` is not provided:
 
 ```text
 http://127.0.0.1:8000/api/v1
 ```
 
-When running the application on a physical Android device, `127.0.0.1` refers to the Android device itself. In that case, use the computer's local IPv4 address instead.
+## Physical Android Device
 
-Example:
+When running the application on a physical Android device:
 
-```text
-http://192.168.1.100:8000/api/v1
+1. Connect the Android device and development computer to the same Wi-Fi/network.
+2. Start the Django backend so it accepts connections from other devices.
+3. Find the computer's local IPv4 address.
+4. Run the Flutter application using that IP address.
+
+Start the Django backend with:
+
+```bash
+python manage.py runserver 0.0.0.0:8000
 ```
 
-Replace the example IP with the IPv4 address of the computer running the API.
+Find the computer's IPv4 address using:
+
+```powershell
+ipconfig
+```
+
+Then run Flutter:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://YOUR_LOCAL_IP:8000/api/v1
+```
+
+For example:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://192.168.1.100:8000/api/v1
+```
+
+Replace the example IP with the current IPv4 address of the computer running the Django API.
+
+The computer and Android device must be connected to the same local network for this setup.
+
+This approach allows the same Flutter source code to connect to the backend on different local Wi-Fi networks by providing the current computer IP at runtime.
 
 ---
 
@@ -332,11 +390,13 @@ Replace the example IP with the IPv4 address of the computer running the API.
 When testing the application on a physical Android device:
 
 1. Connect the Android device and development computer to the same Wi-Fi/network.
-2. Configure the Flutter API base URL using the computer's local IPv4 address.
-3. Make sure the API server is accessible from the device.
-4. Run the Flutter application on the connected Android device.
+2. Start the Django API using:
 
-On Windows, the computer's IPv4 address can be found using:
+```bash
+python manage.py runserver 0.0.0.0:8000
+```
+
+3. Find the computer's local IPv4 address:
 
 ```powershell
 ipconfig
@@ -354,9 +414,17 @@ For example:
 192.168.1.100
 ```
 
-The IP above is only an example.
+4. Run the Flutter application using the computer's IP:
 
-For local network testing, the API server should be started so that it accepts connections from other devices on the network.
+```bash
+flutter run --dart-define=API_BASE_URL=http://192.168.1.100:8000/api/v1
+```
+
+The IP above is only an example and should be replaced with the current IPv4 address of the computer.
+
+> **Note:** `127.0.0.1` refers to the device itself. Therefore, it should not be used as the API address when the Flutter application is running on a physical Android device and the Django API is running on another computer.
+
+For local network testing, the Django API server should accept connections from other devices on the network.
 
 ---
 
@@ -370,6 +438,7 @@ For local network testing, the API server should be started so that it accepts c
 * Session lifecycle changes are synchronized with the API.
 * Patient notes are persisted through the API.
 * The Add Session functionality is included for testing/demo purposes.
+* The API base URL can be configured at runtime using `--dart-define`.
 * Flutter static analysis has been completed successfully.
 
 ---
@@ -466,7 +535,7 @@ Expand English/Nepali localization and improve support for additional languages.
 
 ### Production Deployment
 
-Prepare the application for production environments with environment-specific API configuration, secure release configuration, monitoring, and deployment setup.
+Prepare the application for production environments with secure release configuration, production API deployment, monitoring, and deployment setup.
 
 ---
 
@@ -489,6 +558,7 @@ The project demonstrates:
 * Complaint management
 * Layered application architecture
 * Responsive and reusable UI components
+* Runtime API configuration using Flutter `--dart-define`
 
 ---
 
