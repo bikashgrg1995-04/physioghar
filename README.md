@@ -2,7 +2,7 @@
 
 PhysioGhar is a Flutter-based mobile application designed for physiotherapists to manage their daily schedules, appointments, patients, availability, profiles, and account activities from a single application.
 
-The application is integrated with a **Django REST API backend** for authentication, therapist management, schedule and availability management, session management, patient records, patient notes, and account-related operations.
+The application uses a REST API for authentication, therapist management, schedule and availability management, session management, patient records, patient notes, and account-related operations.
 
 ---
 
@@ -26,7 +26,7 @@ The application is integrated with a **Django REST API backend** for authenticat
 * Add schedule slots
 * Block and unblock availability
 * Delete schedule slots
-* Backend-synchronized schedule updates
+* API-synchronized schedule updates
 
 ### Session Management
 
@@ -38,7 +38,7 @@ The application is integrated with a **Django REST API backend** for authenticat
 * Complete sessions with treatment notes
 * Cancel sessions with a reason
 * Add a session for testing/demo purposes only
-* Session status transitions synchronized with the backend
+* Session status transitions synchronized with the API
 
 ### Patient Management
 
@@ -49,7 +49,7 @@ The application is integrated with a **Django REST API backend** for authenticat
 * Add patient notes
 * Edit patient notes
 * Delete patient notes
-* Persistent patient notes through the backend API
+* Persistent patient notes through the API
 
 ### Profile & Account
 
@@ -66,8 +66,6 @@ The application is integrated with a **Django REST API backend** for authenticat
 
 # Tech Stack
 
-## Frontend
-
 * **Flutter:** 3.47.2
 * **Dart:** 3.13.2
 * **State Management:** `flutter_riverpod`
@@ -76,16 +74,6 @@ The application is integrated with a **Django REST API backend** for authenticat
 * **Secure Token Storage:** Flutter Secure Storage
 * **UI & Typography:** Google Fonts
 * **Image Selection:** Image Picker
-
-## Backend
-
-* **Python:** 3.14.7
-* **Django:** 6.1.1
-* **Django REST Framework:** 3.18.1
-* **JWT Authentication:** djangorestframework-simplejwt 5.5.1
-* **Database:** SQLite / PostgreSQL compatible configuration
-* **CORS:** django-cors-headers
-* **Filtering:** django-filter
 
 ---
 
@@ -110,7 +98,7 @@ flutter_slidable: ^4.0.3
 
 # Architecture
 
-The application follows a layered architecture to separate UI, state management, data access, API communication, and backend responsibilities.
+The application follows a layered architecture to keep UI, state management, data access, and API communication separated.
 
 ```text
 UI / Screens
@@ -122,10 +110,6 @@ Repositories
 Services
      ↓
 Dio / REST API
-     ↓
-Django REST Framework
-     ↓
-Database
 ```
 
 ### Main Layers
@@ -145,15 +129,11 @@ Database
 
 **Services**
 
-* Handle HTTP communication with the Django REST API.
+* Handle HTTP communication with the REST API.
 
 **Dio**
 
 * Handles API requests and responses.
-
-**Django REST API**
-
-* Handles authentication, business logic, validation, persistence, and database operations.
 
 ---
 
@@ -179,7 +159,7 @@ The providers handle:
 * API errors
 * Selected data
 * Form-related state
-* Backend-driven state changes
+* API-driven state changes
 
 The application was migrated from the previous controller-based implementation to Riverpod-based state management.
 
@@ -187,9 +167,9 @@ The application was migrated from the previous controller-based implementation t
 
 # API Integration
 
-The Flutter application communicates with the Django REST API using **Dio**.
+The Flutter application communicates with the REST API using **Dio**.
 
-The API handles:
+The API integration covers:
 
 * Authentication
 * JWT token management
@@ -202,7 +182,7 @@ The API handles:
 * Account-related operations
 * Complaint submission
 
-The application uses real backend API integration rather than static/mock application data.
+The application uses real API integration rather than static/mock application data.
 
 ---
 
@@ -275,40 +255,6 @@ lib/
 
 ---
 
-# Backend
-
-The backend is maintained as a separate Django REST API project.
-
-**Backend repository:**
-
-https://github.com/bikashgrg1995-04/physioghar-backend
-
-The backend provides the APIs required by the Flutter therapist application.
-
----
-
-# Backend Dependencies
-
-The Django backend uses the following packages:
-
-```text
-asgiref==3.12.1
-Django==6.1.1
-django-cors-headers==4.9.0
-django-filter==26.1
-djangorestframework==3.18.1
-djangorestframework-simplejwt==5.5.1
-pillow==12.3.0
-psycopg==3.3.5
-psycopg-binary==3.3.5
-PyJWT==2.14.0
-python-dotenv==1.2.3
-sqlparse==0.6.0
-tzdata==2026.4
-```
-
----
-
 # Getting Started
 
 ## Prerequisites
@@ -319,17 +265,16 @@ Make sure the following are installed:
 * Dart SDK 3.13.2
 * Android Studio
 * Android SDK
-* Python 3.12+
 * Git
 
 ---
 
-# Running the Flutter Application
+# Running the Application
 
 Clone the repository:
 
 ```bash
-git clone https://github.com/bikashgrg1995-04/physioghar.git
+git clone <FRONTEND_REPOSITORY_URL>
 ```
 
 Navigate to the project:
@@ -358,65 +303,46 @@ flutter run
 
 ---
 
-# Running the Django Backend
+# API Configuration
 
-Clone the backend repository:
+The application requires a running REST API.
 
-```bash
-git clone https://github.com/bikashgrg1995-04/physioghar-backend.git
+The API base URL is configured in the Flutter project and should point to the environment where the API is running.
+
+For local development:
+
+```text
+http://127.0.0.1:8000/api/v1
 ```
 
-Navigate to the backend project:
+When running the application on a physical Android device, `127.0.0.1` refers to the Android device itself. In that case, use the computer's local IPv4 address instead.
 
-```bash
-cd physioghar-backend
+Example:
+
+```text
+http://192.168.1.100:8000/api/v1
 ```
 
-Create a virtual environment:
-
-```bash
-python -m venv venv
-```
-
-Activate the virtual environment on Windows:
-
-```powershell
-venv\Scripts\activate
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Apply database migrations:
-
-```bash
-python manage.py migrate
-```
-
-Start the development server:
-
-```bash
-python manage.py runserver
-```
+Replace the example IP with the IPv4 address of the computer running the API.
 
 ---
 
 # Physical Android Device Setup
 
-When testing the Flutter application on a physical Android device, the phone and the computer running the Django server must be connected to the **same local network**.
+When testing the application on a physical Android device:
 
-## 1. Find the Computer's IPv4 Address
+1. Connect the Android device and development computer to the same Wi-Fi/network.
+2. Configure the Flutter API base URL using the computer's local IPv4 address.
+3. Make sure the API server is accessible from the device.
+4. Run the Flutter application on the connected Android device.
 
-On Windows, run:
+On Windows, the computer's IPv4 address can be found using:
 
 ```powershell
 ipconfig
 ```
 
-Find the active network adapter and locate:
+Look for the active network adapter's:
 
 ```text
 IPv4 Address
@@ -428,75 +354,21 @@ For example:
 192.168.1.100
 ```
 
-The IP address above is only an example.
+The IP above is only an example.
 
----
-
-## 2. Configure the Flutter API URL
-
-Open the Flutter project's API/environment configuration and replace the local host address with the computer's IPv4 address.
-
-Example:
-
-```text
-http://192.168.1.100:8000/api/v1/
-```
-
-Replace `192.168.1.100` with the IPv4 address of the computer running the Django server.
-
----
-
-## 3. Start Django for Network Access
-
-Instead of running the default local-only server, use:
-
-```bash
-python manage.py runserver 0.0.0.0:8000
-```
-
-This allows devices on the same local network to connect to the Django development server.
-
----
-
-## 4. Configure Django Allowed Hosts
-
-Add the development computer's local IP address to the appropriate Django settings.
-
-Example:
-
-```python
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    "192.168.1.100",
-]
-```
-
-Replace the example IP with the actual IPv4 address of the development computer.
-
-If CORS restrictions are enabled, configure the required development origins according to the environment.
-
----
-
-## 5. Network Requirements
-
-* The physical Android device and development computer must be connected to the same Wi-Fi/network.
-* The Django server must listen on `0.0.0.0`.
-* Port `8000` must be accessible through the computer's firewall.
-* The computer's IPv4 address may change when connecting to another network.
-* For production deployment, use a deployed API URL instead of a local IPv4 address.
+For local network testing, the API server should be started so that it accepts connections from other devices on the network.
 
 ---
 
 # Development Notes
 
-* The application uses a real Django REST API rather than static/mock application data.
+* The application uses a real REST API rather than static/mock application data.
 * JWT authentication is used for protected API requests.
 * Riverpod manages application state and API-driven state changes.
 * Loading, updating, error, and empty states are handled throughout the application.
-* Schedule changes are synchronized with the backend.
-* Session lifecycle changes are synchronized with the backend.
-* Patient notes are persisted through the backend API.
+* Schedule changes are synchronized with the API.
+* Session lifecycle changes are synchronized with the API.
+* Patient notes are persisted through the API.
 * The Add Session functionality is included for testing/demo purposes.
 * Flutter static analysis has been completed successfully.
 
@@ -527,6 +399,7 @@ The main application flows were also tested during development, including:
 * Profile management
 * Complaint submission
 * API communication
+* Physical Android device API connectivity
 
 ---
 
@@ -572,7 +445,6 @@ Expand automated:
 * Unit tests
 * Widget tests
 * Integration tests
-* Backend API tests
 
 ### CI/CD
 
@@ -592,9 +464,9 @@ Provide therapist analytics and treatment progress reports.
 
 Expand English/Nepali localization and improve support for additional languages.
 
-### Production Infrastructure
+### Production Deployment
 
-Deploy the Django REST API using production-ready infrastructure, database configuration, security settings, logging, monitoring, and environment-based configuration.
+Prepare the application for production environments with environment-specific API configuration, secure release configuration, monitoring, and deployment setup.
 
 ---
 
@@ -607,7 +479,6 @@ The project demonstrates:
 * Flutter application development
 * `flutter_riverpod` state management
 * REST API integration
-* Django REST API backend integration
 * JWT authentication
 * Secure token storage
 * Schedule and availability management
